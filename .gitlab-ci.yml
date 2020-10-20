@@ -55,6 +55,7 @@ test-code:
     only:
         - merge_requests
     script:
+        - if [ -z "$CMS_SERVICE_USER" ]; then echo "No user defined, skipping tests"; exit 0; fi
         - source ci_untar_cmssw.sh
         - ci_kinit.sh
         - scp ${CMS_SERVICE_USER}@lxplus:/eos/cms/store/group/phys_muon/MuonPOGIntegration/rootfiles/UL18/events_MINIAOD_SingleMuon_numEvent100.root .
