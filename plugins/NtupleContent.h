@@ -18,7 +18,7 @@ class NtupleContent {
   virtual ~NtupleContent();
   void SetTree(TTree *t1);
   void CreateBranches(const std::vector<std::string> &);
-  void CreateExtraTrgBranches(const std::vector<std::string> &);
+  void CreateExtraTrgBranches(const std::vector<std::string> &, bool);
   void ClearBranches();
 
   // Standard stuff
@@ -47,16 +47,28 @@ class NtupleContent {
   int iprobe;
 
   // Triggers
-  bool trigger[10];
+  static const int NTRIGGERMAX = 100;
+  bool trigger[NTRIGGERMAX];
+  std::vector<TString> trg_filter;
   std::vector<float> trg_pt;
   std::vector<float> trg_eta;
   std::vector<float> trg_phi;
 
+  std::vector<TString> prb_filter;
   std::vector<float> prb_pt;
   std::vector<float> prb_eta;
   std::vector<float> prb_phi;
-  // Triggers - probe
-  bool probe_trg[10] = {false};
+
+  // Trigger matches
+  bool tag_trg[NTRIGGERMAX];
+  bool probe_trg[NTRIGGERMAX];
+
+  float l1pt;
+  int l1q;
+  float l1dr;
+  float l1ptByQ;
+  int l1qByQ;
+  float l1drByQ;
 
   float genmu1_pt;
   float genmu1_eta;
@@ -76,6 +88,13 @@ class NtupleContent {
   bool tag_isHighPt;
   float tag_relIso04;
   bool tag_isMatchedGen;
+  float tag_iso03_sumPt;
+  float tag_pfIso04_charged;
+  float tag_pfIso04_neutral;
+  float tag_pfIso04_photon;
+  float tag_pfIso04_sumPU;
+  float tag_tuneP_pt;
+  float tag_tuneP_pterr;
 
   // Probe properties
   float probe_pt;
@@ -113,6 +132,20 @@ class NtupleContent {
   float probe_pterr;
   float probe_dxy;
   float probe_dz;
+  float probe_iso03_sumPt;
+  float probe_pfIso04_charged;
+  float probe_pfIso04_neutral;
+  float probe_pfIso04_photon;
+  float probe_pfIso04_sumPU;
+  int probe_pixelHits;
+  int probe_matchedStations;
+  int probe_expectedMatchedStations;
+  int probe_RPCLayers;
+  unsigned int probe_stationMask;
+  int probe_nShowers;
+  float probe_tuneP_pt;
+  float probe_tuneP_pterr;
+  int probe_tuneP_muonHits;
 
   float probe_dsa_pt;
   float probe_dsa_eta;

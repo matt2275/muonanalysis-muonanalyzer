@@ -33,6 +33,19 @@ inline void FillTagBranches(const MUON &muon, const std::vector<TRK> &tracks,
       (TrackerEnergy04<TRK>(muon.eta(), muon.phi(), tracks) - muon.pt()) /
       muon.pt();
   nt.tag_relIso04 = (iso04 > 0) ? iso04 : 0;
+  nt.tag_iso03_sumPt = muon.isolationR03().sumPt;
+  nt.tag_pfIso04_charged = muon.pfIsolationR04().sumChargedHadronPt;
+  nt.tag_pfIso04_neutral = muon.pfIsolationR04().sumNeutralHadronEt;
+  nt.tag_pfIso04_photon = muon.pfIsolationR04().sumPhotonEt;
+  nt.tag_pfIso04_sumPU = muon.pfIsolationR04().sumPUPt;
+  if( muon.tunePMuonBestTrack().isNonnull() ) {
+    nt.tag_tuneP_pt = muon.tunePMuonBestTrack()->pt();
+    nt.tag_tuneP_pterr = muon.tunePMuonBestTrack()->ptError();
+  }
+  else {
+    nt.tag_tuneP_pt = -99.;
+    nt.tag_tuneP_pterr = -99.;
+  }
 }
 
 template <typename MUON, typename TRK>
@@ -55,6 +68,16 @@ inline void FillProbeBranches(const MUON &mu, const std::vector<TRK> &tracks,
     nt.probe_isSA = mu.isStandAloneMuon();
     nt.probe_isTracker = mu.isTrackerMuon();
     nt.probe_isGlobal = mu.isGlobalMuon();
+    nt.probe_iso03_sumPt = mu.isolationR03().sumPt;
+    nt.probe_pfIso04_charged = mu.pfIsolationR04().sumChargedHadronPt;
+    nt.probe_pfIso04_neutral = mu.pfIsolationR04().sumNeutralHadronEt;
+    nt.probe_pfIso04_photon = mu.pfIsolationR04().sumPhotonEt;
+    nt.probe_pfIso04_sumPU = mu.pfIsolationR04().sumPUPt;
+    nt.probe_matchedStations = mu.numberOfMatchedStations();
+    nt.probe_expectedMatchedStations = mu.expectedNnumberOfMatchedStations();
+    nt.probe_RPCLayers = mu.numberOfMatchedRPCLayers();
+    nt.probe_stationMask = mu.stationMask();
+    nt.probe_nShowers = mu.numberOfShowers();
     if (mu.globalTrack().isNonnull())
       nt.probe_trkChi2 = mu.globalTrack()->normalizedChi2();
     else
@@ -69,12 +92,14 @@ inline void FillProbeBranches(const MUON &mu, const std::vector<TRK> &tracks,
           reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
       nt.probe_dz = mu.innerTrack()->dz(
           reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
+      nt.probe_pixelHits = mu.innerTrack()->hitPattern().numberOfValidPixelHits();
     } else {
       nt.probe_validFraction = -99;
       nt.probe_trackerLayers = -99;
       nt.probe_pixelLayers = -99;
       nt.probe_dxy = -99;
       nt.probe_dz = -99;
+      nt.probe_pixelHits = -99;
     }
     if (mu.outerTrack().isNonnull() && mu.outerTrack().isAvailable()) {
       nt.probe_muonStations =
@@ -88,6 +113,15 @@ inline void FillProbeBranches(const MUON &mu, const std::vector<TRK> &tracks,
       nt.probe_muonHits = -99;
       nt.probe_DTHits = -99;
       nt.probe_CSCHits = -99;
+    }
+    if( mu.tunePMuonBestTrack().isNonnull() ) {
+      nt.probe_tuneP_pt = mu.tunePMuonBestTrack()->pt();
+      nt.probe_tuneP_pterr = mu.tunePMuonBestTrack()->ptError();
+      nt.probe_tuneP_muonHits = mu.tunePMuonBestTrack()->hitPattern().numberOfValidMuonHits();
+    } else {
+      nt.probe_tuneP_pt = -99;
+      nt.probe_tuneP_pterr = -99;
+      nt.probe_tuneP_muonHits = -99;
     }
     nt.probe_positionChi2 = mu.combinedQuality().chi2LocalPosition;
     nt.probe_trkKink = mu.combinedQuality().trkKink;
@@ -119,6 +153,26 @@ inline void FillProbeBranches(const MUON &mu, const std::vector<TRK> &tracks,
     nt.probe_DTHits = -99;
     nt.probe_CSCHits = -99;
     nt.probe_pterr = -99;
+    nt.probe_iso03_sumPt = -99;
+    nt.probe_pfIso04_charged = -99;
+    nt.probe_pfIso04_neutral = -99;
+    nt.probe_pfIso04_photon = -99;
+    nt.probe_pfIso04_sumPU = -99;
+    nt.probe_pixelHits = -99;
+    nt.probe_matchedStations = -99;
+    nt.probe_expectedMatchedStations = -99;
+    nt.probe_RPCLayers = -99;
+    nt.probe_stationMask = 0;
+    nt.probe_nShowers = -99;
+    nt.probe_tuneP_pt = -99;
+    nt.probe_tuneP_pterr = -99;
+    nt.probe_tuneP_muonHits = -99;
+    nt.l1pt = -99;
+    nt.l1q = -99;
+    nt.l1dr = -99;
+    nt.l1ptByQ = -99;
+    nt.l1qByQ = -99;
+    nt.l1drByQ = -99;
   }
 }
 
