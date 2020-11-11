@@ -14,6 +14,11 @@ def muonAnalysis_customizeFullAOD_JPsi(process):
    process.muSequence = cms.Sequence(process.fullAODSequence)
    return process
 
+def muonAnalysis_customizeMiniAOD_Z(process):
+   process.load("MuonAnalysis.MuonAnalyzer.miniAOD_Z_cff")
+   process.muSequence = cms.Sequence(process.miniAODSequence)
+   return process
+
 def muonAnalysis_customizeMiniAOD(process):
    process.load("MuonAnalysis.MuonAnalyzer.miniAOD_cff")
    process.muSequence = cms.Sequence(process.miniAODSequence)

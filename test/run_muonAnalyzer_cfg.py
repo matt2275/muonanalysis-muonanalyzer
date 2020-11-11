@@ -95,6 +95,7 @@ process.load("FWCore.MessageService.MessageLogger_cfi")
 process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("TrackingTools/TransientTrack/TransientTrackBuilder_cfi")
+process.load("Configuration.StandardSequences.Reconstruction_cff")
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 
 process.MessageLogger.cerr.FwkReport.reportEvery = options.reportEvery
@@ -119,8 +120,25 @@ process.options = cms.untracked.PSet(
     numberOfThreads = cms.untracked.uint32(options.numThreads)
 )
 
+# Trigger matching
+muonSrc = "muons" if options.isFullAOD else "slimmedMuons"
+from MuonAnalysis.MuonAssociators.muonL1Match_cfi import muonL1Match as _muonL1Match
+process.muonL1Info = _muonL1Match.clone(
+    src = cms.InputTag(muonSrc),
+    useMB2InOverlap = cms.bool(True),
+    useStage2L1 = cms.bool(True),
+    preselection = cms.string(""),
+    matched = cms.InputTag("gmtStage2Digis:Muon:")
+)
+process.muonL1InfoByQ = process.muonL1Info.clone(
+    sortBy = cms.string("quality"),
+    sortByQuality  = cms.bool(True),
+    sortByDeltaPhi = cms.bool(False),
+    sortByDeltaEta = cms.bool(False),
+    sortByPt       = cms.bool(False)
+)
+
 from MuonAnalysis.MuonAnalyzer.tools.ntuple_tools import *
-#process.load("MuonAnalysis.MuonAnalyzer.muonAnalysis_cff")
 if options.isFullAOD:
     if options.resonance == 'Z':
         process = muonAnalysis_customizeFullAOD_Z(process)
@@ -128,21 +146,29 @@ if options.isFullAOD:
         process = muonAnalysis_customizeFullAOD_JPsi(process)
     process.muon.isMC = options.isMC
 else:
-    process = muonAnalysis_customizeMiniAOD(process)
+    if options.resonance == 'Z':
+        process = muonAnalysis_customizeMiniAOD_Z(process)
+    else:
+        process = muonAnalysis_customizeMiniAOD(process)
 
-process.analysis_step = cms.Path(process.muSequence)
-
+process.analysis_step = cms.Path(
+    process.muonL1Info +
+    process.muonL1InfoByQ +
+    process.muSequence
+)
 
 process.TFileService = cms.Service("TFileService",
                                    fileName = cms.string(options.outputFile)
  )
 process.endjob_step = cms.EndPath(process.endOfProcess)
-process.fevt = cms.OutputModule("PoolOutputModule",
-    outputCommands = cms.untracked.vstring(),
-    fileName = cms.untracked.string("edm_output.root")
-)
 
+# process.fevt = cms.OutputModule("PoolOutputModule",
+#     outputCommands = cms.untracked.vstring(),
+#     fileName = cms.untracked.string("edm_output.root")
+# )
+
+process.schedule = cms.Schedule(process.analysis_step, process.endjob_step)
 
 from Configuration.StandardSequences.earlyDeleteSettings_cff import customiseEarlyDelete
 process = customiseEarlyDelete(process)
-   
+

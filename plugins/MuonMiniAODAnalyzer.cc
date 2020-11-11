@@ -21,6 +21,9 @@
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
 
 #include "DataFormats/Common/interface/Handle.h"
+#include "DataFormats/Common/interface/Association.h"
+#include "DataFormats/Common/interface/AssociationMap.h"
+#include "DataFormats/Common/interface/RefToPtr.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ConfigurationDescriptions.h"
@@ -41,6 +44,8 @@
 
 #include "DataFormats/HLTReco/interface/TriggerEvent.h"
 #include "DataFormats/HLTReco/interface/TriggerObject.h"
+#include "DataFormats/L1Trigger/interface/Muon.h"
+#include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
 #include "DataFormats/Math/interface/deltaR.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -92,18 +97,28 @@ class MuonMiniAODAnalyzer
  private:
   void beginJob() override;
   bool HLTaccept(const edm::Event&, NtupleContent&, std::vector<std::string>&);
+  void embedTriggerMatching(const edm::Event&, edm::Handle<edm::TriggerResults>&,
+                            const pat::Muon&, NtupleContent&, std::vector<std::string>&, bool);
   void analyze(const edm::Event&, const edm::EventSetup&) override;
   void endJob() override;
 
   edm::EDGetTokenT<reco::BeamSpot> beamSpotToken_;
   edm::EDGetTokenT<std::vector<reco::Vertex>> vtxToken_;
   edm::EDGetToken muonsToken_;
+  edm::EDGetTokenT<edm::View<reco::Muon>> muonsViewToken_;
   edm::EDGetToken PFCands_;
   edm::EDGetToken LostTracks_;
   edm::EDGetTokenT<edm::TriggerResults> trgresultsToken_;
+  edm::EDGetTokenT<pat::TriggerObjectStandAloneMatch> l1MatchesToken_;
+  edm::EDGetTokenT<edm::ValueMap<int>> l1MatchesQualityToken_;
+  edm::EDGetTokenT<edm::ValueMap<float>> l1MatchesDeltaRToken_;
+  edm::EDGetTokenT<pat::TriggerObjectStandAloneMatch> l1MatchesByQToken_;
+  edm::EDGetTokenT<edm::ValueMap<int>> l1MatchesByQQualityToken_;
+  edm::EDGetTokenT<edm::ValueMap<float>> l1MatchesByQDeltaRToken_;
   edm::EDGetTokenT<edm::View<reco::GenParticle>> genToken_;
   std::vector<std::string> HLTPaths_;
-  std::vector<std::string> ProbePaths_;
+  std::vector<std::string> TagPathsOrFilters_;
+  std::vector<std::string> ProbePathsOrFilters_;
   const unsigned int tagQual_;
   const StringCutObjectSelector<pat::Muon>
       tagSelection_;  // kinematic cuts for tag
@@ -149,16 +164,31 @@ MuonMiniAODAnalyzer::MuonMiniAODAnalyzer(const edm::ParameterSet& iConfig)
           iConfig.getParameter<edm::InputTag>("vertices"))),
       muonsToken_(consumes<std::vector<pat::Muon>>(
           iConfig.getParameter<edm::InputTag>("muons"))),
+      muonsViewToken_(consumes< edm::View<reco::Muon> >(
+          iConfig.getParameter<edm::InputTag>("muons"))),
       PFCands_(consumes<std::vector<pat::PackedCandidate>>(
           iConfig.getParameter<edm::InputTag>("PFCands"))),
       LostTracks_(consumes<std::vector<pat::PackedCandidate>>(
           iConfig.getParameter<edm::InputTag>("lostTracks"))),
       trgresultsToken_(consumes<edm::TriggerResults>(
           iConfig.getParameter<edm::InputTag>("triggerResults"))),
+      l1MatchesToken_(consumes<pat::TriggerObjectStandAloneMatch>(
+          iConfig.getParameter<edm::InputTag>("l1Matches"))),
+      l1MatchesQualityToken_(consumes<edm::ValueMap<int>>(
+          iConfig.getParameter<edm::InputTag>("l1MatchesQuality"))),
+      l1MatchesDeltaRToken_(consumes<edm::ValueMap<float>>(
+          iConfig.getParameter<edm::InputTag>("l1MatchesDeltaR"))),
+      l1MatchesByQToken_(consumes<pat::TriggerObjectStandAloneMatch>(
+          iConfig.getParameter<edm::InputTag>("l1MatchesByQ"))),
+      l1MatchesByQQualityToken_(consumes<edm::ValueMap<int>>(
+          iConfig.getParameter<edm::InputTag>("l1MatchesByQQuality"))),
+      l1MatchesByQDeltaRToken_(consumes<edm::ValueMap<float>>(
+          iConfig.getParameter<edm::InputTag>("l1MatchesByQDeltaR"))),
       genToken_(consumes<edm::View<reco::GenParticle>>(
           iConfig.getParameter<edm::InputTag>("gen"))),
       HLTPaths_(iConfig.getParameter<std::vector<std::string>>("HLTPaths")),
-      ProbePaths_(iConfig.getParameter<std::vector<std::string>>("ProbePaths")),
+      TagPathsOrFilters_(iConfig.getParameter<std::vector<std::string>>("TagPathsOrFilters")),
+      ProbePathsOrFilters_(iConfig.getParameter<std::vector<std::string>>("ProbePathsOrFilters")),
       tagQual_(iConfig.getParameter<unsigned>("tagQuality")),
       tagSelection_(iConfig.getParameter<std::string>("tagSelection")),
       HighPurity_(iConfig.getParameter<bool>("ProbeHPurity")),
@@ -210,6 +240,52 @@ bool MuonMiniAODAnalyzer::HLTaccept(const edm::Event& iEvent, NtupleContent& nt,
   }
   return EvtFire;
 }
+
+void MuonMiniAODAnalyzer::embedTriggerMatching(
+  const edm::Event& iEvent,
+  edm::Handle<edm::TriggerResults>& trigResults,
+  const pat::Muon& mu,
+  NtupleContent& nt,
+  std::vector<std::string>& Triggers,
+  bool isTag
+) {
+  for( const auto& trg: Triggers ) {
+    TString trg_tstr = TString(trg);
+    bool matched = false;
+    for( auto trigobj: mu.triggerObjectMatches() ) {
+      trigobj.unpackNamesAndLabels(iEvent, *trigResults);
+
+      // check path names
+      if(trg_tstr.Contains("HLT_")) {
+        for( auto path: trigobj.pathNames( true, true ) ) {
+          TString path_tstr = TString(path);
+          if( path_tstr.Contains(trg_tstr) ) {
+            matched = true;
+            break;
+          }
+        }
+      }
+      // check filters
+      else {
+        for( auto filter: trigobj.filterLabels() ) {
+          TString filter_tstr = TString(filter);
+          if( filter_tstr.Contains(trg_tstr) ) {
+            matched = true;
+            break;
+          }
+        }
+      }
+
+      if(matched)
+        break;
+    }
+
+    if(isTag)  nt.tag_trg[&trg-&Triggers[0]]   = matched;
+    else       nt.probe_trg[&trg-&Triggers[0]] = matched;
+  }
+
+  return;
+}
 // ------------ method called for each event  ------------
 
 void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent,
@@ -223,12 +299,29 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent,
   if (vertices->empty()) return;
   edm::Handle<std::vector<pat::Muon>> muons;
   iEvent.getByToken(muonsToken_, muons);
+  edm::Handle< edm::View<reco::Muon> > muonsView;
+  iEvent.getByToken(muonsViewToken_, muonsView);
   edm::Handle<std::vector<pat::PackedCandidate>> pfcands;
   iEvent.getByToken(PFCands_, pfcands);
   edm::Handle<std::vector<pat::PackedCandidate>> lostTracks;
   iEvent.getByToken(LostTracks_, lostTracks);
   edm::ESHandle<MagneticField> bField;
   iSetup.get<IdealMagneticFieldRecord>().get(bField);
+
+  edm::Handle<edm::TriggerResults> trigResults;
+  iEvent.getByToken(trgresultsToken_, trigResults);
+  edm::Handle<pat::TriggerObjectStandAloneMatch> l1Matches;
+  iEvent.getByToken(l1MatchesToken_, l1Matches);
+  edm::Handle<edm::ValueMap<int> > l1Qualities;
+  iEvent.getByToken(l1MatchesQualityToken_, l1Qualities);
+  edm::Handle<edm::ValueMap<float> > l1Drs;
+  iEvent.getByToken(l1MatchesDeltaRToken_, l1Drs);
+  edm::Handle<pat::TriggerObjectStandAloneMatch> l1MatchesByQ;
+  iEvent.getByToken(l1MatchesByQToken_, l1MatchesByQ);
+  edm::Handle<edm::ValueMap<int> > l1QualitiesByQ;
+  iEvent.getByToken(l1MatchesByQQualityToken_, l1QualitiesByQ);
+  edm::Handle<edm::ValueMap<float> > l1DrsByQ;
+  iEvent.getByToken(l1MatchesByQDeltaRToken_, l1DrsByQ);
 
   // Information about run
   nt.ClearBranches();
@@ -272,7 +365,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent,
   RecoTrkAndTransientTrkCollection tag_muon_ttrack;
   std::vector<bool> genmatched_tag;
   for (const pat::Muon& mu : *muons) {
-    if (mu.passed(pow(2, tagQual_))) continue;
+    if (!mu.passed(pow(2, tagQual_))) continue;
     bool fired = false;
     for (const std::string path : HLTPaths_) {
       char cstr[(path + "*").size() + 1];
@@ -359,6 +452,9 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent,
       FillTagBranches<pat::Muon, pat::PackedCandidate>(tag.first, tracks, nt);
       nt.tag_isMatchedGen = genmatched_tag[&tag - &tag_muon_ttrack[0]];
 
+      // Tag-trigger matching
+      embedTriggerMatching(iEvent, trigResults, tag.first, nt, TagPathsOrFilters_, true);
+
       std::vector<unsigned>::iterator it =
           std::find(trk_muon_map.first.begin(), trk_muon_map.first.end(),
                     &probe - &tracks[0]);
@@ -366,19 +462,31 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent,
         unsigned idx = std::distance(trk_muon_map.first.begin(), it);
         FillProbeBranches<pat::Muon, pat::PackedCandidate>(
             muons->at(trk_muon_map.second[idx]), tracks, nt, true);
-        /*  for ( const std::string path: ProbePaths_){
-           char cstr[ (path+"*").size() + 1];
-           strcpy( cstr, (path+"*").c_str() );
-           nt.probe_trg[&path-&ProbePaths_[0]]=muons->at(trk_muon_map.second[idx]).triggered(cstr);
-         }*/
 
+        // Probe-trigger matching
+        auto muRef = muonsView->refAt(trk_muon_map.second[idx]);
+        pat::TriggerObjectStandAloneRef l1Match = (*l1Matches)[muRef];
+        if( l1Match.isNonnull() ){
+          nt.l1pt = l1Match->pt();
+          nt.l1q = (*l1Qualities)[muRef];
+          nt.l1dr = (*l1Drs)[muRef];
+        }
+
+        pat::TriggerObjectStandAloneRef l1MatchByQ = (*l1MatchesByQ)[muRef];
+        if( l1MatchByQ.isNonnull() ){
+          nt.l1ptByQ = l1MatchByQ->pt();
+          nt.l1qByQ = (*l1QualitiesByQ)[muRef];
+          nt.l1drByQ = (*l1DrsByQ)[muRef];
+        }
+
+        embedTriggerMatching(iEvent, trigResults, muons->at(trk_muon_map.second[idx]), nt, ProbePathsOrFilters_, false);
       } else {
         reco::Muon fakeMuon;
         fakeMuon.setP4(mu2);
-        FillProbeBranches<reco::Muon, pat::PackedCandidate>(fakeMuon, tracks,
-                                                            nt, false);
-        //  for ( const std::string path: ProbePaths_)
-        //  nt.probe_trg[&path-&ProbePaths_[0]]=false;
+        FillProbeBranches<reco::Muon, pat::PackedCandidate>(fakeMuon, tracks, nt, false);
+        for( const auto& path: ProbePathsOrFilters_ ) {
+          nt.probe_trg[&path-&ProbePathsOrFilters_[0]] = false;
+        }
       }
       nt.iprobe++;
       nt.probe_isHighPurity = probe.trackHighPurity();
@@ -388,6 +496,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent,
         nt.probe_isMatchedGen = true;
       else
         nt.probe_isMatchedGen = false;
+      vtx.fillNtuple(nt);
       t1->Fill();
     }
   }
@@ -399,7 +508,8 @@ void MuonMiniAODAnalyzer::beginJob() {
   t1 = fs->make<TTree>("tree", "tree");
   nt.SetTree(t1);
   nt.CreateBranches(HLTPaths_);
-  // if (ProbePaths_.size()>0) nt.CreateExtraTrgBranches(ProbePaths_);
+  if( !TagPathsOrFilters_.empty() )    nt.CreateExtraTrgBranches(TagPathsOrFilters_, true );
+  if( !ProbePathsOrFilters_.empty() )  nt.CreateExtraTrgBranches(ProbePathsOrFilters_, false );
 }
 
 // ------------ method called once each job just after ending the event loop

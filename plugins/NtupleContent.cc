@@ -43,6 +43,13 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs) {
   t1->Branch("tag_isHighPt", &tag_isHighPt);
   t1->Branch("tag_relIso04", &tag_relIso04);
   t1->Branch("tag_isMatchedGen", &tag_isMatchedGen);
+  t1->Branch("tag_iso03_sumPt", &tag_iso03_sumPt);
+  t1->Branch("tag_pfIso04_charged", &tag_pfIso04_charged);
+  t1->Branch("tag_pfIso04_neutral", &tag_pfIso04_neutral);
+  t1->Branch("tag_pfIso04_photon", &tag_pfIso04_photon);
+  t1->Branch("tag_pfIso04_sumPU", &tag_pfIso04_sumPU);
+  t1->Branch("tag_tuneP_pt", &tag_tuneP_pt);
+  t1->Branch("tag_tuneP_pterr", &tag_tuneP_pterr);
   // Probe specific
   t1->Branch("iprobe", &iprobe);
   t1->Branch("probe_pt", &probe_pt);
@@ -79,6 +86,27 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs) {
   t1->Branch("probe_dz", &probe_dz);
   t1->Branch("probe_relIso04", &probe_relIso04);
   t1->Branch("probe_isMatchedGen", &probe_isMatchedGen);
+  t1->Branch("probe_iso03_sumPt", &probe_iso03_sumPt);
+  t1->Branch("probe_pfIso04_charged", &probe_pfIso04_charged);
+  t1->Branch("probe_pfIso04_neutral", &probe_pfIso04_neutral);
+  t1->Branch("probe_pfIso04_photon", &probe_pfIso04_photon);
+  t1->Branch("probe_pfIso04_sumPU", &probe_pfIso04_sumPU);
+  t1->Branch("probe_pixelHits", &probe_pixelHits);
+  t1->Branch("probe_matchedStations", &probe_matchedStations);
+  t1->Branch("probe_expectedMatchedStations", &probe_expectedMatchedStations);
+  t1->Branch("probe_RPCLayers", &probe_RPCLayers);
+  t1->Branch("probe_stationMask", &probe_stationMask);
+  t1->Branch("probe_nShowers", &probe_nShowers);
+  t1->Branch("probe_tuneP_pt", &probe_tuneP_pt);
+  t1->Branch("probe_tuneP_pterr", &probe_tuneP_pterr);
+  t1->Branch("probe_tuneP_muonHits", &probe_tuneP_muonHits);
+  t1->Branch("l1pt", &l1pt);
+  t1->Branch("l1q", &l1q);
+  t1->Branch("l1dr", &l1dr);
+  t1->Branch("l1ptByQ", &l1ptByQ);
+  t1->Branch("l1qByQ", &l1qByQ);
+  t1->Branch("l1drByQ", &l1drByQ);
+
   t1->Branch("probe_dsa_muonStations", &probe_dsa_muonStations);
   t1->Branch("probe_dsa_muonHits", &probe_dsa_muonHits);
   t1->Branch("probe_dsa_DTHits", &probe_dsa_DTHits);
@@ -100,10 +128,11 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs) {
   t1->Branch("pair_dz", &pair_dz);
 }
 
-void NtupleContent::CreateExtraTrgBranches(
-    const std::vector<std::string> &HLTs) {
-  for (unsigned int ihlt = 0; ihlt < HLTs.size(); ihlt++)
-    t1->Branch(TString("probe_" + HLTs[ihlt]), &probe_trg[ihlt]);
+void NtupleContent::CreateExtraTrgBranches(const std::vector<std::string> &HLTs, bool isTag = false ) {
+  for (unsigned int ihlt = 0; ihlt < HLTs.size(); ihlt++) {
+    if(isTag)  t1->Branch(TString("tag_" + HLTs[ihlt]), &tag_trg[ihlt]);
+    else       t1->Branch(TString("probe_" + HLTs[ihlt]), &probe_trg[ihlt]);
+  }
 }
 
 void NtupleContent::ClearBranches() {
@@ -123,10 +152,12 @@ void NtupleContent::ClearBranches() {
   nmuons = 0;
   ntag = 0;
 
-  for (unsigned int itrg = 0; itrg < 10; itrg++) trigger[itrg] = false;
+  for (unsigned int itrg = 0; itrg < NTRIGGERMAX; itrg++) {
+    trigger[itrg] = false;
+    tag_trg[itrg] = false;
+    probe_trg[itrg] = false;
+  }
 
-  for (unsigned int itrg = 0; itrg < 10; itrg++) probe_trg[itrg] = false;
-  
   // Gens
   genmu1_pt = 0;
   genmu1_eta = -99;
@@ -135,9 +166,11 @@ void NtupleContent::ClearBranches() {
   genmu2_eta = -99;
   genmu2_phi = -99;
 
+  trg_filter.clear();
   trg_pt.clear();
   trg_eta.clear();
   trg_phi.clear();
+  prb_filter.clear();
   prb_pt.clear();
   prb_eta.clear();
   prb_phi.clear();
@@ -152,6 +185,13 @@ void NtupleContent::ClearBranches() {
   tag_isHighPt = false;
   tag_relIso04 = -99;
   tag_isMatchedGen = false;
+  tag_iso03_sumPt = -99;
+  tag_pfIso04_charged = -99;
+  tag_pfIso04_neutral = -99;
+  tag_pfIso04_photon = -99;
+  tag_pfIso04_sumPU = -99;
+  tag_tuneP_pt = -99;
+  tag_tuneP_pterr = -99;
 
   iprobe = 0;
   probe_pt = 0;
@@ -188,6 +228,28 @@ void NtupleContent::ClearBranches() {
   probe_dz = -99;
   probe_relIso04 = -99;
   probe_isMatchedGen = false;
+  probe_iso03_sumPt = -99;
+  probe_pfIso04_charged = -99;
+  probe_pfIso04_neutral = -99;
+  probe_pfIso04_photon = -99;
+  probe_pfIso04_sumPU = -99;
+  probe_pixelHits = -99;
+  probe_matchedStations = -99;
+  probe_expectedMatchedStations = -99;
+  probe_RPCLayers = -99;
+  probe_stationMask = 0;
+  probe_nShowers = -99;
+  probe_tuneP_pt = -99;
+  probe_tuneP_pterr = -99;
+  probe_tuneP_muonHits = -99;
+
+  l1pt = -99;
+  l1q = -99;
+  l1dr = -99;
+  l1ptByQ = -99;
+  l1qByQ = -99;
+  l1drByQ = -99;
+
   probe_dsa_muonStations = -99;
   probe_dsa_muonHits = -99;
   probe_dsa_DTHits = -99;
