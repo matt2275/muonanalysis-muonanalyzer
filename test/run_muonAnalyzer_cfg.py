@@ -107,12 +107,12 @@ process.GlobalTag = GlobalTag(process.GlobalTag,globaltag, '')
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(options.maxEvents))
 
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring(options.inputFiles),
-    secondaryFileNames=cms.untracked.vstring(),
-    inputCommands=cms.untracked.vstring(
-        'keep *',
-        'drop *_ctppsPixelClusters_*_*'
-    )
+        fileNames = cms.untracked.vstring(options.inputFiles),
+        secondaryFileNames=cms.untracked.vstring(),
+        inputCommands=cms.untracked.vstring(
+            'keep *',
+            'drop *_ctppsPixelClusters_*_*'
+        )
 )
 
 process.options = cms.untracked.PSet(
@@ -158,8 +158,8 @@ process.analysis_step = cms.Path(
 )
 
 process.TFileService = cms.Service("TFileService",
-                                   fileName = cms.string(options.outputFile)
- )
+        fileName = cms.string(options.outputFile)
+)
 process.endjob_step = cms.EndPath(process.endOfProcess)
 
 # process.fevt = cms.OutputModule("PoolOutputModule",
@@ -171,4 +171,3 @@ process.schedule = cms.Schedule(process.analysis_step, process.endjob_step)
 
 from Configuration.StandardSequences.earlyDeleteSettings_cff import customiseEarlyDelete
 process = customiseEarlyDelete(process)
-

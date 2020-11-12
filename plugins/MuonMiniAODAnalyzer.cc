@@ -212,8 +212,8 @@ MuonMiniAODAnalyzer::MuonMiniAODAnalyzer(const edm::ParameterSet& iConfig)
 
 MuonMiniAODAnalyzer::~MuonMiniAODAnalyzer() {
   // cout << "total " << trg_counter << " fires " << fire_counter << " l3"
-  // << l3_counter << endl; do anything here that needs to be done at desctruction
-  // time
+  // << l3_counter << endl; do anything here that needs to be done at
+  // desctruction time
 }
 
 //
@@ -351,10 +351,12 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent,
   if (!iEvent.isRealData()) {
     genmu.SetInputs(iEvent, genToken_, momPdgId_);
     genmu.FillNtuple(nt);
-    auto reco_match_genmu1 = MatchReco<pat::Muon>(
-        *muons, nt.genmu1_eta, nt.genmu1_phi, genRecoDrMatch_);
-    auto reco_match_genmu2 = MatchReco<pat::Muon>(
-        *muons, nt.genmu2_eta, nt.genmu2_phi, genRecoDrMatch_);
+    auto reco_match_genmu1 =
+        MatchReco<pat::Muon>(*muons, nt.genmu1_eta, nt.genmu1_phi,
+                             nt.genmu1_charge, genRecoDrMatch_);
+    auto reco_match_genmu2 =
+        MatchReco<pat::Muon>(*muons, nt.genmu2_eta, nt.genmu2_phi,
+                             nt.genmu2_charge, genRecoDrMatch_);
     if (reco_match_genmu1.first)
       matched_muon_idx.push_back(reco_match_genmu1.second);
     if (reco_match_genmu2.first)
@@ -400,10 +402,12 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent,
   }
   std::vector<unsigned> matched_track_idx;
   if (!iEvent.isRealData()) {
-    auto reco_match_genmu1 = MatchReco<pat::PackedCandidate>(
-        tracks, nt.genmu1_eta, nt.genmu1_phi, genRecoDrMatch_);
-    auto reco_match_genmu2 = MatchReco<pat::PackedCandidate>(
-        tracks, nt.genmu2_eta, nt.genmu2_phi, genRecoDrMatch_);
+    auto reco_match_genmu1 =
+        MatchReco<pat::PackedCandidate>(tracks, nt.genmu1_eta, nt.genmu1_phi,
+                                        nt.genmu1_charge, genRecoDrMatch_);
+    auto reco_match_genmu2 =
+        MatchReco<pat::PackedCandidate>(tracks, nt.genmu2_eta, nt.genmu2_phi,
+                                        nt.genmu2_charge, genRecoDrMatch_);
     if (reco_match_genmu1.first)
       matched_track_idx.push_back(reco_match_genmu1.second);
     if (reco_match_genmu2.first)

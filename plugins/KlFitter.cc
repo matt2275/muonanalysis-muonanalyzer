@@ -12,7 +12,7 @@ KlFitter::KlFitter(std::vector<reco::TransientTrack> &vecttrk) {
   }
 }
 
-KlFitter::~KlFitter() {};
+KlFitter::~KlFitter(){};
 
 void KlFitter::fillNtuple(NtupleContent &nt) {
   if (status_) {

@@ -56,8 +56,8 @@ def getOptions():
 
     parser.add_option('-e', '--eraDB',
                       dest = 'eraDB',
-                      default = os.path.join(os.environ['CMSSW_BASE'], 'data/dataset_db_Z_EOYReReco.json'),
-                      help = "Era database file to process. Default: data/dataset_db_Z_EOYReReco.json",
+                      default = os.path.join(os.environ['CMSSW_BASE'], 'src/MuonAnalysis/MuonAnalyzer/data/dataset_dbs/Z_EOYReReco.json'),
+                      help = "Era database file to process. Default: src/MuonAnalysis/MuonAnalyzer/data/dataset_dbs/Z_EOYReReco.json",
                       metavar = 'ERADB')
 
     parser.add_option('-s', '--subEra',

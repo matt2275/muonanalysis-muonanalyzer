@@ -43,15 +43,19 @@ void MuonGenAnalyzer::FillNtuple(NtupleContent& nt) {
     nt.genmu1_pt = gmuon1.Pt();
     nt.genmu1_eta = gmuon1.Eta();
     nt.genmu1_phi = gmuon1.Phi();
+    nt.genmu1_charge = gcharge1;
     nt.genmu2_pt = gmuon2.Pt();
     nt.genmu2_eta = gmuon2.Eta();
     nt.genmu2_phi = gmuon2.Phi();
+    nt.genmu2_charge = gcharge2;
   } else {
     nt.genmu1_pt = 0;
     nt.genmu1_eta = -99;
     nt.genmu1_phi = -99;
+    nt.genmu1_charge = 0;
     nt.genmu2_pt = 0;
     nt.genmu2_eta = -99;
     nt.genmu2_phi = -99;
+    nt.genmu2_charge = 0;
   }
 }

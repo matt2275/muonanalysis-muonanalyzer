@@ -73,9 +73,11 @@ class NtupleContent {
   float genmu1_pt;
   float genmu1_eta;
   float genmu1_phi;
+  float genmu1_charge;
   float genmu2_pt;
   float genmu2_eta;
   float genmu2_phi;
+  float genmu2_charge;
 
   // Tag properties
   float tag_pt;

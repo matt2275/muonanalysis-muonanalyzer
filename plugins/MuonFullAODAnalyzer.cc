@@ -241,8 +241,8 @@ MuonFullAODAnalyzer::MuonFullAODAnalyzer(const edm::ParameterSet& iConfig)
 
 MuonFullAODAnalyzer::~MuonFullAODAnalyzer() {
   // cout << "total " << trg_counter << " fires " << fire_counter << " l3"
-  // << l3_counter << endl; do anything here that needs to be done at desctruction
-  // time
+  // << l3_counter << endl; do anything here that needs to be done at
+  // desctruction time
 }
 
 bool MuonFullAODAnalyzer::HLTaccept(const edm::Event& iEvent, NtupleContent& nt,
@@ -442,20 +442,27 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent,
   if (!iEvent.isRealData()) {
     genmu.SetInputs(iEvent, genToken_, momPdgId_);
     genmu.FillNtuple(nt);
-    auto reco_match_genmu1 = MatchReco<reco::Muon>(
-        *muons, nt.genmu1_eta, nt.genmu1_phi, genRecoDrMatch_);
-    auto reco_match_genmu2 = MatchReco<reco::Muon>(
-        *muons, nt.genmu2_eta, nt.genmu2_phi, genRecoDrMatch_);
+
+    auto reco_match_genmu1 =
+        MatchReco<reco::Muon>(*muons, nt.genmu1_eta, nt.genmu1_phi,
+                              nt.genmu1_charge, genRecoDrMatch_);
+    auto reco_match_genmu2 =
+        MatchReco<reco::Muon>(*muons, nt.genmu2_eta, nt.genmu2_phi,
+                              nt.genmu2_charge, genRecoDrMatch_);
+
     if (reco_match_genmu1.first)
       matched_muon_idx.push_back(reco_match_genmu1.second);
 
     if (reco_match_genmu2.first)
       matched_muon_idx.push_back(reco_match_genmu2.second);
 
-    reco_match_genmu1 = MatchReco<reco::Track>(*tracks, nt.genmu1_eta,
-                                               nt.genmu1_phi, genRecoDrMatch_);
-    reco_match_genmu2 = MatchReco<reco::Track>(*tracks, nt.genmu2_eta,
-                                               nt.genmu2_phi, genRecoDrMatch_);
+    reco_match_genmu1 =
+        MatchReco<reco::Track>(*tracks, nt.genmu1_eta, nt.genmu1_phi,
+                               nt.genmu1_charge, genRecoDrMatch_);
+    reco_match_genmu2 =
+        MatchReco<reco::Track>(*tracks, nt.genmu2_eta, nt.genmu2_phi,
+                               nt.genmu2_charge, genRecoDrMatch_);
+
     if (reco_match_genmu1.first)
       matched_track_idx.push_back(reco_match_genmu1.second);
     if (reco_match_genmu2.first)
@@ -503,7 +510,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent,
 
   if (debug_ > 0) std::cout << "Tag muons " << tag_trkttrk.size() << std::endl;
 
-  // mapping with muon object
+  // probe track mapping with muon object
   std::pair<std::vector<unsigned>, std::vector<unsigned>> trk_muon_map;
   for (const reco::Muon& mu : *muons) {
     float minDR = 1000;
@@ -534,7 +541,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent,
   if (debug_ > 0)
     std::cout << "Matched trk-mu " << trk_muon_map.first.size() << std::endl;
 
-  // mapping with displaced standalone muon
+  // probe track mapping with displaced standalone track
   std::pair<std::vector<unsigned>, std::vector<unsigned>> trk_dsA_map;
   for (const reco::Track& dsA : *dSAmuons) {
     float minDeltaR = 1000;
@@ -552,7 +559,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent,
   if (debug_ > 0)
     std::cout << "Matched trk-dSA " << trk_dsA_map.first.size() << std::endl;
 
-  // mapping with global displaced muon
+  // probe track mapping with displaced global track
   std::pair<std::vector<unsigned>, std::vector<unsigned>> trk_dglobal_map;
   for (const reco::Track& dgl : *dGlmuons) {
     float minDltR = 1000;
@@ -571,7 +578,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent,
     std::cout << "Matched trk-dgl " << trk_dglobal_map.first.size()
               << std::endl;
 
-  // mapping with standalone cosmic muon
+  // probe track mapping with standalone cosmic muon
   std::pair<std::vector<unsigned>, std::vector<unsigned>> trk_cosmic_map;
   for (const reco::Track& cosmicMu : *staCosmic) {
     float minDtR = 1000;
@@ -593,8 +600,8 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent,
   // select probes
   for (auto& tag : tag_trkttrk) {
     if (debug_ > 0)
-      std::cout << "New tag pt " << tag.first.pt() << " eta "
-                << tag.first.eta() << " phi " << tag.first.phi() << std::endl;
+      std::cout << "New tag pt " << tag.first.pt() << " eta " << tag.first.eta()
+                << " phi " << tag.first.phi() << std::endl;
     for (const reco::Track& probe : *tracks) {
       if (debug_ > 1)
         std::cout << "    Probe pt " << probe.pt() << " eta " << probe.eta()
