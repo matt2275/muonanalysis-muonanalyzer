@@ -130,10 +130,12 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs) {
   t1->Branch("pair_dz", &pair_dz);
 }
 
-void NtupleContent::CreateExtraTrgBranches(const std::vector<std::string> &HLTs, bool isTag = false ) {
+void NtupleContent::CreateExtraTrgBranches(const std::vector<std::string> &HLTs, bool isTag = false) {
   for (unsigned int ihlt = 0; ihlt < HLTs.size(); ihlt++) {
-    if(isTag)  t1->Branch(TString("tag_" + HLTs[ihlt]), &tag_trg[ihlt]);
-    else       t1->Branch(TString("probe_" + HLTs[ihlt]), &probe_trg[ihlt]);
+    if (isTag)
+      t1->Branch(TString("tag_" + HLTs[ihlt]), &tag_trg[ihlt]);
+    else
+      t1->Branch(TString("probe_" + HLTs[ihlt]), &probe_trg[ihlt]);
   }
 }
 

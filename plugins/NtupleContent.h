@@ -13,7 +13,7 @@
 #include "TTree.h"
 
 class NtupleContent {
- public:
+public:
   NtupleContent();
   virtual ~NtupleContent();
   void SetTree(TTree *t1);
@@ -171,7 +171,7 @@ class NtupleContent {
   float pair_dz;
   float pair_first_pair;
 
- private:
+private:
   TTree *t1;
 };
 #endif
