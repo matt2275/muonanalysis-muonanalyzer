@@ -19,8 +19,7 @@
 #include "helper.h"
 
 template <typename MUON, typename TRK>
-inline void FillTagBranches(const MUON &muon, const std::vector<TRK> &tracks,
-                            NtupleContent &nt) {
+inline void FillTagBranches(const MUON &muon, const std::vector<TRK> &tracks, NtupleContent &nt) {
   nt.tag_pt = muon.pt();
   nt.tag_eta = muon.eta();
   nt.tag_phi = muon.phi();
@@ -29,33 +28,28 @@ inline void FillTagBranches(const MUON &muon, const std::vector<TRK> &tracks,
   nt.tag_isTight = muon.passed(reco::Muon::CutBasedIdTight);
   nt.tag_isSoft = muon.passed(reco::Muon::SoftCutBasedId);
   nt.tag_isHighPt = muon.passed(reco::Muon::CutBasedIdTrkHighPt);
-  float iso04 =
-      (TrackerEnergy04<TRK>(muon.eta(), muon.phi(), tracks) - muon.pt()) /
-      muon.pt();
+  float iso04 = (TrackerEnergy04<TRK>(muon.eta(), muon.phi(), tracks) - muon.pt()) / muon.pt();
   nt.tag_relIso04 = (iso04 > 0) ? iso04 : 0;
   nt.tag_iso03_sumPt = muon.isolationR03().sumPt;
   nt.tag_pfIso04_charged = muon.pfIsolationR04().sumChargedHadronPt;
   nt.tag_pfIso04_neutral = muon.pfIsolationR04().sumNeutralHadronEt;
   nt.tag_pfIso04_photon = muon.pfIsolationR04().sumPhotonEt;
   nt.tag_pfIso04_sumPU = muon.pfIsolationR04().sumPUPt;
-  if( muon.tunePMuonBestTrack().isNonnull() ) {
+  if (muon.tunePMuonBestTrack().isNonnull()) {
     nt.tag_tuneP_pt = muon.tunePMuonBestTrack()->pt();
     nt.tag_tuneP_pterr = muon.tunePMuonBestTrack()->ptError();
-  }
-  else {
+  } else {
     nt.tag_tuneP_pt = -99.;
     nt.tag_tuneP_pterr = -99.;
   }
 }
 
 template <typename MUON, typename TRK>
-inline void FillProbeBranches(const MUON &mu, const std::vector<TRK> &tracks,
-                              NtupleContent &nt, bool success) {
+inline void FillProbeBranches(const MUON &mu, const std::vector<TRK> &tracks, NtupleContent &nt, bool success) {
   nt.probe_pt = mu.pt();
   nt.probe_eta = mu.eta();
   nt.probe_phi = mu.phi();
-  float iso04 =
-      (TrackerEnergy04<TRK>(mu.eta(), mu.phi(), tracks) - mu.pt()) / mu.pt();
+  float iso04 = (TrackerEnergy04<TRK>(mu.eta(), mu.phi(), tracks) - mu.pt()) / mu.pt();
   nt.probe_relIso04 = (iso04 > 0) ? iso04 : 0;
   // success --> muon obj and track match in dR
   if (success) {
@@ -84,14 +78,10 @@ inline void FillProbeBranches(const MUON &mu, const std::vector<TRK> &tracks,
       nt.probe_trkChi2 = -99;
     if (mu.innerTrack().isNonnull() && mu.innerTrack().isAvailable()) {
       nt.probe_validFraction = mu.innerTrack()->validFraction();
-      nt.probe_trackerLayers =
-          mu.innerTrack()->hitPattern().trackerLayersWithMeasurement();
-      nt.probe_pixelLayers =
-          mu.innerTrack()->hitPattern().pixelLayersWithMeasurement();
-      nt.probe_dxy = mu.innerTrack()->dxy(
-          reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
-      nt.probe_dz = mu.innerTrack()->dz(
-          reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
+      nt.probe_trackerLayers = mu.innerTrack()->hitPattern().trackerLayersWithMeasurement();
+      nt.probe_pixelLayers = mu.innerTrack()->hitPattern().pixelLayersWithMeasurement();
+      nt.probe_dxy = mu.innerTrack()->dxy(reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
+      nt.probe_dz = mu.innerTrack()->dz(reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
       nt.probe_pixelHits = mu.innerTrack()->hitPattern().numberOfValidPixelHits();
     } else {
       nt.probe_validFraction = -99;
@@ -102,19 +92,17 @@ inline void FillProbeBranches(const MUON &mu, const std::vector<TRK> &tracks,
       nt.probe_pixelHits = -99;
     }
     if (mu.outerTrack().isNonnull() && mu.outerTrack().isAvailable()) {
-      nt.probe_muonStations =
-          mu.outerTrack()->hitPattern().muonStationsWithValidHits();
+      nt.probe_muonStations = mu.outerTrack()->hitPattern().muonStationsWithValidHits();
       nt.probe_muonHits = mu.outerTrack()->hitPattern().numberOfValidMuonHits();
       nt.probe_DTHits = mu.outerTrack()->hitPattern().numberOfValidMuonDTHits();
-      nt.probe_CSCHits =
-          mu.outerTrack()->hitPattern().numberOfValidMuonCSCHits();
+      nt.probe_CSCHits = mu.outerTrack()->hitPattern().numberOfValidMuonCSCHits();
     } else {
       nt.probe_muonStations = -99;
       nt.probe_muonHits = -99;
       nt.probe_DTHits = -99;
       nt.probe_CSCHits = -99;
     }
-    if( mu.tunePMuonBestTrack().isNonnull() ) {
+    if (mu.tunePMuonBestTrack().isNonnull()) {
       nt.probe_tuneP_pt = mu.tunePMuonBestTrack()->pt();
       nt.probe_tuneP_pterr = mu.tunePMuonBestTrack()->ptError();
       nt.probe_tuneP_muonHits = mu.tunePMuonBestTrack()->hitPattern().numberOfValidMuonHits();
@@ -177,8 +165,7 @@ inline void FillProbeBranches(const MUON &mu, const std::vector<TRK> &tracks,
 }
 
 template <typename TRK>
-inline void FillProbeBranchesdSA(const TRK &trk, NtupleContent &nt,
-                                 bool passdSA) {
+inline void FillProbeBranchesdSA(const TRK &trk, NtupleContent &nt, bool passdSA) {
   nt.probe_isdSA = passdSA;
 
   nt.probe_dsa_pt = trk.pt();
@@ -186,8 +173,7 @@ inline void FillProbeBranchesdSA(const TRK &trk, NtupleContent &nt,
   nt.probe_dsa_phi = trk.phi();
 
   if (passdSA) {
-    nt.probe_dsa_dxy =
-        trk.dxy(reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
+    nt.probe_dsa_dxy = trk.dxy(reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
     nt.probe_dsa_dz = trk.dz(reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
     nt.probe_dsa_muonStations = trk.hitPattern().muonStationsWithValidHits();
     nt.probe_dsa_muonHits = trk.hitPattern().numberOfValidMuonHits();
@@ -208,20 +194,17 @@ inline void FillProbeBranchesdSA(const TRK &trk, NtupleContent &nt,
 }
 
 template <typename TRK>
-inline void FillProbeBranchesdgl(const TRK &trk, NtupleContent &nt,
-                                 bool passdgl) {
+inline void FillProbeBranchesdgl(const TRK &trk, NtupleContent &nt, bool passdgl) {
   nt.probe_isdGlobal = passdgl;
 }
 
 template <typename TRK>
-inline void FillProbeBranchesCosmic(const TRK &trk, NtupleContent &nt,
-                                    bool passcosmic) {
+inline void FillProbeBranchesCosmic(const TRK &trk, NtupleContent &nt, bool passcosmic) {
   nt.probe_isCosmic = passcosmic;
 }
 
 template <typename MUO, typename TRK>
-inline void FillPairBranches(const MUO &muon, const TRK &trk,
-                             NtupleContent &nt) {
+inline void FillPairBranches(const MUO &muon, const TRK &trk, NtupleContent &nt) {
   math::PtEtaPhiMLorentzVector mu1(muon.pt(), muon.eta(), muon.phi(), MU_MASS);
   math::PtEtaPhiMLorentzVector mu2(trk.pt(), trk.eta(), trk.phi(), MU_MASS);
   nt.pair_pt = (mu1 + mu2).pt();

@@ -20,6 +20,6 @@ def muonAnalysis_customizeMiniAOD_Z(process):
    return process
 
 def muonAnalysis_customizeMiniAOD(process):
-   process.load("MuonAnalysis.MuonAnalyzer.miniAOD_cff")
+   process.load("MuonAnalysis.MuonAnalyzer.miniAOD_JPsi_cff")
    process.muSequence = cms.Sequence(process.miniAODSequence)
    return process

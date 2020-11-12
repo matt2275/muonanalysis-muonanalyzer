@@ -27,9 +27,11 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs) {
   t1->Branch("genmu1_pt", &genmu1_pt);
   t1->Branch("genmu1_eta", &genmu1_eta);
   t1->Branch("genmu1_phi", &genmu1_phi);
+  t1->Branch("genmu1_charge", &genmu1_charge);
   t1->Branch("genmu2_pt", &genmu2_pt);
   t1->Branch("genmu2_eta", &genmu2_eta);
   t1->Branch("genmu2_phi", &genmu2_phi);
+  t1->Branch("genmu2_charge", &genmu2_charge);
   for (unsigned int ihlt = 0; ihlt < HLTs.size(); ihlt++)
     t1->Branch(TString(HLTs[ihlt]), &trigger[ihlt]);
   // Tag specific
@@ -128,10 +130,12 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs) {
   t1->Branch("pair_dz", &pair_dz);
 }
 
-void NtupleContent::CreateExtraTrgBranches(const std::vector<std::string> &HLTs, bool isTag = false ) {
+void NtupleContent::CreateExtraTrgBranches(const std::vector<std::string> &HLTs, bool isTag = false) {
   for (unsigned int ihlt = 0; ihlt < HLTs.size(); ihlt++) {
-    if(isTag)  t1->Branch(TString("tag_" + HLTs[ihlt]), &tag_trg[ihlt]);
-    else       t1->Branch(TString("probe_" + HLTs[ihlt]), &probe_trg[ihlt]);
+    if (isTag)
+      t1->Branch(TString("tag_" + HLTs[ihlt]), &tag_trg[ihlt]);
+    else
+      t1->Branch(TString("probe_" + HLTs[ihlt]), &probe_trg[ihlt]);
   }
 }
 
@@ -162,9 +166,11 @@ void NtupleContent::ClearBranches() {
   genmu1_pt = 0;
   genmu1_eta = -99;
   genmu1_phi = -99;
+  genmu1_charge = 0;
   genmu2_pt = 0;
   genmu2_eta = -99;
   genmu2_phi = -99;
+  genmu2_charge = 0;
 
   trg_filter.clear();
   trg_pt.clear();

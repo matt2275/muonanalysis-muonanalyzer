@@ -16,16 +16,14 @@
 #include "helper.h"
 
 class MuonGenAnalyzer {
- public:
+public:
   MuonGenAnalyzer();
   virtual ~MuonGenAnalyzer();
 
-  void SetInputs(const edm::Event &,
-                 const edm::EDGetTokenT<edm::View<reco::GenParticle>> &,
-                 const int &);
+  void SetInputs(const edm::Event &, const edm::EDGetTokenT<edm::View<reco::GenParticle>> &, const int &);
   void FillNtuple(NtupleContent &);
 
- private:
+private:
   edm::Handle<edm::View<reco::GenParticle>> gens;
   TLorentzVector gmuon1, gmuon2;
   int gcharge1, gcharge2;

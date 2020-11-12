@@ -84,21 +84,23 @@ using namespace std;
 // from  edm::one::EDAnalyzer<> and also remove the line from
 // constructor "usesResource("TFileService");"
 // This will improve performance in multithreaded jobs.
-class MuonMiniAODAnalyzer
-    : public edm::one::EDAnalyzer<edm::one::SharedResources> {
- public:
-  typedef std::vector<std::pair<pat::Muon, reco::TransientTrack>>
-      RecoTrkAndTransientTrkCollection;
+class MuonMiniAODAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
+public:
+  typedef std::vector<std::pair<pat::Muon, reco::TransientTrack>> RecoTrkAndTransientTrkCollection;
   explicit MuonMiniAODAnalyzer(const edm::ParameterSet&);
   ~MuonMiniAODAnalyzer() override;
 
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
- private:
+private:
   void beginJob() override;
   bool HLTaccept(const edm::Event&, NtupleContent&, std::vector<std::string>&);
-  void embedTriggerMatching(const edm::Event&, edm::Handle<edm::TriggerResults>&,
-                            const pat::Muon&, NtupleContent&, std::vector<std::string>&, bool);
+  void embedTriggerMatching(const edm::Event&,
+                            edm::Handle<edm::TriggerResults>&,
+                            const pat::Muon&,
+                            NtupleContent&,
+                            std::vector<std::string>&,
+                            bool);
   void analyze(const edm::Event&, const edm::EventSetup&) override;
   void endJob() override;
 
@@ -120,18 +122,15 @@ class MuonMiniAODAnalyzer
   std::vector<std::string> TagPathsOrFilters_;
   std::vector<std::string> ProbePathsOrFilters_;
   const unsigned int tagQual_;
-  const StringCutObjectSelector<pat::Muon>
-      tagSelection_;  // kinematic cuts for tag
+  const StringCutObjectSelector<pat::Muon> tagSelection_;  // kinematic cuts for tag
   const bool HighPurity_;
-  const StringCutObjectSelector<pat::PackedCandidate>
-      probeSelection_;  // kinematic cuts for probe
+  const StringCutObjectSelector<pat::PackedCandidate> probeSelection_;  // kinematic cuts for probe
   const double pairMassMin_;
   const double pairMassMax_;
   const double pairDz_;
   const bool RequireVtxCreation_;  // if true skip pairs that do not create
                                    // that do not have a vertex
-  const double
-      minSVtxProb_;  // min probability of a vertex to be kept. If < 0 inactive
+  const double minSVtxProb_;       // min probability of a vertex to be kept. If < 0 inactive
   const double maxdz_trk_mu_;
   const double maxpt_relative_dif_trk_mu_;
   const double maxdr_trk_mu_;
@@ -158,34 +157,23 @@ class MuonMiniAODAnalyzer
 //
 
 MuonMiniAODAnalyzer::MuonMiniAODAnalyzer(const edm::ParameterSet& iConfig)
-    : beamSpotToken_(consumes<reco::BeamSpot>(
-          iConfig.getParameter<edm::InputTag>("beamSpot"))),
-      vtxToken_(consumes<std::vector<reco::Vertex>>(
-          iConfig.getParameter<edm::InputTag>("vertices"))),
-      muonsToken_(consumes<std::vector<pat::Muon>>(
-          iConfig.getParameter<edm::InputTag>("muons"))),
-      muonsViewToken_(consumes< edm::View<reco::Muon> >(
-          iConfig.getParameter<edm::InputTag>("muons"))),
-      PFCands_(consumes<std::vector<pat::PackedCandidate>>(
-          iConfig.getParameter<edm::InputTag>("PFCands"))),
-      LostTracks_(consumes<std::vector<pat::PackedCandidate>>(
-          iConfig.getParameter<edm::InputTag>("lostTracks"))),
-      trgresultsToken_(consumes<edm::TriggerResults>(
-          iConfig.getParameter<edm::InputTag>("triggerResults"))),
-      l1MatchesToken_(consumes<pat::TriggerObjectStandAloneMatch>(
-          iConfig.getParameter<edm::InputTag>("l1Matches"))),
-      l1MatchesQualityToken_(consumes<edm::ValueMap<int>>(
-          iConfig.getParameter<edm::InputTag>("l1MatchesQuality"))),
-      l1MatchesDeltaRToken_(consumes<edm::ValueMap<float>>(
-          iConfig.getParameter<edm::InputTag>("l1MatchesDeltaR"))),
-      l1MatchesByQToken_(consumes<pat::TriggerObjectStandAloneMatch>(
-          iConfig.getParameter<edm::InputTag>("l1MatchesByQ"))),
-      l1MatchesByQQualityToken_(consumes<edm::ValueMap<int>>(
-          iConfig.getParameter<edm::InputTag>("l1MatchesByQQuality"))),
-      l1MatchesByQDeltaRToken_(consumes<edm::ValueMap<float>>(
-          iConfig.getParameter<edm::InputTag>("l1MatchesByQDeltaR"))),
-      genToken_(consumes<edm::View<reco::GenParticle>>(
-          iConfig.getParameter<edm::InputTag>("gen"))),
+    : beamSpotToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"))),
+      vtxToken_(consumes<std::vector<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("vertices"))),
+      muonsToken_(consumes<std::vector<pat::Muon>>(iConfig.getParameter<edm::InputTag>("muons"))),
+      muonsViewToken_(consumes<edm::View<reco::Muon>>(iConfig.getParameter<edm::InputTag>("muons"))),
+      PFCands_(consumes<std::vector<pat::PackedCandidate>>(iConfig.getParameter<edm::InputTag>("PFCands"))),
+      LostTracks_(consumes<std::vector<pat::PackedCandidate>>(iConfig.getParameter<edm::InputTag>("lostTracks"))),
+      trgresultsToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerResults"))),
+      l1MatchesToken_(consumes<pat::TriggerObjectStandAloneMatch>(iConfig.getParameter<edm::InputTag>("l1Matches"))),
+      l1MatchesQualityToken_(consumes<edm::ValueMap<int>>(iConfig.getParameter<edm::InputTag>("l1MatchesQuality"))),
+      l1MatchesDeltaRToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("l1MatchesDeltaR"))),
+      l1MatchesByQToken_(
+          consumes<pat::TriggerObjectStandAloneMatch>(iConfig.getParameter<edm::InputTag>("l1MatchesByQ"))),
+      l1MatchesByQQualityToken_(
+          consumes<edm::ValueMap<int>>(iConfig.getParameter<edm::InputTag>("l1MatchesByQQuality"))),
+      l1MatchesByQDeltaRToken_(
+          consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("l1MatchesByQDeltaR"))),
+      genToken_(consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("gen"))),
       HLTPaths_(iConfig.getParameter<std::vector<std::string>>("HLTPaths")),
       TagPathsOrFilters_(iConfig.getParameter<std::vector<std::string>>("TagPathsOrFilters")),
       ProbePathsOrFilters_(iConfig.getParameter<std::vector<std::string>>("ProbePathsOrFilters")),
@@ -199,8 +187,7 @@ MuonMiniAODAnalyzer::MuonMiniAODAnalyzer(const edm::ParameterSet& iConfig)
       RequireVtxCreation_(iConfig.getParameter<bool>("RequireVtxCreation")),
       minSVtxProb_(iConfig.getParameter<double>("minSVtxProb")),
       maxdz_trk_mu_(iConfig.getParameter<double>("maxDzProbeTrkMuon")),
-      maxpt_relative_dif_trk_mu_(
-          iConfig.getParameter<double>("maxRelPtProbeTrkMuon")),
+      maxpt_relative_dif_trk_mu_(iConfig.getParameter<double>("maxRelPtProbeTrkMuon")),
       maxdr_trk_mu_(iConfig.getParameter<double>("maxDRProbeTrkMuon")),
       momPdgId_(iConfig.getParameter<unsigned>("momPdgId")),
       genRecoDrMatch_(iConfig.getParameter<double>("genRecoDrMatch"))
@@ -212,14 +199,13 @@ MuonMiniAODAnalyzer::MuonMiniAODAnalyzer(const edm::ParameterSet& iConfig)
 
 MuonMiniAODAnalyzer::~MuonMiniAODAnalyzer() {
   // cout << "total " << trg_counter << " fires " << fire_counter << " l3"
-  // << l3_counter << endl; do anything here that needs to be done at desctruction
-  // time
+  // << l3_counter << endl; do anything here that needs to be done at
+  // desctruction time
 }
 
 //
 // member functions
-bool MuonMiniAODAnalyzer::HLTaccept(const edm::Event& iEvent, NtupleContent& nt,
-                                    std::vector<std::string>& HLTPaths) {
+bool MuonMiniAODAnalyzer::HLTaccept(const edm::Event& iEvent, NtupleContent& nt, std::vector<std::string>& HLTPaths) {
   edm::Handle<edm::TriggerResults> trigResults;
   iEvent.getByToken(trgresultsToken_, trigResults);
   edm::TriggerNames trigName;
@@ -230,8 +216,10 @@ bool MuonMiniAODAnalyzer::HLTaccept(const edm::Event& iEvent, NtupleContent& nt,
     bool TrgFire = false;
     for (unsigned int itrg = 0; itrg < trigResults->size(); ++itrg) {
       TString TrigPath = trigName.triggerName(itrg);
-      if (!trigResults->accept(itrg)) continue;
-      if (!TrigPath.Contains(path)) continue;
+      if (!trigResults->accept(itrg))
+        continue;
+      if (!TrigPath.Contains(path))
+        continue;
       EvtFire = true;
       TrgFire = true;
     }
@@ -241,25 +229,23 @@ bool MuonMiniAODAnalyzer::HLTaccept(const edm::Event& iEvent, NtupleContent& nt,
   return EvtFire;
 }
 
-void MuonMiniAODAnalyzer::embedTriggerMatching(
-  const edm::Event& iEvent,
-  edm::Handle<edm::TriggerResults>& trigResults,
-  const pat::Muon& mu,
-  NtupleContent& nt,
-  std::vector<std::string>& Triggers,
-  bool isTag
-) {
-  for( const auto& trg: Triggers ) {
+void MuonMiniAODAnalyzer::embedTriggerMatching(const edm::Event& iEvent,
+                                               edm::Handle<edm::TriggerResults>& trigResults,
+                                               const pat::Muon& mu,
+                                               NtupleContent& nt,
+                                               std::vector<std::string>& Triggers,
+                                               bool isTag) {
+  for (const auto& trg : Triggers) {
     TString trg_tstr = TString(trg);
     bool matched = false;
-    for( auto trigobj: mu.triggerObjectMatches() ) {
+    for (auto trigobj : mu.triggerObjectMatches()) {
       trigobj.unpackNamesAndLabels(iEvent, *trigResults);
 
       // check path names
-      if(trg_tstr.Contains("HLT_")) {
-        for( auto path: trigobj.pathNames( true, true ) ) {
+      if (trg_tstr.Contains("HLT_")) {
+        for (auto path : trigobj.pathNames(true, true)) {
           TString path_tstr = TString(path);
-          if( path_tstr.Contains(trg_tstr) ) {
+          if (path_tstr.Contains(trg_tstr)) {
             matched = true;
             break;
           }
@@ -267,39 +253,41 @@ void MuonMiniAODAnalyzer::embedTriggerMatching(
       }
       // check filters
       else {
-        for( auto filter: trigobj.filterLabels() ) {
+        for (auto filter : trigobj.filterLabels()) {
           TString filter_tstr = TString(filter);
-          if( filter_tstr.Contains(trg_tstr) ) {
+          if (filter_tstr.Contains(trg_tstr)) {
             matched = true;
             break;
           }
         }
       }
 
-      if(matched)
+      if (matched)
         break;
     }
 
-    if(isTag)  nt.tag_trg[&trg-&Triggers[0]]   = matched;
-    else       nt.probe_trg[&trg-&Triggers[0]] = matched;
+    if (isTag)
+      nt.tag_trg[&trg - &Triggers[0]] = matched;
+    else
+      nt.probe_trg[&trg - &Triggers[0]] = matched;
   }
 
   return;
 }
 // ------------ method called for each event  ------------
 
-void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent,
-                                  const edm::EventSetup& iSetup) {
+void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   edm::Handle<reco::BeamSpot> theBeamSpot;
   iEvent.getByToken(beamSpotToken_, theBeamSpot);
   edm::Handle<reco::VertexCollection> vertices;
   iEvent.getByToken(vtxToken_, vertices);
 
   // Skip evts if there are no vertices
-  if (vertices->empty()) return;
+  if (vertices->empty())
+    return;
   edm::Handle<std::vector<pat::Muon>> muons;
   iEvent.getByToken(muonsToken_, muons);
-  edm::Handle< edm::View<reco::Muon> > muonsView;
+  edm::Handle<edm::View<reco::Muon>> muonsView;
   iEvent.getByToken(muonsViewToken_, muonsView);
   edm::Handle<std::vector<pat::PackedCandidate>> pfcands;
   iEvent.getByToken(PFCands_, pfcands);
@@ -312,15 +300,15 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent,
   iEvent.getByToken(trgresultsToken_, trigResults);
   edm::Handle<pat::TriggerObjectStandAloneMatch> l1Matches;
   iEvent.getByToken(l1MatchesToken_, l1Matches);
-  edm::Handle<edm::ValueMap<int> > l1Qualities;
+  edm::Handle<edm::ValueMap<int>> l1Qualities;
   iEvent.getByToken(l1MatchesQualityToken_, l1Qualities);
-  edm::Handle<edm::ValueMap<float> > l1Drs;
+  edm::Handle<edm::ValueMap<float>> l1Drs;
   iEvent.getByToken(l1MatchesDeltaRToken_, l1Drs);
   edm::Handle<pat::TriggerObjectStandAloneMatch> l1MatchesByQ;
   iEvent.getByToken(l1MatchesByQToken_, l1MatchesByQ);
-  edm::Handle<edm::ValueMap<int> > l1QualitiesByQ;
+  edm::Handle<edm::ValueMap<int>> l1QualitiesByQ;
   iEvent.getByToken(l1MatchesByQQualityToken_, l1QualitiesByQ);
-  edm::Handle<edm::ValueMap<float> > l1DrsByQ;
+  edm::Handle<edm::ValueMap<float>> l1DrsByQ;
   iEvent.getByToken(l1MatchesByQDeltaRToken_, l1DrsByQ);
 
   // Information about run
@@ -334,15 +322,18 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent,
 
   bool goodVtx = false;
   for (const reco::Vertex& vtx : *vertices) {
-    if (vtx.isFake() || !vtx.isValid()) continue;
+    if (vtx.isFake() || !vtx.isValid())
+      continue;
     nt.pv_x = vtx.x();
     nt.pv_y = vtx.y();
     nt.pv_z = vtx.z();
     goodVtx = true;
     break;
   }
-  if (!goodVtx) return;
-  if (!HLTaccept(iEvent, nt, HLTPaths_)) return;
+  if (!goodVtx)
+    return;
+  if (!HLTaccept(iEvent, nt, HLTPaths_))
+    return;
   //  HLTaccept(iEvent, nt.doublemu_trg, DoubleMuPaths_);
 
   // Gen information
@@ -351,10 +342,10 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent,
   if (!iEvent.isRealData()) {
     genmu.SetInputs(iEvent, genToken_, momPdgId_);
     genmu.FillNtuple(nt);
-    auto reco_match_genmu1 = MatchReco<pat::Muon>(
-        *muons, nt.genmu1_eta, nt.genmu1_phi, genRecoDrMatch_);
-    auto reco_match_genmu2 = MatchReco<pat::Muon>(
-        *muons, nt.genmu2_eta, nt.genmu2_phi, genRecoDrMatch_);
+    auto reco_match_genmu1 =
+        MatchReco<pat::Muon>(*muons, nt.genmu1_eta, nt.genmu1_phi, nt.genmu1_charge, genRecoDrMatch_);
+    auto reco_match_genmu2 =
+        MatchReco<pat::Muon>(*muons, nt.genmu2_eta, nt.genmu2_phi, nt.genmu2_charge, genRecoDrMatch_);
     if (reco_match_genmu1.first)
       matched_muon_idx.push_back(reco_match_genmu1.second);
     if (reco_match_genmu2.first)
@@ -365,26 +356,29 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent,
   RecoTrkAndTransientTrkCollection tag_muon_ttrack;
   std::vector<bool> genmatched_tag;
   for (const pat::Muon& mu : *muons) {
-    if (!mu.passed(pow(2, tagQual_))) continue;
+    if (!mu.passed(pow(2, tagQual_)))
+      continue;
     bool fired = false;
     for (const std::string path : HLTPaths_) {
       char cstr[(path + "*").size() + 1];
       strcpy(cstr, (path + "*").c_str());
-      if (!mu.triggered(cstr)) continue;
+      if (!mu.triggered(cstr))
+        continue;
       fired = true;
       break;
     }
-    if (!fired) continue;
-    if (!tagSelection_(mu)) continue;
-    tag_muon_ttrack.emplace_back(
-        std::make_pair(mu, reco::TransientTrack(*mu.bestTrack(), &(*bField))));
-    if (std::find(matched_muon_idx.begin(), matched_muon_idx.end(),
-                  &mu - &muons->at(0)) != matched_muon_idx.end())
+    if (!fired)
+      continue;
+    if (!tagSelection_(mu))
+      continue;
+    tag_muon_ttrack.emplace_back(std::make_pair(mu, reco::TransientTrack(*mu.bestTrack(), &(*bField))));
+    if (std::find(matched_muon_idx.begin(), matched_muon_idx.end(), &mu - &muons->at(0)) != matched_muon_idx.end())
       genmatched_tag.push_back(true);
     else
       genmatched_tag.push_back(false);
   }
-  if (tag_muon_ttrack.empty()) return;
+  if (tag_muon_ttrack.empty())
+    return;
   nt.nmuons = muons->size();
   nt.ntag = tag_muon_ttrack.size();
 
@@ -392,18 +386,21 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent,
   std::vector<pat::PackedCandidate> tracks;
   for (const auto container : {pfcands, lostTracks}) {
     for (const pat::PackedCandidate& trk : *container) {
-      if (!probeSelection_(trk)) continue;
-      if (!trk.hasTrackDetails()) continue;
-      if (HighPurity_ && !trk.trackHighPurity()) continue;
+      if (!probeSelection_(trk))
+        continue;
+      if (!trk.hasTrackDetails())
+        continue;
+      if (HighPurity_ && !trk.trackHighPurity())
+        continue;
       tracks.emplace_back(trk);
     }
   }
   std::vector<unsigned> matched_track_idx;
   if (!iEvent.isRealData()) {
-    auto reco_match_genmu1 = MatchReco<pat::PackedCandidate>(
-        tracks, nt.genmu1_eta, nt.genmu1_phi, genRecoDrMatch_);
-    auto reco_match_genmu2 = MatchReco<pat::PackedCandidate>(
-        tracks, nt.genmu2_eta, nt.genmu2_phi, genRecoDrMatch_);
+    auto reco_match_genmu1 =
+        MatchReco<pat::PackedCandidate>(tracks, nt.genmu1_eta, nt.genmu1_phi, nt.genmu1_charge, genRecoDrMatch_);
+    auto reco_match_genmu2 =
+        MatchReco<pat::PackedCandidate>(tracks, nt.genmu2_eta, nt.genmu2_phi, nt.genmu2_charge, genRecoDrMatch_);
     if (reco_match_genmu1.first)
       matched_track_idx.push_back(reco_match_genmu1.second);
     if (reco_match_genmu2.first)
@@ -414,16 +411,20 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent,
     float minDR = 1000;
     unsigned int idx_trk;
     for (const auto& trk : tracks) {
-      if (mu.charge() != trk.charge()) continue;
-      if (fabs(mu.vz() - trk.vz()) > maxdz_trk_mu_) continue;
+      if (mu.charge() != trk.charge())
+        continue;
+      if (fabs(mu.vz() - trk.vz()) > maxdz_trk_mu_)
+        continue;
       if (fabs(mu.pt() - trk.pt()) / mu.pt() > maxpt_relative_dif_trk_mu_)
         continue;
       float DR = deltaR(mu.eta(), mu.phi(), trk.eta(), trk.phi());
-      if (minDR < DR) continue;
+      if (minDR < DR)
+        continue;
       minDR = DR;
       idx_trk = &trk - &tracks[0];
     }
-    if (minDR > maxdr_trk_mu_) continue;
+    if (minDR > maxdr_trk_mu_)
+      continue;
     trk_muon_map.first.push_back(idx_trk);
     trk_muon_map.second.push_back(&mu - &muons->at(0));
   }
@@ -431,23 +432,24 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent,
   // Final pair selection
   for (const auto& tag : tag_muon_ttrack) {
     for (const auto& probe : tracks) {
-      if (tag.first.charge() == probe.charge()) continue;
-      if (fabs(tag.first.vz() - probe.vz()) > pairDz_) continue;
-      float mass = DimuonMass(tag.first.pt(), tag.first.eta(), tag.first.phi(),
-                              probe.pt(), probe.eta(), probe.phi());
+      if (tag.first.charge() == probe.charge())
+        continue;
+      if (fabs(tag.first.vz() - probe.vz()) > pairDz_)
+        continue;
+      float mass = DimuonMass(tag.first.pt(), tag.first.eta(), tag.first.phi(), probe.pt(), probe.eta(), probe.phi());
 
-      if (mass < pairMassMin_ || mass > pairMassMax_) continue;
-      std::vector<reco::TransientTrack> trk_pair = {
-          tag.second, reco::TransientTrack(probe.pseudoTrack(), &(*bField))};
+      if (mass < pairMassMin_ || mass > pairMassMax_)
+        continue;
+      std::vector<reco::TransientTrack> trk_pair = {tag.second, reco::TransientTrack(probe.pseudoTrack(), &(*bField))};
 
       KlFitter vtx(trk_pair);
-      if (RequireVtxCreation_ && !vtx.status()) continue;
-      if (minSVtxProb_ > 0 && vtx.prob() < minSVtxProb_) continue;
+      if (RequireVtxCreation_ && !vtx.status())
+        continue;
+      if (minSVtxProb_ > 0 && vtx.prob() < minSVtxProb_)
+        continue;
 
-      math::PtEtaPhiMLorentzVector mu1(tag.first.pt(), tag.first.eta(),
-                                       tag.first.phi(), MU_MASS);
-      math::PtEtaPhiMLorentzVector mu2(probe.pt(), probe.eta(), probe.phi(),
-                                       MU_MASS);
+      math::PtEtaPhiMLorentzVector mu1(tag.first.pt(), tag.first.eta(), tag.first.phi(), MU_MASS);
+      math::PtEtaPhiMLorentzVector mu2(probe.pt(), probe.eta(), probe.phi(), MU_MASS);
 
       FillTagBranches<pat::Muon, pat::PackedCandidate>(tag.first, tracks, nt);
       nt.tag_isMatchedGen = genmatched_tag[&tag - &tag_muon_ttrack[0]];
@@ -456,24 +458,22 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent,
       embedTriggerMatching(iEvent, trigResults, tag.first, nt, TagPathsOrFilters_, true);
 
       std::vector<unsigned>::iterator it =
-          std::find(trk_muon_map.first.begin(), trk_muon_map.first.end(),
-                    &probe - &tracks[0]);
+          std::find(trk_muon_map.first.begin(), trk_muon_map.first.end(), &probe - &tracks[0]);
       if (it != trk_muon_map.first.end()) {
         unsigned idx = std::distance(trk_muon_map.first.begin(), it);
-        FillProbeBranches<pat::Muon, pat::PackedCandidate>(
-            muons->at(trk_muon_map.second[idx]), tracks, nt, true);
+        FillProbeBranches<pat::Muon, pat::PackedCandidate>(muons->at(trk_muon_map.second[idx]), tracks, nt, true);
 
         // Probe-trigger matching
         auto muRef = muonsView->refAt(trk_muon_map.second[idx]);
         pat::TriggerObjectStandAloneRef l1Match = (*l1Matches)[muRef];
-        if( l1Match.isNonnull() ){
+        if (l1Match.isNonnull()) {
           nt.l1pt = l1Match->pt();
           nt.l1q = (*l1Qualities)[muRef];
           nt.l1dr = (*l1Drs)[muRef];
         }
 
         pat::TriggerObjectStandAloneRef l1MatchByQ = (*l1MatchesByQ)[muRef];
-        if( l1MatchByQ.isNonnull() ){
+        if (l1MatchByQ.isNonnull()) {
           nt.l1ptByQ = l1MatchByQ->pt();
           nt.l1qByQ = (*l1QualitiesByQ)[muRef];
           nt.l1drByQ = (*l1DrsByQ)[muRef];
@@ -484,15 +484,14 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent,
         reco::Muon fakeMuon;
         fakeMuon.setP4(mu2);
         FillProbeBranches<reco::Muon, pat::PackedCandidate>(fakeMuon, tracks, nt, false);
-        for( const auto& path: ProbePathsOrFilters_ ) {
-          nt.probe_trg[&path-&ProbePathsOrFilters_[0]] = false;
+        for (const auto& path : ProbePathsOrFilters_) {
+          nt.probe_trg[&path - &ProbePathsOrFilters_[0]] = false;
         }
       }
       nt.iprobe++;
       nt.probe_isHighPurity = probe.trackHighPurity();
       FillPairBranches<pat::Muon, pat::PackedCandidate>(tag.first, probe, nt);
-      if (std::find(matched_track_idx.begin(), matched_track_idx.end(),
-                    &probe - &tracks[0]) != matched_track_idx.end())
+      if (std::find(matched_track_idx.begin(), matched_track_idx.end(), &probe - &tracks[0]) != matched_track_idx.end())
         nt.probe_isMatchedGen = true;
       else
         nt.probe_isMatchedGen = false;
@@ -508,8 +507,10 @@ void MuonMiniAODAnalyzer::beginJob() {
   t1 = fs->make<TTree>("tree", "tree");
   nt.SetTree(t1);
   nt.CreateBranches(HLTPaths_);
-  if( !TagPathsOrFilters_.empty() )    nt.CreateExtraTrgBranches(TagPathsOrFilters_, true );
-  if( !ProbePathsOrFilters_.empty() )  nt.CreateExtraTrgBranches(ProbePathsOrFilters_, false );
+  if (!TagPathsOrFilters_.empty())
+    nt.CreateExtraTrgBranches(TagPathsOrFilters_, true);
+  if (!ProbePathsOrFilters_.empty())
+    nt.CreateExtraTrgBranches(ProbePathsOrFilters_, false);
 }
 
 // ------------ method called once each job just after ending the event loop
@@ -518,8 +519,7 @@ void MuonMiniAODAnalyzer::endJob() {}
 
 // ------------ method fills 'descriptions' with the allowed parameters for the
 // module  ------------
-void MuonMiniAODAnalyzer::fillDescriptions(
-    edm::ConfigurationDescriptions& descriptions) {
+void MuonMiniAODAnalyzer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   // The following says we do not know what parameters are allowed so do no
   // validation
   // Please change this to state exactly what you do use, even if it is no

@@ -17,7 +17,7 @@
 #include "helper.h"
 
 class KlFitter {
- public:
+public:
   KlFitter(std::vector<reco::TransientTrack> &);
   ~KlFitter();
 
@@ -25,7 +25,7 @@ class KlFitter {
   bool status() { return status_; }
   float prob() { return prob_; }
 
- private:
+private:
   TransientVertex dimuvtx;
   std::vector<reco::TransientTrack> refited;
   bool status_ = true;
