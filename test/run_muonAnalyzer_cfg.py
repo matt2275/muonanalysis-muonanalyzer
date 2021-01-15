@@ -10,7 +10,7 @@ import FWCore.ParameterSet.Config as cms
 options = VarParsing('python')
 
 # defaults
-options.maxEvents = -1
+options.maxEvents = 100 # Removed by crab in jobs, so can leave as default for local testing
 
 options.register('resonance', 'Z',
     VarParsing.multiplicity.singleton,
