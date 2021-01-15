@@ -69,7 +69,6 @@ muon = cms.EDAnalyzer('MuonMiniAODAnalyzer',
            maxDRProbeTrkMuon =  cms.double(0.03), # max DR for probe/offline
            momPdgId = cms.uint32(23),
            genRecoDrMatch= cms.double(0.03)
-           
 )
 
 miniAODSequence=cms.Sequence(muon)
