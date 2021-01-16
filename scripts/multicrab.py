@@ -160,13 +160,14 @@ def main():
         config.JobType.pluginName = 'Analysis'
         config.JobType.psetName = configFile
         config.JobType.numCores = numThreads
+        config.JobType.allowUndistributedCMSSW = True
         #config.JobType.maxMemoryMB = 4000
 
         #config.Data.splitting = 'Automatic' # Not working after rucio transition
         config.Data.splitting = 'LumiBased'
         config.Data.unitsPerJob = 100
         config.Data.publication = False
-        #config.Data.ignoreLocality = True
+        config.Data.allowNonValidInputDataset = True # for validation samples
 
         if storageSite == 'FNAL':
             # Requires write access to FNAL EOS space
@@ -184,7 +185,6 @@ def main():
             config.Data.outLFNDirBase = '/store/user/%s/TnP_ntuples/%s/%s/%s' % (getUsername(), particle, resonance, era)
 
         #config.Site.ignoreGlobalBlacklist = True
-
         #config.Data.ignoreLocality = True
         #config.Site.whitelist = ['T2_US_*']
 
@@ -212,6 +212,11 @@ def main():
             isData = 'Run' in subera_name
             globalTag = subera_cfg['globalTag'] if 'globalTag' in subera_cfg else ''
             input_dataset = subera_cfg['dataset']
+            datatier = input_dataset.split('/')[-1]
+            if 'AOD' not in datatier:
+                print 'Input dataset is not AOD(SIM) or MINIAOD(SIM). Ignoring...'
+                continue
+            isFullAOD = False if 'MINIAOD' in datatier else True
 
             if isData and not doData: continue
             if not isData and not doMC: continue
@@ -230,14 +235,13 @@ def main():
 
             config.JobType.pyCfgParams = [
                     'resonance={}'.format(resonance),
-                    'isFullAOD={}'.format(True),
+                    'isFullAOD={}'.format(isFullAOD),
                     'isMC={}'.format(not isData),
                     'globalTag={}'.format(globalTag),
                     'numThreads={}'.format(numThreads)
                     ]
 
             config.Data.inputDataset = input_dataset
-            config.JobType.allowUndistributedCMSSW = True
 
             requestName = '_'.join(['TnP_ntuplizer', particle, resonance, era, subera_name])
             config.General.requestName = '_'.join([requestName, customSuffix]) if customSuffix != '' else requestName
