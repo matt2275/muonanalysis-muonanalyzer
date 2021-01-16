@@ -321,6 +321,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   nt.BSpot_z = theBeamSpot->z0();
 
   bool goodVtx = false;
+  reco::Vertex const * pv;
   for (const reco::Vertex& vtx : *vertices) {
     if (vtx.isFake() || !vtx.isValid())
       continue;
@@ -328,6 +329,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     nt.pv_y = vtx.y();
     nt.pv_z = vtx.z();
     goodVtx = true;
+    pv = &vtx;
     break;
   }
   if (!goodVtx)
@@ -356,8 +358,14 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   RecoTrkAndTransientTrkCollection tag_muon_ttrack;
   std::vector<bool> genmatched_tag;
   for (const pat::Muon& mu : *muons) {
-    if (!mu.passed(pow(2, tagQual_)))
-      continue;
+      if (mu.selectors() != 0) { // Only 9_4_X and later have selector bits
+          if (!mu.passed(pow(2, tagQual_)))
+              continue;
+      }
+      else { // For 2016, assume loose ID on the tag (can be tightened at spark level)
+          if (!muon::isLooseMuon(mu))
+              continue;
+      }
     bool fired = false;
     for (const std::string path : HLTPaths_) {
       char cstr[(path + "*").size() + 1];
@@ -451,7 +459,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       math::PtEtaPhiMLorentzVector mu1(tag.first.pt(), tag.first.eta(), tag.first.phi(), MU_MASS);
       math::PtEtaPhiMLorentzVector mu2(probe.pt(), probe.eta(), probe.phi(), MU_MASS);
 
-      FillTagBranches<pat::Muon, pat::PackedCandidate>(tag.first, tracks, nt);
+      FillTagBranches<pat::Muon, pat::PackedCandidate>(tag.first, tracks, nt, *pv);
       nt.tag_isMatchedGen = genmatched_tag[&tag - &tag_muon_ttrack[0]];
 
       // Tag-trigger matching
@@ -461,7 +469,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           std::find(trk_muon_map.first.begin(), trk_muon_map.first.end(), &probe - &tracks[0]);
       if (it != trk_muon_map.first.end()) {
         unsigned idx = std::distance(trk_muon_map.first.begin(), it);
-        FillProbeBranches<pat::Muon, pat::PackedCandidate>(muons->at(trk_muon_map.second[idx]), tracks, nt, true);
+        FillProbeBranches<pat::Muon, pat::PackedCandidate>(muons->at(trk_muon_map.second[idx]), tracks, nt, true, *pv);
 
         // Probe-trigger matching
         auto muRef = muonsView->refAt(trk_muon_map.second[idx]);
@@ -483,7 +491,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       } else {
         reco::Muon fakeMuon;
         fakeMuon.setP4(mu2);
-        FillProbeBranches<reco::Muon, pat::PackedCandidate>(fakeMuon, tracks, nt, false);
+        FillProbeBranches<reco::Muon, pat::PackedCandidate>(fakeMuon, tracks, nt, false, *pv);
         for (const auto& path : ProbePathsOrFilters_) {
           nt.probe_trg[&path - &ProbePathsOrFilters_[0]] = false;
         }

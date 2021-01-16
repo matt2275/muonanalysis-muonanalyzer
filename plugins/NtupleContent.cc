@@ -38,6 +38,14 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs) {
   t1->Branch("tag_pt", &tag_pt);
   t1->Branch("tag_eta", &tag_eta);
   t1->Branch("tag_phi", &tag_phi);
+  t1->Branch("tag_charge", &tag_charge);
+  t1->Branch("tag_pterr", &tag_pterr);
+  t1->Branch("tag_dxy", &tag_dxy);
+  t1->Branch("tag_dz", &tag_dz);
+  t1->Branch("tag_isPF", &tag_isPF);
+  t1->Branch("tag_isSA", &tag_isSA);
+  t1->Branch("tag_isTracker", &tag_isTracker);
+  t1->Branch("tag_isGlobal", &tag_isGlobal);
   t1->Branch("tag_isLoose", &tag_isLoose);
   t1->Branch("tag_isMedium", &tag_isMedium);
   t1->Branch("tag_isTight", &tag_isTight);
@@ -57,6 +65,7 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs) {
   t1->Branch("probe_pt", &probe_pt);
   t1->Branch("probe_eta", &probe_eta);
   t1->Branch("probe_phi", &probe_phi);
+  t1->Branch("probe_charge", &probe_charge);
   t1->Branch("probe_isLoose", &probe_isLoose);
   t1->Branch("probe_isMedium", &probe_isMedium);
   t1->Branch("probe_isTight", &probe_isTight);
@@ -120,6 +129,7 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs) {
   t1->Branch("probe_dsa_pt", &probe_dsa_pt);
   t1->Branch("probe_dsa_eta", &probe_dsa_eta);
   t1->Branch("probe_dsa_phi", &probe_dsa_phi);
+  t1->Branch("probe_dsa_charge", &probe_dsa_charge);
   // Pair specific
   t1->Branch("pair_pt", &pair_pt);
   t1->Branch("pair_eta", &pair_eta);
@@ -184,6 +194,14 @@ void NtupleContent::ClearBranches() {
   tag_pt = 0;
   tag_eta = -99;
   tag_phi = -99;
+  tag_charge = -99;
+  tag_pterr = 0;
+  tag_dxy = -99;
+  tag_dz = -99;
+  tag_isPF = false;
+  tag_isSA = false;
+  tag_isTracker = false;
+  tag_isGlobal = false;
   tag_isLoose = false;
   tag_isMedium = false;
   tag_isTight = false;
@@ -203,6 +221,7 @@ void NtupleContent::ClearBranches() {
   probe_pt = 0;
   probe_eta = -99;
   probe_phi = -99;
+  probe_charge = -99;
   probe_isLoose = false;
   probe_isMedium = false;
   probe_isTight = false;
@@ -264,9 +283,10 @@ void NtupleContent::ClearBranches() {
   probe_dsa_dxy = -99;
   probe_dsa_dz = -99;
   probe_dsa_trkChi2 = -99;
-  probe_dsa_pt = -99;
+  probe_dsa_pt = 0;
   probe_dsa_eta = -99;
   probe_dsa_phi = -99;
+  probe_dsa_charge = -99;
 
   pair_pt = 0;
   pair_mass = 0;
