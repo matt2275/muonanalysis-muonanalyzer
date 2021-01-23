@@ -83,6 +83,14 @@ public:
   float tag_pt;
   float tag_eta;
   float tag_phi;
+  int tag_charge;
+  float tag_pterr;
+  float tag_dxy;
+  float tag_dz;
+  bool tag_isPF;
+  bool tag_isSA;
+  bool tag_isTracker;
+  bool tag_isGlobal;
   bool tag_isLoose;
   bool tag_isMedium;
   bool tag_isTight;
@@ -102,6 +110,7 @@ public:
   float probe_pt;
   float probe_eta;
   float probe_phi;
+  int probe_charge;
   bool probe_isLoose;
   bool probe_isMedium;
   bool probe_isTight;
@@ -152,6 +161,7 @@ public:
   float probe_dsa_pt;
   float probe_dsa_eta;
   float probe_dsa_phi;
+  int probe_dsa_charge;
   float probe_dsa_trkChi2;
   float probe_dsa_muonStations;
   float probe_dsa_muonHits;

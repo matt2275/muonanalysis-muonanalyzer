@@ -19,15 +19,24 @@
 #include "helper.h"
 
 template <typename MUON, typename TRK>
-inline void FillTagBranches(const MUON &muon, const std::vector<TRK> &tracks, NtupleContent &nt) {
+inline void FillTagBranches(const MUON &muon, const std::vector<TRK> &tracks, NtupleContent &nt, const reco::Vertex &vertex) {
   nt.tag_pt = muon.pt();
   nt.tag_eta = muon.eta();
   nt.tag_phi = muon.phi();
-  nt.tag_isLoose = muon.passed(reco::Muon::CutBasedIdLoose);
-  nt.tag_isMedium = muon.passed(reco::Muon::CutBasedIdMedium);
-  nt.tag_isTight = muon.passed(reco::Muon::CutBasedIdTight);
-  nt.tag_isSoft = muon.passed(reco::Muon::SoftCutBasedId);
-  nt.tag_isHighPt = muon.passed(reco::Muon::CutBasedIdTrkHighPt);
+  nt.tag_charge = muon.charge();
+  nt.tag_pterr = muon.innerTrack()->ptError() / muon.innerTrack()->pt();
+  nt.tag_dxy = muon.innerTrack()->dxy(reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
+  nt.tag_dz = muon.innerTrack()->dz(reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
+  nt.tag_isPF = muon.isPFMuon();
+  nt.tag_isSA = muon.isStandAloneMuon();
+  nt.tag_isTracker = muon.isTrackerMuon();
+  nt.tag_isGlobal = muon.isGlobalMuon();
+  // Use selectors instead of 'muon.passed' method which is only introduced in CMSSW_9_4_X
+  nt.tag_isLoose = muon::isLooseMuon(muon);
+  nt.tag_isMedium = muon::isMediumMuon(muon);
+  nt.tag_isTight = muon::isTightMuon(muon, vertex);
+  nt.tag_isSoft = muon::isSoftMuon(muon, vertex, false);
+  nt.tag_isHighPt = muon::isHighPtMuon(muon, vertex);
   float iso04 = (TrackerEnergy04<TRK>(muon.eta(), muon.phi(), tracks) - muon.pt()) / muon.pt();
   nt.tag_relIso04 = (iso04 > 0) ? iso04 : 0;
   nt.tag_iso03_sumPt = muon.isolationR03().sumPt;
@@ -45,19 +54,21 @@ inline void FillTagBranches(const MUON &muon, const std::vector<TRK> &tracks, Nt
 }
 
 template <typename MUON, typename TRK>
-inline void FillProbeBranches(const MUON &mu, const std::vector<TRK> &tracks, NtupleContent &nt, bool success) {
+inline void FillProbeBranches(const MUON &mu, const std::vector<TRK> &tracks, NtupleContent &nt, bool success, const reco::Vertex &vertex) {
   nt.probe_pt = mu.pt();
   nt.probe_eta = mu.eta();
   nt.probe_phi = mu.phi();
+  nt.probe_charge = mu.charge();
   float iso04 = (TrackerEnergy04<TRK>(mu.eta(), mu.phi(), tracks) - mu.pt()) / mu.pt();
   nt.probe_relIso04 = (iso04 > 0) ? iso04 : 0;
   // success --> muon obj and track match in dR
   if (success) {
-    nt.probe_isLoose = mu.passed(reco::Muon::CutBasedIdLoose);
-    nt.probe_isMedium = mu.passed(reco::Muon::CutBasedIdMedium);
-    nt.probe_isTight = mu.passed(reco::Muon::CutBasedIdTight);
-    nt.probe_isSoft = mu.passed(reco::Muon::SoftCutBasedId);
-    nt.probe_isHighPt = mu.passed(reco::Muon::CutBasedIdTrkHighPt);
+    // Use selectors instead of 'mu.passed' method which is only introduced in CMSSW_9_4_X
+    nt.probe_isLoose = muon::isLooseMuon(mu);
+    nt.probe_isMedium = muon::isMediumMuon(mu);
+    nt.probe_isTight = muon::isTightMuon(mu, vertex);
+    nt.probe_isSoft = muon::isSoftMuon(mu, vertex, false);
+    nt.probe_isHighPt = muon::isHighPtMuon(mu, vertex);
     nt.probe_isPF = mu.isPFMuon();
     nt.probe_isSA = mu.isStandAloneMuon();
     nt.probe_isTracker = mu.isTrackerMuon();
@@ -80,6 +91,7 @@ inline void FillProbeBranches(const MUON &mu, const std::vector<TRK> &tracks, Nt
       nt.probe_validFraction = mu.innerTrack()->validFraction();
       nt.probe_trackerLayers = mu.innerTrack()->hitPattern().trackerLayersWithMeasurement();
       nt.probe_pixelLayers = mu.innerTrack()->hitPattern().pixelLayersWithMeasurement();
+      nt.probe_pterr = mu.innerTrack()->ptError() / mu.innerTrack()->pt();
       nt.probe_dxy = mu.innerTrack()->dxy(reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
       nt.probe_dz = mu.innerTrack()->dz(reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
       nt.probe_pixelHits = mu.innerTrack()->hitPattern().numberOfValidPixelHits();
@@ -87,6 +99,7 @@ inline void FillProbeBranches(const MUON &mu, const std::vector<TRK> &tracks, Nt
       nt.probe_validFraction = -99;
       nt.probe_trackerLayers = -99;
       nt.probe_pixelLayers = -99;
+      nt.probe_pterr = -99;
       nt.probe_dxy = -99;
       nt.probe_dz = -99;
       nt.probe_pixelHits = -99;
@@ -171,6 +184,7 @@ inline void FillProbeBranchesdSA(const TRK &trk, NtupleContent &nt, bool passdSA
   nt.probe_dsa_pt = trk.pt();
   nt.probe_dsa_eta = trk.eta();
   nt.probe_dsa_phi = trk.phi();
+  nt.probe_dsa_charge = trk.charge();
 
   if (passdSA) {
     nt.probe_dsa_dxy = trk.dxy(reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
