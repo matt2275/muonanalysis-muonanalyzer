@@ -238,7 +238,8 @@ def main():
                     'isFullAOD={}'.format(isFullAOD),
                     'isMC={}'.format(not isData),
                     'globalTag={}'.format(globalTag),
-                    'numThreads={}'.format(numThreads)
+                    'numThreads={}'.format(numThreads),
+                    'fromCRAB={}'.format(True)
                     ]
 
             config.Data.inputDataset = input_dataset
