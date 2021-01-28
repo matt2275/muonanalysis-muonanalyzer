@@ -9,9 +9,6 @@ import FWCore.ParameterSet.Config as cms
 
 options = VarParsing('python')
 
-# defaults
-options.maxEvents = 100 # Removed by crab in jobs, so can leave as default for local testing
-
 options.register('resonance', 'Z',
     VarParsing.multiplicity.singleton,
     VarParsing.varType.string,
@@ -48,7 +45,20 @@ options.register('numThreads', 1,
     "Number of CMSSW threads" 
 )
 
+options.register('fromCRAB', False,
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.bool,
+    "Is config run from CRAB"
+)
+
 options.parseArguments()
+
+# defaults
+
+if options.fromCRAB == True:
+    options.maxEvents = -1
+else:
+    options.maxEvents = 100
 
 if options._beenSet['globalTag'] and options.globalTag != '':
     globaltag = options.globalTag
