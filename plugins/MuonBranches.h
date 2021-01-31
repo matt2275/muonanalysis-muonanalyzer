@@ -19,7 +19,10 @@
 #include "helper.h"
 
 template <typename MUON, typename TRK>
-inline void FillTagBranches(const MUON &muon, const std::vector<TRK> &tracks, NtupleContent &nt, const reco::Vertex &vertex) {
+inline void FillTagBranches(const MUON &muon,
+                            const std::vector<TRK> &tracks,
+                            NtupleContent &nt,
+                            const reco::Vertex &vertex) {
   nt.tag_pt = muon.pt();
   nt.tag_eta = muon.eta();
   nt.tag_phi = muon.phi();
@@ -54,7 +57,8 @@ inline void FillTagBranches(const MUON &muon, const std::vector<TRK> &tracks, Nt
 }
 
 template <typename MUON, typename TRK>
-inline void FillProbeBranches(const MUON &mu, const std::vector<TRK> &tracks, NtupleContent &nt, bool success, const reco::Vertex &vertex) {
+inline void FillProbeBranches(
+    const MUON &mu, const std::vector<TRK> &tracks, NtupleContent &nt, bool success, const reco::Vertex &vertex) {
   nt.probe_pt = mu.pt();
   nt.probe_eta = mu.eta();
   nt.probe_phi = mu.phi();

@@ -16,6 +16,7 @@
 // system include files
 #include <iostream>
 #include <memory>
+#include <random>
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
@@ -35,6 +36,9 @@
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
+#include "DataFormats/PatCandidates/interface/Jet.h"
+#include "JetMETCorrections/Modules/interface/JetResolution.h"
+#include "DataFormats/JetReco/interface/GenJet.h"
 
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "FWCore/Common/interface/TriggerNames.h"
@@ -61,6 +65,7 @@
 #include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
 #include "DataFormats/RecoCandidate/interface/RecoChargedCandidate.h"
 #include "DataFormats/RecoCandidate/interface/RecoChargedCandidateIsolation.h"
+#include "DataFormats/Math/interface/LorentzVector.h"
 #include "KlFitter.h"
 #include "MagneticField/Engine/interface/MagneticField.h"
 #include "MagneticField/ParametrizedEngine/src/OAEParametrizedMagneticField.h"
@@ -69,8 +74,11 @@
 #include "MuonGenAnalyzer.h"
 #include "NtupleContent.h"
 #include "TTree.h"
+#include "TLorentzVector.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrack.h"
 #include "helper.h"
+#include "MuonMiniIsolation.h"
+#include "JetsBranches.h"
 
 using namespace std;
 // using namespace edm;
@@ -104,6 +112,7 @@ private:
   void analyze(const edm::Event&, const edm::EventSetup&) override;
   void endJob() override;
 
+  edm::EDGetTokenT<double> rhoToken_;
   edm::EDGetTokenT<reco::BeamSpot> beamSpotToken_;
   edm::EDGetTokenT<std::vector<reco::Vertex>> vtxToken_;
   edm::EDGetToken muonsToken_;
@@ -118,6 +127,9 @@ private:
   edm::EDGetTokenT<edm::ValueMap<int>> l1MatchesByQQualityToken_;
   edm::EDGetTokenT<edm::ValueMap<float>> l1MatchesByQDeltaRToken_;
   edm::EDGetTokenT<edm::View<reco::GenParticle>> genToken_;
+  edm::EDGetTokenT<double> rhoJetsNC_;
+  edm::EDGetToken jetsToken_;
+  edm::EDGetToken genJetsToken_;
   std::vector<std::string> HLTPaths_;
   std::vector<std::string> TagPathsOrFilters_;
   std::vector<std::string> ProbePathsOrFilters_;
@@ -141,6 +153,10 @@ private:
   TTree* t1;
   NtupleContent nt;
 
+  std::mt19937 m_random_generator = std::mt19937(37428479);
+  const bool isMC_, includeJets_;
+  const std::string era_;
+
   // ----------member data ---------------------------
 };
 
@@ -157,7 +173,8 @@ private:
 //
 
 MuonMiniAODAnalyzer::MuonMiniAODAnalyzer(const edm::ParameterSet& iConfig)
-    : beamSpotToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"))),
+    : rhoToken_(consumes<double>(iConfig.getParameter<edm::InputTag>("Rho"))),
+      beamSpotToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"))),
       vtxToken_(consumes<std::vector<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("vertices"))),
       muonsToken_(consumes<std::vector<pat::Muon>>(iConfig.getParameter<edm::InputTag>("muons"))),
       muonsViewToken_(consumes<edm::View<reco::Muon>>(iConfig.getParameter<edm::InputTag>("muons"))),
@@ -174,6 +191,9 @@ MuonMiniAODAnalyzer::MuonMiniAODAnalyzer(const edm::ParameterSet& iConfig)
       l1MatchesByQDeltaRToken_(
           consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("l1MatchesByQDeltaR"))),
       genToken_(consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("gen"))),
+      rhoJetsNC_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoJetsNC"))),
+      jetsToken_(consumes<std::vector<pat::Jet>>(iConfig.getParameter<edm::InputTag>("jets"))),
+      genJetsToken_(consumes<std::vector<reco::GenJet>>(iConfig.getParameter<edm::InputTag>("genJets"))),
       HLTPaths_(iConfig.getParameter<std::vector<std::string>>("HLTPaths")),
       TagPathsOrFilters_(iConfig.getParameter<std::vector<std::string>>("TagPathsOrFilters")),
       ProbePathsOrFilters_(iConfig.getParameter<std::vector<std::string>>("ProbePathsOrFilters")),
@@ -190,9 +210,10 @@ MuonMiniAODAnalyzer::MuonMiniAODAnalyzer(const edm::ParameterSet& iConfig)
       maxpt_relative_dif_trk_mu_(iConfig.getParameter<double>("maxRelPtProbeTrkMuon")),
       maxdr_trk_mu_(iConfig.getParameter<double>("maxDRProbeTrkMuon")),
       momPdgId_(iConfig.getParameter<unsigned>("momPdgId")),
-      genRecoDrMatch_(iConfig.getParameter<double>("genRecoDrMatch"))
-
-{
+      genRecoDrMatch_(iConfig.getParameter<double>("genRecoDrMatch")),
+      isMC_(iConfig.getParameter<bool>("isMC")),
+      includeJets_(iConfig.getParameter<bool>("includeJets")),
+      era_(iConfig.getParameter<std::string>("era")) {
   //  edm::ParameterSet
   //  runParameters=iConfig.getParameter<edm::ParameterSet>("RunParameters");
 }
@@ -277,6 +298,9 @@ void MuonMiniAODAnalyzer::embedTriggerMatching(const edm::Event& iEvent,
 // ------------ method called for each event  ------------
 
 void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+  edm::Handle<double> rhoHandle;
+  iEvent.getByToken(rhoToken_, rhoHandle);
+  nt.Rho = *rhoHandle;
   edm::Handle<reco::BeamSpot> theBeamSpot;
   iEvent.getByToken(beamSpotToken_, theBeamSpot);
   edm::Handle<reco::VertexCollection> vertices;
@@ -295,6 +319,17 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   iEvent.getByToken(LostTracks_, lostTracks);
   edm::ESHandle<MagneticField> bField;
   iSetup.get<IdealMagneticFieldRecord>().get(bField);
+  edm::Handle<double> rhoJetsNC;
+  iEvent.getByToken(rhoJetsNC_, rhoJetsNC);
+  edm::Handle<std::vector<pat::Jet>> jets;
+  iEvent.getByToken(jetsToken_, jets);
+  iSetup.get<IdealMagneticFieldRecord>().get(bField);
+  edm::Handle<std::vector<reco::GenJet>> genJets;
+  iEvent.getByToken(genJetsToken_, genJets);
+  JME::JetResolution resolution;
+  resolution = JME::JetResolution::get(iSetup, "AK4PFchs_pt");
+  JME::JetResolutionScaleFactor resolution_sf;
+  resolution_sf = JME::JetResolutionScaleFactor::get(iSetup, "AK4PFchs");
 
   edm::Handle<edm::TriggerResults> trigResults;
   iEvent.getByToken(trgresultsToken_, trigResults);
@@ -321,7 +356,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   nt.BSpot_z = theBeamSpot->z0();
 
   bool goodVtx = false;
-  reco::Vertex const * pv;
+  reco::Vertex const* pv;
   for (const reco::Vertex& vtx : *vertices) {
     if (vtx.isFake() || !vtx.isValid())
       continue;
@@ -358,14 +393,13 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   RecoTrkAndTransientTrkCollection tag_muon_ttrack;
   std::vector<bool> genmatched_tag;
   for (const pat::Muon& mu : *muons) {
-      if (mu.selectors() != 0) { // Only 9_4_X and later have selector bits
-          if (!mu.passed(pow(2, tagQual_)))
-              continue;
-      }
-      else { // For 2016, assume loose ID on the tag (can be tightened at spark level)
-          if (!muon::isLooseMuon(mu))
-              continue;
-      }
+    if (mu.selectors() != 0) {  // Only 9_4_X and later have selector bits
+      if (!mu.passed(pow(2, tagQual_)))
+        continue;
+    } else {  // For 2016, assume loose ID on the tag (can be tightened at spark level)
+      if (!muon::isLooseMuon(mu))
+        continue;
+    }
     bool fired = false;
     for (const std::string path : HLTPaths_) {
       char cstr[(path + "*").size() + 1];
@@ -437,6 +471,101 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     trk_muon_map.second.push_back(&mu - &muons->at(0));
   }
 
+  //std::cout<< era_<<std::endl;
+
+  // Muon collection for jet cleaning
+  std::vector<reco::Muon> muForJetCleaning;
+  for (const auto& mu : *muons) {
+    if (!muon::isLooseMuon(mu))
+      continue;
+    muForJetCleaning.push_back(mu);
+  }
+
+  std::vector<pat::Jet> corrJets;
+  if (includeJets_) {
+    // Gen Jet Info
+    for (const auto& genJet : *genJets) {
+      nt.genJets_pt.push_back(genJet.pt());
+      nt.genJets_eta.push_back(genJet.eta());
+      nt.genJets_phi.push_back(genJet.phi());
+      nt.genJets_mass.push_back(genJet.mass());
+    }
+
+    for (const auto& jet : *jets) {
+      if (CrossClean(jet, muForJetCleaning))
+        continue;
+      std::unique_ptr<pat::Jet> corrJet(jet.clone());
+      // slimmed jets have corrections applied (L1FastJet, L2, L3) with pT cut at 10 GeV
+      double jec = 1.0;
+      corrJet->scaleEnergy(jec);
+      // JER
+      double smearFactor = 1.0;
+      if (isMC_) {
+        double jet_resolution = resolution.getResolution({{JME::Binning::JetPt, corrJet->pt()},
+                                                          {JME::Binning::JetEta, corrJet->eta()},
+                                                          {JME::Binning::Rho, *rhoHandle}});
+        double jer_sf = resolution_sf.getScaleFactor({{JME::Binning::JetPt, corrJet->pt()},
+                                                      {JME::Binning::JetEta, corrJet->eta()},
+                                                      {JME::Binning::Rho, *rhoHandle}},
+                                                     Variation::NOMINAL);
+        // gen matching
+        double min_dR = std::numeric_limits<double>::infinity();
+        const reco::GenJet* matched_genJet = nullptr;
+        for (const auto& genJet : *genJets) {
+          double dR = deltaR(genJet, *corrJet);
+          if (dR > min_dR)
+            continue;
+          if (dR >= 0.2)
+            continue;
+          min_dR = dR;
+          matched_genJet = &genJet;
+        }
+        if (matched_genJet) {
+          double dPt = corrJet->pt() - matched_genJet->pt();
+          smearFactor = 1 + (jer_sf - 1.) * dPt / corrJet->pt();
+        } else if (jer_sf > 1) {
+          double sigma = jet_resolution * std::sqrt(jer_sf * jer_sf - 1);
+          std::normal_distribution<> d(0, sigma);
+          smearFactor = 1. + d(m_random_generator);
+        }
+
+        if (corrJet->pt() * smearFactor < 0.01) {
+          smearFactor = 0.01 / corrJet->energy();
+        }
+      }
+      corrJet->scaleEnergy(smearFactor);
+      FillJetBranches(jet, *corrJet, nt, era_);
+      float deepCSVprobb = -9999., deepCSVprobbb = -9999.;
+      float deepFlavprobb = -9999., deepFlavprobbb = -9999.;
+      float deepFlavproblepb = -9999.;
+      for (const auto& pair : jet.getPairDiscri()) {
+        if (pair.first == "pfDeepCSVJetTags:probb") {
+          deepCSVprobb = pair.second;
+        }
+        if (pair.first == "pfDeepCSVJetTags:probbb") {
+          deepCSVprobbb = pair.second;
+        }
+        if (pair.first == "pfDeepFlavourJetTags:probb") {
+          deepFlavprobb = pair.second;
+        }
+        if (pair.first == "pfDeepFlavourJetTags:probbb") {
+          deepFlavprobbb = pair.second;
+        }
+        if (pair.first == "pfDeepFlavourJetTags:problepb") {
+          deepFlavproblepb = pair.second;
+        }
+      }
+      if (deepCSVprobb != -9999. && deepCSVprobbb != -9999.) {
+        nt.jets_bTag_deepCSV.push_back(deepCSVprobb + deepCSVprobbb);
+      } else
+        nt.jets_bTag_deepCSV.push_back(-9999.);
+      if (deepFlavprobb != -9999. && deepFlavprobbb != -9999. && deepFlavproblepb != -9999.) {
+        nt.jets_bTag_deepFlav.push_back(deepFlavprobb + deepFlavprobbb + deepFlavproblepb);
+      } else
+        nt.jets_bTag_deepFlav.push_back(-9999.);
+    }
+  }
+
   // Final pair selection
   for (const auto& tag : tag_muon_ttrack) {
     for (const auto& probe : tracks) {
@@ -461,6 +590,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
       FillTagBranches<pat::Muon, pat::PackedCandidate>(tag.first, tracks, nt, *pv);
       nt.tag_isMatchedGen = genmatched_tag[&tag - &tag_muon_ttrack[0]];
+      FillMiniIso<pat::Muon, pat::PackedCandidate>(*pfcands, tag.first, *rhoJetsNC, nt, true);
 
       // Tag-trigger matching
       embedTriggerMatching(iEvent, trigResults, tag.first, nt, TagPathsOrFilters_, true);
@@ -470,6 +600,10 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       if (it != trk_muon_map.first.end()) {
         unsigned idx = std::distance(trk_muon_map.first.begin(), it);
         FillProbeBranches<pat::Muon, pat::PackedCandidate>(muons->at(trk_muon_map.second[idx]), tracks, nt, true, *pv);
+        FillMiniIso<pat::Muon, pat::PackedCandidate>(
+            *pfcands, muons->at(trk_muon_map.second[idx]), *rhoJetsNC, nt, false);
+        if (includeJets_)
+          FindJetProbePair<pat::Jet, pat::Muon>(*jets, muons->at(trk_muon_map.second[idx]), nt);
 
         // Probe-trigger matching
         auto muRef = muonsView->refAt(trk_muon_map.second[idx]);
@@ -492,6 +626,9 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         reco::Muon fakeMuon;
         fakeMuon.setP4(mu2);
         FillProbeBranches<reco::Muon, pat::PackedCandidate>(fakeMuon, tracks, nt, false, *pv);
+        FillMiniIso<pat::Muon, pat::PackedCandidate>(*pfcands, fakeMuon, *rhoJetsNC, nt, false);
+        if (includeJets_)
+          FindJetProbePair<pat::Jet, pat::Muon>(*jets, fakeMuon, nt);
         for (const auto& path : ProbePathsOrFilters_) {
           nt.probe_trg[&path - &ProbePathsOrFilters_[0]] = false;
         }

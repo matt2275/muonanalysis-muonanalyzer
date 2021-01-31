@@ -33,7 +33,7 @@ void MuonGenAnalyzer::SetInputs(const edm::Event& iEvent,
       gcharge2 = gcharge[0];
     }
   } else {
-    std::cout << "Warning the decay " << momPdg_ << " 2 muons not found. Gen branches will remain empty" << std::endl;
+    //std::cout << "Warning the decay " << momPdg_ << " 2 muons not found. Gen branches will remain empty" << std::endl;
   }
 }
 

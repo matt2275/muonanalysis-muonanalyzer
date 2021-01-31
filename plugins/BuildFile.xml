@@ -22,3 +22,9 @@
  <use name="TrackingTools/TransientTrack"/>
  <use name="TrackingTools/Records"/>
  <use name="DataFormats/MuonReco" />
+ <use name="CondFormats/BTauObjects" />
+ <use name="CondTools/BTau" />
+ <use name="CondFormats/JetMETObjects" />
+ <use name="JetMETCorrections/JetCorrector" />
+ <use name="JetMETCorrections/Objects" />
+ <use name="JetMETCorrections/Modules" />

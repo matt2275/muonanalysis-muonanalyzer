@@ -239,6 +239,8 @@ def main():
                     'isMC={}'.format(not isData),
                     'globalTag={}'.format(globalTag),
                     'numThreads={}'.format(numThreads),
+                    'era={}'.format(era),
+                    'includeJets={}'.format(True),
                     'fromCRAB={}'.format(True)
                     ]
 

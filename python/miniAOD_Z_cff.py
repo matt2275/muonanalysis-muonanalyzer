@@ -39,6 +39,10 @@ ProbeTriggerMatching = [
 ]
 
 muon = cms.EDAnalyzer('MuonMiniAODAnalyzer',
+           isMC=cms.bool(False),
+           includeJets=cms.bool(False),
+           era = cms.string('dummy'), # updated in run_muonAnalyzer_cfg.py
+           Rho=cms.InputTag('fixedGridRhoFastjetAll'),
            beamSpot=cms.InputTag('offlineBeamSpot'),
            vertices=cms.InputTag("offlineSlimmedPrimaryVertices"),
            muons=cms.InputTag("slimmedMuons"),
@@ -52,6 +56,9 @@ muon = cms.EDAnalyzer('MuonMiniAODAnalyzer',
            PFCands=cms.InputTag("packedPFCandidates"),
            lostTracks=cms.InputTag("lostTracks"),
            gen = cms.InputTag("prunedGenParticles"),
+           rhoJetsNC = cms.InputTag("fixedGridRhoFastjetCentralNeutral"),
+           jets = cms.InputTag("slimmedJets"),
+           genJets = cms.InputTag("slimmedGenJets"),
            HLTPaths=cms.vstring(Path),
            TagPathsOrFilters=cms.vstring(TagTriggerMatching),
            ProbePathsOrFilters=cms.vstring(ProbeTriggerMatching),

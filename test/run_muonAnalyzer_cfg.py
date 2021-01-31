@@ -45,6 +45,19 @@ options.register('numThreads', 1,
     "Number of CMSSW threads" 
 )
 
+# this parameter is added for Jet Branches (ID varies for different era)
+options.register('era', 'Run2018',
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.string,
+    "era"
+)
+
+options.register('includeJets', True,
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.bool,
+    "Set to False to exclude jets information in output ntuples"
+)
+
 options.register('fromCRAB', False,
     VarParsing.multiplicity.singleton,
     VarParsing.varType.bool,
@@ -125,6 +138,16 @@ process.source = cms.Source("PoolSource",
         )
 )
 
+if options.includeJets:
+    # for b-tagging
+    process.load("RecoBTag.ImpactParameter.impactParameter_cff")
+    process.load("RecoBTag.SecondaryVertex.secondaryVertex_cff")
+    process.load("RecoBTag.SoftLepton.softLepton_cff")
+    process.load("RecoBTag.Combined.combinedMVA_cff")
+    process.load("RecoBTag.CTagging.cTagging_cff")
+    process.load("RecoBTag.Combined.deepFlavour_cff")
+    process.load("JetMETCorrections.Configuration.JetCorrectors_cff")
+
 process.options = cms.untracked.PSet(
     wantSummary = cms.untracked.bool(True),
     numberOfThreads = cms.untracked.uint32(options.numThreads)
@@ -154,18 +177,40 @@ if options.isFullAOD:
         process = muonAnalysis_customizeFullAOD_Z(process)
     else:
         process = muonAnalysis_customizeFullAOD_JPsi(process)
-    process.muon.isMC = options.isMC
+    if not options.isMC:
+        process.muon.jetCorrector = cms.InputTag(
+            "ak4PFCHSL1FastL2L3ResidualCorrector")
 else:
     if options.resonance == 'Z':
         process = muonAnalysis_customizeMiniAOD_Z(process)
     else:
         process = muonAnalysis_customizeMiniAOD(process)
 
-process.analysis_step = cms.Path(
-    process.muonL1Info +
-    process.muonL1InfoByQ +
-    process.muSequence
-)
+process.muon.isMC = options.isMC
+process.muon.includeJets = options.includeJets
+process.muon.era = options.era
+
+if options.includeJets:
+    if not options.isMC:
+        process.analysis_step = cms.Path(
+            process.muonL1Info +
+            process.muonL1InfoByQ +
+            process.ak4PFCHSL1FastL2L3ResidualCorrectorChain +
+            process.muSequence
+        )
+    else:
+        process.analysis_step = cms.Path(
+            process.muonL1Info +
+            process.muonL1InfoByQ +
+            process.ak4PFCHSL1FastL2L3CorrectorChain +
+            process.muSequence
+        )
+else:
+    process.analysis_step = cms.Path(
+        process.muonL1Info +
+        process.muonL1InfoByQ +
+        process.muSequence
+    )
 
 process.TFileService = cms.Service("TFileService",
         fileName = cms.string(options.outputFile)
