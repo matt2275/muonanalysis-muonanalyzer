@@ -79,6 +79,24 @@ public:
   float genmu2_phi;
   float genmu2_charge;
 
+  // Gen Jet properties
+  std::vector<float> genJets_pt;
+  std::vector<float> genJets_eta;
+  std::vector<float> genJets_phi;
+  std::vector<float> genJets_mass;
+
+  // Jet properties
+  std::vector<float> jets_pt;
+  std::vector<float> jets_eta;
+  std::vector<float> jets_phi;
+  std::vector<float> jets_mass;
+  std::vector<int> jets_isTight;
+  std::vector<int> jets_isTightLepVeto;
+  std::vector<float> jets_bTag_deepCSV;
+  std::vector<float> jets_bTag_deepFlav;
+  int nTightJets;
+  int nTightLepVetoJets;
+
   // Tag properties
   float tag_pt;
   float tag_eta;
@@ -97,7 +115,13 @@ public:
   bool tag_isSoft;
   bool tag_isHighPt;
   float tag_relIso04;
+  float tag_miniIso;
+  float tag_miniIsoCharged;
+  float tag_miniIsoPhotons;
+  float tag_miniIsoNeutrals;
   bool tag_isMatchedGen;
+  float tag_minDR;
+  float tag_ptRel_minDR;
   float tag_iso03_sumPt;
   float tag_pfIso04_charged;
   float tag_pfIso04_neutral;
@@ -127,6 +151,10 @@ public:
   bool probe_isGood;
   bool probe_isHighPurity;
   float probe_relIso04;
+  float probe_miniIso;
+  float probe_miniIsoCharged;
+  float probe_miniIsoPhotons;
+  float probe_miniIsoNeutrals;
   bool probe_isMatchedGen;
 
   float probe_validFraction;
@@ -143,6 +171,8 @@ public:
   float probe_pterr;
   float probe_dxy;
   float probe_dz;
+  float probe_minDR;
+  float probe_ptRel_minDR;
   float probe_iso03_sumPt;
   float probe_pfIso04_charged;
   float probe_pfIso04_neutral;

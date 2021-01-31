@@ -34,6 +34,20 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs) {
   t1->Branch("genmu2_charge", &genmu2_charge);
   for (unsigned int ihlt = 0; ihlt < HLTs.size(); ihlt++)
     t1->Branch(TString(HLTs[ihlt]), &trigger[ihlt]);
+  t1->Branch("genJets_pt", &genJets_pt);
+  t1->Branch("genJets_eta", &genJets_eta);
+  t1->Branch("genJets_phi", &genJets_phi);
+  t1->Branch("genJets_mass", &genJets_mass);
+  t1->Branch("jets_pt", &jets_pt);
+  t1->Branch("jets_eta", &jets_eta);
+  t1->Branch("jets_phi", &jets_phi);
+  t1->Branch("jets_mass", &jets_mass);
+  t1->Branch("jets_isTight", &jets_isTight);
+  t1->Branch("jets_isTightLepVeto", &jets_isTightLepVeto);
+  t1->Branch("jets_bTag_deepCSV", &jets_bTag_deepCSV);
+  t1->Branch("jets_bTag_deepFlav", &jets_bTag_deepFlav);
+  t1->Branch("nTightJets", &nTightJets);
+  t1->Branch("nTightLepVetoJets", &nTightLepVetoJets);
   // Tag specific
   t1->Branch("tag_pt", &tag_pt);
   t1->Branch("tag_eta", &tag_eta);
@@ -52,7 +66,13 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs) {
   t1->Branch("tag_isSoft", &tag_isSoft);
   t1->Branch("tag_isHighPt", &tag_isHighPt);
   t1->Branch("tag_relIso04", &tag_relIso04);
+  t1->Branch("tag_miniIso", &tag_miniIso);
+  t1->Branch("tag_miniIsoCharged", &tag_miniIsoCharged);
+  t1->Branch("tag_miniIsoPhotons", &tag_miniIsoPhotons);
+  t1->Branch("tag_miniIsoNeutrals", &tag_miniIsoPhotons);
   t1->Branch("tag_isMatchedGen", &tag_isMatchedGen);
+  t1->Branch("tag_minDR", &tag_minDR);
+  t1->Branch("tag_ptRel_minDR", &tag_ptRel_minDR);
   t1->Branch("tag_iso03_sumPt", &tag_iso03_sumPt);
   t1->Branch("tag_pfIso04_charged", &tag_pfIso04_charged);
   t1->Branch("tag_pfIso04_neutral", &tag_pfIso04_neutral);
@@ -96,7 +116,13 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs) {
   t1->Branch("probe_dxy", &probe_dxy);
   t1->Branch("probe_dz", &probe_dz);
   t1->Branch("probe_relIso04", &probe_relIso04);
+  t1->Branch("probe_miniIso", &probe_miniIso);
+  t1->Branch("probe_miniIsoCharged", &probe_miniIsoCharged);
+  t1->Branch("probe_miniIsoPhotons", &probe_miniIsoPhotons);
+  t1->Branch("probe_miniIsoNeutrals", &probe_miniIsoPhotons);
   t1->Branch("probe_isMatchedGen", &probe_isMatchedGen);
+  t1->Branch("probe_minDR", &probe_minDR);
+  t1->Branch("probe_ptRel_minDR", &probe_ptRel_minDR);
   t1->Branch("probe_iso03_sumPt", &probe_iso03_sumPt);
   t1->Branch("probe_pfIso04_charged", &probe_pfIso04_charged);
   t1->Branch("probe_pfIso04_neutral", &probe_pfIso04_neutral);
@@ -191,6 +217,22 @@ void NtupleContent::ClearBranches() {
   prb_eta.clear();
   prb_phi.clear();
 
+  genJets_pt.clear();
+  genJets_eta.clear();
+  genJets_phi.clear();
+  genJets_mass.clear();
+
+  jets_pt.clear();
+  jets_eta.clear();
+  jets_phi.clear();
+  jets_mass.clear();
+  jets_isTight.clear();
+  jets_isTightLepVeto.clear();
+  jets_bTag_deepCSV.clear();
+  jets_bTag_deepFlav.clear();
+  nTightJets = 0;
+  nTightLepVetoJets = 0;
+
   tag_pt = 0;
   tag_eta = -99;
   tag_phi = -99;
@@ -208,7 +250,13 @@ void NtupleContent::ClearBranches() {
   tag_isSoft = false;
   tag_isHighPt = false;
   tag_relIso04 = -99;
+  tag_miniIso = -1.;
+  tag_miniIsoCharged = 0.;
+  tag_miniIsoPhotons = 0.;
+  tag_miniIsoNeutrals = 0.;
   tag_isMatchedGen = false;
+  tag_minDR = 0.;
+  tag_ptRel_minDR = 0.;
   tag_iso03_sumPt = -99;
   tag_pfIso04_charged = -99;
   tag_pfIso04_neutral = -99;
@@ -252,7 +300,13 @@ void NtupleContent::ClearBranches() {
   probe_dxy = -99;
   probe_dz = -99;
   probe_relIso04 = -99;
+  probe_miniIso = -1.;
+  probe_miniIsoCharged = 0.;
+  probe_miniIsoPhotons = 0.;
+  probe_miniIsoNeutrals = 0.;
   probe_isMatchedGen = false;
+  probe_minDR = 0.;
+  probe_ptRel_minDR = 0.;
   probe_iso03_sumPt = -99;
   probe_pfIso04_charged = -99;
   probe_pfIso04_neutral = -99;

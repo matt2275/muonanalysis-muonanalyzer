@@ -18,6 +18,7 @@
 // system include files
 #include <iostream>
 #include <memory>
+#include <random>
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
@@ -47,6 +48,7 @@
 #include "DataFormats/L1Trigger/interface/Muon.h"
 #include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
 #include "DataFormats/Math/interface/deltaR.h"
+#include "DataFormats/Common/interface/ValueMap.h"
 
 #include <vector>
 #include "CommonTools/Statistics/interface/ChiSquaredProbability.h"
@@ -57,6 +59,15 @@
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/MuonSelectors.h"
 #include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
+#include "DataFormats/JetReco/interface/PFJet.h"
+#include "JetMETCorrections/Modules/interface/JetResolution.h"
+#include "JetMETCorrections/JetCorrector/interface/JetCorrector.h"
+#include "JetMETCorrections/Objects/interface/JetCorrectionsRecord.h"
+#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
+#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
+#include "DataFormats/JetReco/interface/GenJet.h"
+#include "DataFormats/BTauReco/interface/JetTag.h"
 #include "MagneticField/ParametrizedEngine/src/OAEParametrizedMagneticField.h"
 #include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
 #include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
@@ -73,6 +84,8 @@
 #include "MuonGenAnalyzer.h"
 #include "NtupleContent.h"
 #include "helper.h"
+#include "MuonMiniIsolation.h"
+#include "JetsBranches.h"
 
 using namespace std;
 
@@ -132,12 +145,23 @@ private:
   edm::EDGetTokenT<edm::ValueMap<int>> l1MatchesByQQualityToken_;
   edm::EDGetTokenT<edm::ValueMap<float>> l1MatchesByQDeltaRToken_;
   edm::EDGetTokenT<edm::View<reco::GenParticle>> genToken_;
+  edm::EDGetToken PFCands_;
+  edm::EDGetTokenT<double> rhoJetsNC_;
+  edm::EDGetToken jetsToken_;
+  edm::EDGetToken jetCorrectorToken_;
+  edm::EDGetToken genJetsToken_;
+  edm::EDGetToken deepCSVProbbToken_;
+  edm::EDGetToken deepCSVProbbbToken_;
+  //  edm::EDGetToken deepFlavProbbToken_;
+  //  edm::EDGetToken deepFlavProbbbToken_;
   std::vector<std::string> HLTPaths_;
   std::vector<std::string> HLTFilters_;
   std::vector<std::string> ProbePaths_;
   std::vector<std::string> ProbeFilters_;
 
-  const bool isMC_;
+  std::mt19937 m_random_generator = std::mt19937(37428479);
+  const bool isMC_, includeJets_;
+  const std::string era_;
   const double trgDRwindow_;
   const unsigned int tagQual_;
   const StringCutObjectSelector<reco::Muon> tagSelection_;  // kinematic cuts for tag
@@ -197,11 +221,20 @@ MuonFullAODAnalyzer::MuonFullAODAnalyzer(const edm::ParameterSet& iConfig)
       l1MatchesByQDeltaRToken_(
           consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("l1MatchesByQDeltaR"))),
       genToken_(consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("gen"))),
+      PFCands_(consumes<std::vector<reco::PFCandidate>>(iConfig.getParameter<edm::InputTag>("PFCands"))),
+      rhoJetsNC_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoJetsNC"))),
+      jetsToken_(consumes<std::vector<reco::PFJet>>(iConfig.getParameter<edm::InputTag>("jets"))),
+      jetCorrectorToken_(consumes<reco::JetCorrector>(iConfig.getParameter<edm::InputTag>("jetCorrector"))),
+      genJetsToken_(consumes<std::vector<reco::GenJet>>(iConfig.getParameter<edm::InputTag>("genJets"))),
+      deepCSVProbbToken_(consumes<reco::JetTagCollection>(iConfig.getParameter<edm::InputTag>("deepCSVProbb"))),
+      deepCSVProbbbToken_(consumes<reco::JetTagCollection>(iConfig.getParameter<edm::InputTag>("deepCSVProbbb"))),
       HLTPaths_(iConfig.getParameter<std::vector<std::string>>("triggerPaths")),
       HLTFilters_(iConfig.getParameter<std::vector<std::string>>("triggerFilters")),
       ProbePaths_(iConfig.getParameter<std::vector<std::string>>("ProbePaths")),
       ProbeFilters_(iConfig.getParameter<std::vector<std::string>>("ProbeFilters")),
       isMC_(iConfig.getParameter<bool>("isMC")),
+      includeJets_(iConfig.getParameter<bool>("includeJets")),
+      era_(iConfig.getParameter<std::string>("era")),
       trgDRwindow_(iConfig.getParameter<double>("trgDRwindow")),
       tagQual_(iConfig.getParameter<unsigned>("tagQuality")),
       tagSelection_(iConfig.getParameter<std::string>("tagSelection")),
@@ -348,8 +381,28 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   iEvent.getByToken(dglToken_, dGlmuons);
   edm::Handle<std::vector<reco::Track>> staCosmic;
   iEvent.getByToken(cosmicToken_, staCosmic);
+  edm::Handle<std::vector<reco::PFCandidate>> pfcands;
+  iEvent.getByToken(PFCands_, pfcands);
+  edm::Handle<double> rhoJetsNC;
+  iEvent.getByToken(rhoJetsNC_, rhoJetsNC);
+  edm::Handle<std::vector<reco::PFJet>> jets;
+  iEvent.getByToken(jetsToken_, jets);
+  edm::Handle<reco::JetCorrector> jetCorrector;
+  iEvent.getByToken(jetCorrectorToken_, jetCorrector);
+  edm::Handle<reco::JetTagCollection> deepCSVProbb;
+  iEvent.getByToken(deepCSVProbbToken_, deepCSVProbb);
+  edm::Handle<reco::JetTagCollection> deepCSVProbbb;
+  iEvent.getByToken(deepCSVProbbbToken_, deepCSVProbbb);
+  //  edm::Handle<reco::JetTagCollection> deepFlavProbb;
+  //  iEvent.getByToken(deepFlavProbbToken_, deepFlavProbb);
+  //  edm::Handle<reco::JetTagCollection> deepFlavProbbb;
+  //  iEvent.getByToken(deepFlavProbbbToken_, deepFlavProbbb);
   edm::ESHandle<MagneticField> bField;
   iSetup.get<IdealMagneticFieldRecord>().get(bField);
+  JME::JetResolution resolution;
+  resolution = JME::JetResolution::get(iSetup, "AK4PFchs_pt");
+  JME::JetResolutionScaleFactor resolution_sf;
+  resolution_sf = JME::JetResolutionScaleFactor::get(iSetup, "AK4PFchs");
 
   edm::Handle<trigger::TriggerEvent> triggerObjects;
   iEvent.getByToken(trigobjectsToken_, triggerObjects);
@@ -405,7 +458,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   reco::TrackBase::Point vertex_point;
   bool goodVtx = false;
-  reco::Vertex const * pv;
+  reco::Vertex const* pv;
   for (const reco::Vertex& vtx : *vertices) {
     if (vtx.isFake() || !vtx.isValid())
       continue;
@@ -480,14 +533,13 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   RecoTrkAndTransientTrkCollection tag_trkttrk;
   std::vector<bool> genmatched_tag;
   for (const auto& mu : *muons) {
-      if (mu.selectors() != 0) { // Only 9_4_X and later have selector bits
-          if (!mu.passed(pow(2, tagQual_)))
-              continue;
-      }
-      else { // For 2016, assume loose ID on the tag (can be tightened at spark level)
-          if (!muon::isLooseMuon(mu))
-              continue;
-      }
+    if (mu.selectors() != 0) {  // Only 9_4_X and later have selector bits
+      if (!mu.passed(pow(2, tagQual_)))
+        continue;
+    } else {  // For 2016, assume loose ID on the tag (can be tightened at spark level)
+      if (!muon::isLooseMuon(mu))
+        continue;
+    }
     if (!tagSelection_(mu))
       continue;
     if (std::find(trg_idx.begin(), trg_idx.end(), &mu - &muons->at(0)) == trg_idx.end())
@@ -536,7 +588,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     std::cout << "Matched trk-mu " << trk_muon_map.first.size() << std::endl;
 
   // probe track mapping with displaced standalone track
-  // start with tracks at first loop level and dSA at second level instead, 
+  // start with tracks at first loop level and dSA at second level instead,
   // to ensure each track that has a dSA match is actually recorded
   // i.e. a dSA track can be matched to more than one generalTrack
   // but all generalTracks that match should be pushed to the map
@@ -599,6 +651,79 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   if (debug_ > 0)
     std::cout << "Matched trk-cosmic " << trk_cosmic_map.first.size() << std::endl;
 
+  // Muon collection for jet cleaning
+  std::vector<reco::Muon> muForJetCleaning;
+  for (const auto& mu : *muons) {
+    if (!muon::isLooseMuon(mu))
+      continue;
+    muForJetCleaning.push_back(mu);
+  }
+  sort(muForJetCleaning.begin(), muForJetCleaning.end(), [](const auto& l, const auto& r) { return l.pt() > r.pt(); });
+
+  std::vector<reco::PFJet> corrJets;
+  if (includeJets_) {
+    // Gen Jet Info
+    edm::Handle<std::vector<reco::GenJet>> genJets;
+    iEvent.getByToken(genJetsToken_, genJets);
+    for (const auto& genJet : *genJets) {
+      nt.genJets_pt.push_back(genJet.pt());
+      nt.genJets_eta.push_back(genJet.eta());
+      nt.genJets_phi.push_back(genJet.phi());
+      nt.genJets_mass.push_back(genJet.mass());
+    }
+
+    // Get selected jets and fill branches
+    for (size_t i = 0; i < jets->size(); ++i) {
+      reco::PFJetRef jet(jets, i);
+      if (CrossClean(*jet, muForJetCleaning))
+        continue;
+      std::unique_ptr<reco::PFJet> corrJet(jet->clone());
+      double jec = jetCorrector->correction(*jet);
+      corrJet->scaleEnergy(jec);
+      double smearFactor = 1.0;
+      if (isMC_) {
+        double jet_resolution = resolution.getResolution({{JME::Binning::JetPt, corrJet->pt()},
+                                                          {JME::Binning::JetEta, corrJet->eta()},
+                                                          {JME::Binning::Rho, *rhoHandle}});
+        double jer_sf = resolution_sf.getScaleFactor({{JME::Binning::JetPt, corrJet->pt()},
+                                                      {JME::Binning::JetEta, corrJet->eta()},
+                                                      {JME::Binning::Rho, *rhoHandle}},
+                                                     Variation::NOMINAL);
+        // gen matching
+        double min_dR = std::numeric_limits<double>::infinity();
+        const reco::GenJet* matched_genJet = nullptr;
+        for (const auto& genJet : *genJets) {
+          double dR = deltaR(genJet, *corrJet);
+          if (dR > min_dR)
+            continue;
+          if (dR >= 0.2)
+            continue;
+          min_dR = dR;
+          matched_genJet = &genJet;
+        }
+        if (matched_genJet) {
+          double dPt = corrJet->pt() - matched_genJet->pt();
+          smearFactor = 1 + (jer_sf - 1.) * dPt / corrJet->pt();
+        } else if (jer_sf > 1) {
+          double sigma = jet_resolution * std::sqrt(jer_sf * jer_sf - 1);
+          std::normal_distribution<> d(0, sigma);
+          smearFactor = 1. + d(m_random_generator);
+        }
+
+        if (corrJet->pt() * smearFactor < 0.01) {
+          smearFactor = 0.01 / corrJet->energy();
+        }
+      }
+      corrJet->scaleEnergy(smearFactor);
+      corrJets.push_back(*corrJet);
+      FillJetBranches(*jet, *corrJet, nt, era_);
+      if (deepCSVProbb->size() > i && deepCSVProbbb->size() > i) {
+        nt.jets_bTag_deepCSV.push_back((*deepCSVProbb)[i].second + (*deepCSVProbbb)[i].second);
+      } else
+        nt.jets_bTag_deepCSV.push_back(-9999.);
+    }
+  }
+
   // select probes
   for (auto& tag : tag_trkttrk) {
     if (debug_ > 0)
@@ -636,6 +761,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       nt.tag_isMatchedGen = genmatched_tag[&tag - &tag_trkttrk[0]];
 
       FillTagBranches<reco::Muon, reco::Track>(tag.first, *tracks, nt, *pv);
+      FillMiniIso<reco::Muon, reco::PFCandidate>(*pfcands, tag.first, *rhoJetsNC, nt, true);
 
       embedTriggerMatching(tag.first, nt.trg_filter, nt.trg_eta, nt.trg_phi, HLTFilters_, true, debug_);
 
@@ -659,6 +785,9 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         fakeMuon.setP4(mu2);
         fakeMuon.setCharge(probe.charge());
         FillProbeBranches<reco::Muon, reco::Track>(fakeMuon, *tracks, nt, false, *pv);
+        FillMiniIso<reco::Muon, reco::PFCandidate>(*pfcands, fakeMuon, *rhoJetsNC, nt, false);
+        if (includeJets_)
+          FindJetProbePair<reco::PFJet, reco::Muon>(corrJets, fakeMuon, nt);
         if (debug_ > 0)
           std::cout << "  Unsuccessful probe " << std::endl;
       } else {
@@ -668,6 +797,10 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
                     << muons->at(trk_muon_map.second[idx]).eta() << " phi " << muons->at(trk_muon_map.second[idx]).phi()
                     << std::endl;
         FillProbeBranches<reco::Muon, reco::Track>(muons->at(trk_muon_map.second[idx]), *tracks, nt, true, *pv);
+        FillMiniIso<reco::Muon, reco::PFCandidate>(
+            *pfcands, muons->at(trk_muon_map.second[idx]), *rhoJetsNC, nt, false);
+        if (includeJets_)
+          FindJetProbePair<reco::PFJet, pat::Muon>(corrJets, muons->at(trk_muon_map.second[idx]), nt);
 
         // Probe-trigger matching
         auto muRef = muonsView->refAt(trk_muon_map.second[idx]);

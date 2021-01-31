@@ -5,6 +5,13 @@ import FWCore.ParameterSet.Config as cms
 
 
 def muonAnalysis_customizeFullAOD_Z(process):
+   process.load("RecoBTag.ImpactParameter.impactParameter_cff")
+   process.load("RecoBTag.SecondaryVertex.secondaryVertex_cff")
+   process.load("RecoBTag.SoftLepton.softLepton_cff")
+   process.load("RecoBTag.Combined.combinedMVA_cff")
+   process.load("RecoBTag.CTagging.cTagging_cff")
+   process.load("RecoBTag.Combined.deepFlavour_cff")
+
    process.load("MuonAnalysis.MuonAnalyzer.fullAOD_Z_cff")
    process.muSequence = cms.Sequence(process.fullAODSequence)
    return process
