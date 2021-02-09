@@ -52,7 +52,7 @@ options.register('era', 'Run2018',
     "era"
 )
 
-options.register('includeJets', True,
+options.register('includeJets', False,
     VarParsing.multiplicity.singleton,
     VarParsing.varType.bool,
     "Set to False to exclude jets information in output ntuples"
