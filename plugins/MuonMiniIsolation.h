@@ -21,17 +21,20 @@
 #include "helper.h"
 
 template <typename PFCANDS>
-inline bool is_fromPV(PFCANDS pfc) {
+inline bool is_fromPV(PFCANDS &pfc) {
   return false;
 }
 
 template <>
-inline bool is_fromPV<reco::PFCandidate>(reco::PFCandidate pfc) {
-  return (pfc.bestTrack()->dz() < 0.0 ? true : false);
+inline bool is_fromPV<reco::PFCandidate>(reco::PFCandidate &pfc) {
+  if (pfc.bestTrack())
+    return (pfc.bestTrack()->dz() < 0.0 ? true : false);
+  else
+    return false;
 }
 
 template <>
-inline bool is_fromPV<pat::PackedCandidate>(pat::PackedCandidate pfc) {
+inline bool is_fromPV<pat::PackedCandidate>(pat::PackedCandidate &pfc) {
   return (pfc.fromPV() > 1 ? true : false);
 }
 

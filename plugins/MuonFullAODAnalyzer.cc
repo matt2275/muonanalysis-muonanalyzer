@@ -423,6 +423,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   nt.ClearBranches();
   nt.run = iEvent.id().run();
   nt.ls = iEvent.luminosityBlock();
+  nt.event = iEvent.id().event();
   nt.fromFullAOD = true;
   nt.BSpot_x = theBeamSpot->x0();
   nt.BSpot_y = theBeamSpot->y0();
@@ -662,16 +663,6 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   std::vector<reco::PFJet> corrJets;
   if (includeJets_) {
-    // Gen Jet Info
-    edm::Handle<std::vector<reco::GenJet>> genJets;
-    iEvent.getByToken(genJetsToken_, genJets);
-    for (const auto& genJet : *genJets) {
-      nt.genJets_pt.push_back(genJet.pt());
-      nt.genJets_eta.push_back(genJet.eta());
-      nt.genJets_phi.push_back(genJet.phi());
-      nt.genJets_mass.push_back(genJet.mass());
-    }
-
     // Get selected jets and fill branches
     for (size_t i = 0; i < jets->size(); ++i) {
       reco::PFJetRef jet(jets, i);
@@ -682,6 +673,16 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       corrJet->scaleEnergy(jec);
       double smearFactor = 1.0;
       if (isMC_) {
+        // Gen Jet Info
+        edm::Handle<std::vector<reco::GenJet>> genJets;
+        iEvent.getByToken(genJetsToken_, genJets);
+        for (const auto& genJet : *genJets) {
+          nt.genJets_pt.push_back(genJet.pt());
+          nt.genJets_eta.push_back(genJet.eta());
+          nt.genJets_phi.push_back(genJet.phi());
+          nt.genJets_mass.push_back(genJet.mass());
+        }
+
         double jet_resolution = resolution.getResolution({{JME::Binning::JetPt, corrJet->pt()},
                                                           {JME::Binning::JetEta, corrJet->eta()},
                                                           {JME::Binning::Rho, *rhoHandle}});
@@ -709,7 +710,6 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           std::normal_distribution<> d(0, sigma);
           smearFactor = 1. + d(m_random_generator);
         }
-
         if (corrJet->pt() * smearFactor < 0.01) {
           smearFactor = 0.01 / corrJet->energy();
         }
@@ -724,31 +724,84 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     }
   }
 
-  // select probes
+  // run over tracks and probes once prior to filling tree to determine ordering of pairs
+  // this is necessary to use tag-probe pair with highest "quality" later on in spark_tnp
+  using t_pair_prob = std::pair<std::pair<int,int>,float>;
+  vector<t_pair_prob> pair_vtx_probs;
+  // loop over tags
   for (auto& tag : tag_trkttrk) {
-    if (debug_ > 0)
-      std::cout << "New tag pt " << tag.first.pt() << " eta " << tag.first.eta() << " phi " << tag.first.phi()
-                << std::endl;
+    auto tag_idx = &tag - &tag_trkttrk[0];
+    // loop over probes
     for (const reco::Track& probe : *tracks) {
-      if (debug_ > 1)
-        std::cout << "    Probe pt " << probe.pt() << " eta " << probe.eta() << " phi " << probe.phi() << "  charge "
-                  << probe.charge() << std::endl;
+      auto probe_idx = &probe - &tracks->at(0);
+
+      // apply cuts on probe
       if (HighPurity_ && !probe.quality(Track::highPurity))
         continue;
-      if (tag.first.charge() == probe.charge())
+      if (!probeSelection_(probe))
         continue;
 
-      // apply cuts on pairs selected will be saved
-      if (!probeSelection_(probe))
+      // apply cuts on pairs
+      if (tag.first.charge() == probe.charge())
         continue;
       if (fabs(tag.first.vz() - probe.vz()) > pairDz_ && pairDz_ > 0)
         continue;
       float mass = DimuonMass(tag.first.pt(), tag.first.eta(), tag.first.phi(), probe.pt(), probe.eta(), probe.phi());
-
       if (mass < pairMassMin_ || mass > pairMassMax_)
         continue;
-      std::vector<reco::TransientTrack> trk_pair = {tag.second, reco::TransientTrack(probe, &(*bField))};
 
+      // compute vtx
+      std::vector<reco::TransientTrack> trk_pair = {tag.second, reco::TransientTrack(probe, &(*bField))};
+      KlFitter vtx(trk_pair);
+      if (RequireVtxCreation_ && !vtx.status())
+        continue;
+      if (minSVtxProb_ > 0 && vtx.prob() < minSVtxProb_)
+        continue;
+      
+      // save vtx prob to sort later
+      pair_vtx_probs.emplace_back(std::make_pair(std::make_pair(tag_idx, probe_idx), vtx.prob()));
+    }
+  }
+
+  // reverse sort vertices by probability
+  auto compare_vtx = [=](t_pair_prob& a, t_pair_prob& b) { 
+    return a.second > b.second;
+  };
+  std::sort(pair_vtx_probs.begin(), pair_vtx_probs.end(), compare_vtx);
+  // assign sorted vtx indices to ranking
+  map<std::pair<int,int>,int> pair_rankings;
+  for (size_t i = 0; i < pair_vtx_probs.size(); i++)
+    pair_rankings[pair_vtx_probs[i].first] = i;
+
+  // now run again to select probes
+  // loop over tags
+  for (auto& tag : tag_trkttrk) {
+    if (debug_ > 0)
+      std::cout << "New tag pt " << tag.first.pt() << " eta " << tag.first.eta() << " phi " << tag.first.phi()
+                << std::endl;
+    // loop over probe tracks
+    for (const reco::Track& probe : *tracks) {
+      if (debug_ > 1)
+        std::cout << "    Probe pt " << probe.pt() << " eta " << probe.eta() << " phi " << probe.phi() << "  charge "
+                  << probe.charge() << std::endl;
+      
+      // apply cuts on probe
+      if (HighPurity_ && !probe.quality(Track::highPurity))
+        continue;
+      if (!probeSelection_(probe))
+        continue;
+
+      // apply cuts on pairs; selected will be saved
+      if (tag.first.charge() == probe.charge())
+        continue;
+      if (fabs(tag.first.vz() - probe.vz()) > pairDz_ && pairDz_ > 0)
+        continue;
+
+      float mass = DimuonMass(tag.first.pt(), tag.first.eta(), tag.first.phi(), probe.pt(), probe.eta(), probe.phi());
+      if (mass < pairMassMin_ || mass > pairMassMax_)
+        continue;
+
+      std::vector<reco::TransientTrack> trk_pair = {tag.second, reco::TransientTrack(probe, &(*bField))};
       KlFitter vtx(trk_pair);
       if (RequireVtxCreation_ && !vtx.status())
         continue;
@@ -763,13 +816,8 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       FillTagBranches<reco::Muon, reco::Track>(tag.first, *tracks, nt, *pv);
       FillMiniIso<reco::Muon, reco::PFCandidate>(*pfcands, tag.first, *rhoJetsNC, nt, true);
 
+      // Tag-trigger matching
       embedTriggerMatching(tag.first, nt.trg_filter, nt.trg_eta, nt.trg_phi, HLTFilters_, true, debug_);
-
-      if (std::find(matched_track_idx.begin(), matched_track_idx.end(), &probe - &tracks->at(0)) !=
-          matched_track_idx.end())
-        nt.probe_isMatchedGen = true;
-      else
-        nt.probe_isMatchedGen = false;
 
       std::vector<unsigned>::iterator it =
           std::find(trk_muon_map.first.begin(), trk_muon_map.first.end(), &probe - &tracks->at(0));
@@ -781,6 +829,8 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           std::find(trk_cosmic_map.first.begin(), trk_cosmic_map.first.end(), &probe - &tracks->at(0));
 
       if (it == trk_muon_map.first.end()) {
+        if (debug_ > 0)
+          std::cout << "  Unsuccessful probe " << std::endl;
         reco::Muon fakeMuon;
         fakeMuon.setP4(mu2);
         fakeMuon.setCharge(probe.charge());
@@ -788,8 +838,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         FillMiniIso<reco::Muon, reco::PFCandidate>(*pfcands, fakeMuon, *rhoJetsNC, nt, false);
         if (includeJets_)
           FindJetProbePair<reco::PFJet, reco::Muon>(corrJets, fakeMuon, nt);
-        if (debug_ > 0)
-          std::cout << "  Unsuccessful probe " << std::endl;
+
       } else {
         unsigned idx = std::distance(trk_muon_map.first.begin(), it);
         if (debug_ > 0)
@@ -856,9 +905,15 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       }
 
       FillPairBranches<reco::Muon, reco::Track>(tag.first, probe, nt);
-      nt.iprobe++;
-      nt.probe_isHighPurity = probe.quality(Track::highPurity);
       vtx.fillNtuple(nt);
+
+      auto it_match = std::find(matched_track_idx.begin(), matched_track_idx.end(), &probe - &tracks->at(0));
+      nt.probe_isMatchedGen = (it_match != matched_track_idx.end());
+
+      nt.iprobe++;
+      nt.pair_rank = pair_rankings[{&tag - &tag_trkttrk[0], &probe - &tracks->at(0)}];
+      nt.probe_isHighPurity = probe.quality(Track::highPurity);
+
       t1->Fill();
     }
   }

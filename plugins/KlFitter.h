@@ -24,12 +24,14 @@ public:
   void fillNtuple(NtupleContent &nt);
   bool status() { return status_; }
   float prob() { return prob_; }
+  float normalchi2() { return normalchi2_; }
 
 private:
   TransientVertex dimuvtx;
   std::vector<reco::TransientTrack> refited;
   bool status_ = true;
   float prob_ = 0;
+  float normalchi2_ = 0;
 };
 
 #endif

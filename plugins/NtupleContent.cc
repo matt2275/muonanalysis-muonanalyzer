@@ -163,7 +163,9 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs) {
   t1->Branch("pair_mass", &pair_mass);
   t1->Branch("pair_fit_mass", &pair_fit_mass);
   t1->Branch("pair_svprob", &pair_svprob);
+  t1->Branch("pair_normalchi2", &pair_normalchi2);
   t1->Branch("pair_dz", &pair_dz);
+  t1->Branch("pair_rank", &pair_rank);
 }
 
 void NtupleContent::CreateExtraTrgBranches(const std::vector<std::string> &HLTs, bool isTag = false) {
@@ -348,5 +350,7 @@ void NtupleContent::ClearBranches() {
   pair_phi = -99;
   pair_fit_mass = 0;
   pair_svprob = 0;
+  pair_normalchi2 = 0;
   pair_dz = -99;
+  pair_rank = -1;
 }

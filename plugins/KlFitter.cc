@@ -8,6 +8,7 @@ KlFitter::KlFitter(std::vector<reco::TransientTrack> &vecttrk) {
   else {
     refited = dimuvtx.refittedTracks();
     prob_ = ChiSquaredProbability(dimuvtx.totalChiSquared(), dimuvtx.degreesOfFreedom());
+    normalchi2_ = dimuvtx.totalChiSquared() / dimuvtx.degreesOfFreedom();
   }
 }
 
@@ -22,8 +23,10 @@ void KlFitter::fillNtuple(NtupleContent &nt) {
                                   refited[1].track().pt(),
                                   refited[1].track().eta(),
                                   refited[1].track().phi());
+    nt.pair_normalchi2 = normalchi2_;
   } else {
     nt.pair_svprob = -1;
     nt.pair_fit_mass = -1;
+    nt.pair_normalchi2 = -1;
   }
 }

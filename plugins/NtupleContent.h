@@ -208,8 +208,9 @@ public:
   float pair_phi;
   float pair_fit_mass;
   float pair_svprob;
+  float pair_normalchi2;
   float pair_dz;
-  float pair_first_pair;
+  int pair_rank;
 
 private:
   TTree *t1;

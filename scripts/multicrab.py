@@ -173,7 +173,7 @@ def main():
             # Requires write access to FNAL EOS space
             config.Site.storageSite = 'T3_US_FNALLPC'
             config.Data.outLFNDirBase = '/store/user/%s/TnP_ntuples/%s/%s/%s' % (getUsername(), particle, resonance, era)
-        elif storageSite == 'CERN':
+        elif storageSite == 'CERN': # default option
             # Requires write access to Muon POG EOS space at CERN
             config.Site.storageSite = 'T2_CH_CERN'
             config.Data.outLFNDirBase = '/store/group/phys_muon/%s/TnP_ntuples/%s/%s/%s' % (getUsername(), particle, resonance, era)
@@ -221,6 +221,7 @@ def main():
             if isData and not doData: continue
             if not isData and not doMC: continue
 
+            config.Data.lumiMask = ''
             if isData:
                 if '2018' in era:
                     config.Data.lumiMask = 'https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions18/13TeV/ReReco/Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt'
@@ -228,10 +229,6 @@ def main():
                     config.Data.lumiMask = 'https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions17/13TeV/ReReco/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_v1.txt'
                 elif '2016' in era:
                     config.Data.lumiMask = 'https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions16/13TeV/ReReco/Final/Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON.txt'
-                else:
-                    config.Data.lumiMask = ''
-            else:
-                config.Data.lumiMask = ''
 
             config.JobType.pyCfgParams = [
                     'resonance={}'.format(resonance),
