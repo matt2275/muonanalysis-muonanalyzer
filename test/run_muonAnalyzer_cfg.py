@@ -191,7 +191,7 @@ process.muonL1InfoByQ = process.muonL1Info.clone(
 )
 
 from MuonAnalysis.MuonAnalyzer.hltInfo_cff import getHLTInfo
-hltInfo = getHLTInfo(options.resonance, options.era)
+hltInfo = getHLTInfo(options.resonance, options.era, options.isFullAOD)
 process.muon.triggerPaths = cms.vstring(hltInfo['triggerPaths'])
 process.muon.tagFilters = cms.vstring(hltInfo['tagFilters'])
 process.muon.probeFilters = cms.vstring(hltInfo['probeFilters'])

@@ -9,6 +9,9 @@ hltInfoAll[resonance][era][type]:
   - tagFilters: HLT filters matched to the tag muon (MiniAOD: path names are also supported),
                 the tag should pass at least one of the filters to be stored
   - probeFilters: HLT filters matched to the probe muon (MiniAOD: path names are also supported)
+* Recommended naming convention:
+  - path name: HLT_X_v, e.g. HLT_IsoMu24_v, HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8_v
+  - filter name: full filter name, e.g. hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q
 """
 
 hltInfoAll = {
@@ -41,8 +44,6 @@ hltInfoAll = {
         "HLT_Mu50_v",
         "HLT_OldMu100_v",
         "HLT_TkMu100_v",
-        "hltL1fL1sMu22L1Filtered0",
-        "hltL2fL1sSingleMu22L1f0L2Filtered10Q",
         "hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q",
         "hltL3crIsoL1sSingleMu22L1f0L2f10QL3f24QL3trkIsoFiltered0p07",
       ],
@@ -56,8 +57,6 @@ hltInfoAll = {
         "HLT_Mu50_v",
         "HLT_OldMu100_v",
         "HLT_TkMu100_v",
-        "hltL1fL1sMu22L1Filtered0",
-        "hltL2fL1sSingleMu22L1f0L2Filtered10Q",
         "hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q",
         "hltL3crIsoL1sSingleMu22L1f0L2f10QL3f24QL3trkIsoFiltered0p07",
       ]
@@ -82,8 +81,6 @@ hltInfoAll = {
         "HLT_Mu50_v",
         "HLT_OldMu100_v",
         "HLT_TkMu100_v",
-        "hltL1fL1sMu22L1Filtered0",
-        "hltL2fL1sSingleMu22L1f0L2Filtered10Q",
         "hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q",
         "hltL3crIsoL1sSingleMu22L1f0L2f10QL3f24QL3trkIsoFiltered0p07",
       ],
@@ -97,8 +94,6 @@ hltInfoAll = {
         "HLT_Mu50_v",
         "HLT_OldMu100_v",
         "HLT_TkMu100_v",
-        "hltL1fL1sMu22L1Filtered0",
-        "hltL2fL1sSingleMu22L1f0L2Filtered10Q",
         "hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q",
         "hltL3crIsoL1sSingleMu22L1f0L2f10QL3f24QL3trkIsoFiltered0p07",
       ]
@@ -159,7 +154,15 @@ def getShortEraForHLT(era):
   else:  # any other era will use the trigger list for Run2018
     return 'Run2018'
 
-def getHLTInfo(resonance, era):
+def getHLTInfo(resonance, era, filtersOnly = False):
   check_size(hltInfoAll)
-  return hltInfoAll[resonance][getShortEraForHLT(era)]
+  if filtersOnly:
+    # remove trigger path names from list
+    out = []
+    for filt in hltInfoAll[resonance][getShortEraForHLT(era)]:
+      if filt.startswith('hlt') and 'HLT_' not in filt:
+        out.append(filt)
+    return out
+  else:
+    return hltInfoAll[resonance][getShortEraForHLT(era)]
 
