@@ -157,8 +157,8 @@ private:
   edm::EDGetToken deepCSVProbbbToken_;
   //  edm::EDGetToken deepFlavProbbToken_;
   //  edm::EDGetToken deepFlavProbbbToken_;
-  std::vector<std::string> HLTPaths_;  // trigger fired
-  std::vector<std::string> tagFilters_;  // tag-trigger matching
+  std::vector<std::string> HLTPaths_;      // trigger fired
+  std::vector<std::string> tagFilters_;    // tag-trigger matching
   std::vector<std::string> probeFilters_;  // probe-trigger matching
 
   std::mt19937 m_random_generator = std::mt19937(37428479);
@@ -727,7 +727,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   // run over tracks and probes once prior to filling tree to determine ordering of pairs
   // this is necessary to use tag-probe pair with highest "quality" later on in spark_tnp
-  using t_pair_prob = std::pair<std::pair<int,int>,float>;
+  using t_pair_prob = std::pair<std::pair<int, int>, float>;
   vector<t_pair_prob> pair_vtx_probs;
   // loop over tags
   for (auto& tag : tag_trkttrk) {
@@ -758,19 +758,17 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         continue;
       if (minSVtxProb_ > 0 && vtx.prob() < minSVtxProb_)
         continue;
-      
+
       // save vtx prob to sort later
       pair_vtx_probs.emplace_back(std::make_pair(std::make_pair(tag_idx, probe_idx), vtx.prob()));
     }
   }
 
   // reverse sort vertices by probability
-  auto compare_vtx = [=](t_pair_prob& a, t_pair_prob& b) { 
-    return a.second > b.second;
-  };
+  auto compare_vtx = [=](t_pair_prob& a, t_pair_prob& b) { return a.second > b.second; };
   std::sort(pair_vtx_probs.begin(), pair_vtx_probs.end(), compare_vtx);
   // assign sorted vtx indices to ranking
-  map<std::pair<int,int>,int> pair_rankings;
+  map<std::pair<int, int>, int> pair_rankings;
   for (size_t i = 0; i < pair_vtx_probs.size(); i++)
     pair_rankings[pair_vtx_probs[i].first] = i;
 
@@ -785,7 +783,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       if (debug_ > 1)
         std::cout << "    Probe pt " << probe.pt() << " eta " << probe.eta() << " phi " << probe.phi() << "  charge "
                   << probe.charge() << std::endl;
-      
+
       // apply cuts on probe
       if (HighPurity_ && !probe.quality(Track::highPurity))
         continue;
@@ -877,10 +875,8 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           const reco::TrackRef tag_tuneP = tag.first.tunePMuonBestTrack();
           const reco::TrackRef probe_tuneP = muons->at(trk_muon_map.second[idx]).tunePMuonBestTrack();
           FillTunePPairBranches<reco::Track, reco::Track>(*tag_tuneP, *probe_tuneP, nt);
-          std::vector<reco::TransientTrack> ttrk_pair_tuneP = {
-            reco::TransientTrack(*tag_tuneP, &(*bField)),
-            reco::TransientTrack(*probe_tuneP, &(*bField))
-          };
+          std::vector<reco::TransientTrack> ttrk_pair_tuneP = {reco::TransientTrack(*tag_tuneP, &(*bField)),
+                                                               reco::TransientTrack(*probe_tuneP, &(*bField))};
           KlFitter vtx_tuneP(ttrk_pair_tuneP);
           vtx_tuneP.fillNtuple(nt, true);
         } else {
