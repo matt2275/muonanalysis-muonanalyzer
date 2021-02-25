@@ -13,6 +13,9 @@
 // Modified:
 //                Andre Frankenthal (Sept. 2020)
 //
+// Modified:
+//                Minseok Oh (Feb. 2021)
+//
 //
 
 // system include files
@@ -154,10 +157,9 @@ private:
   edm::EDGetToken deepCSVProbbbToken_;
   //  edm::EDGetToken deepFlavProbbToken_;
   //  edm::EDGetToken deepFlavProbbbToken_;
-  std::vector<std::string> HLTPaths_;
-  std::vector<std::string> HLTFilters_;
-  std::vector<std::string> ProbePaths_;
-  std::vector<std::string> ProbeFilters_;
+  std::vector<std::string> HLTPaths_;  // trigger fired
+  std::vector<std::string> tagFilters_;  // tag-trigger matching
+  std::vector<std::string> probeFilters_;  // probe-trigger matching
 
   std::mt19937 m_random_generator = std::mt19937(37428479);
   const bool isMC_, includeJets_;
@@ -229,9 +231,8 @@ MuonFullAODAnalyzer::MuonFullAODAnalyzer(const edm::ParameterSet& iConfig)
       deepCSVProbbToken_(consumes<reco::JetTagCollection>(iConfig.getParameter<edm::InputTag>("deepCSVProbb"))),
       deepCSVProbbbToken_(consumes<reco::JetTagCollection>(iConfig.getParameter<edm::InputTag>("deepCSVProbbb"))),
       HLTPaths_(iConfig.getParameter<std::vector<std::string>>("triggerPaths")),
-      HLTFilters_(iConfig.getParameter<std::vector<std::string>>("triggerFilters")),
-      ProbePaths_(iConfig.getParameter<std::vector<std::string>>("ProbePaths")),
-      ProbeFilters_(iConfig.getParameter<std::vector<std::string>>("ProbeFilters")),
+      tagFilters_(iConfig.getParameter<std::vector<std::string>>("tagFilters")),
+      probeFilters_(iConfig.getParameter<std::vector<std::string>>("probeFilters")),
       isMC_(iConfig.getParameter<bool>("isMC")),
       includeJets_(iConfig.getParameter<bool>("includeJets")),
       era_(iConfig.getParameter<std::string>("era")),
@@ -477,8 +478,8 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   // check if path fired, if so save hlt muons
   if (!HLTaccept(iEvent, nt, HLTPaths_))
     return;
-  fillHLTmuon(iEvent, nt.trg_filter, nt.trg_pt, nt.trg_eta, nt.trg_phi, HLTFilters_, debug_);
-  fillHLTmuon(iEvent, nt.prb_filter, nt.prb_pt, nt.prb_eta, nt.prb_phi, ProbeFilters_, debug_);
+  fillHLTmuon(iEvent, nt.trg_filter, nt.trg_pt, nt.trg_eta, nt.trg_phi, tagFilters_, debug_);
+  fillHLTmuon(iEvent, nt.prb_filter, nt.prb_pt, nt.prb_eta, nt.prb_phi, probeFilters_, debug_);
 
   // gen information
   MuonGenAnalyzer genmu;
@@ -817,7 +818,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       FillMiniIso<reco::Muon, reco::PFCandidate>(*pfcands, tag.first, *rhoJetsNC, nt, true);
 
       // Tag-trigger matching
-      embedTriggerMatching(tag.first, nt.trg_filter, nt.trg_eta, nt.trg_phi, HLTFilters_, true, debug_);
+      embedTriggerMatching(tag.first, nt.trg_filter, nt.trg_eta, nt.trg_phi, tagFilters_, true, debug_);
 
       std::vector<unsigned>::iterator it =
           std::find(trk_muon_map.first.begin(), trk_muon_map.first.end(), &probe - &tracks->at(0));
@@ -838,7 +839,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         FillMiniIso<reco::Muon, reco::PFCandidate>(*pfcands, fakeMuon, *rhoJetsNC, nt, false);
         if (includeJets_)
           FindJetProbePair<reco::PFJet, reco::Muon>(corrJets, fakeMuon, nt);
-
+        FillTunePPairBranchesDummy(nt);
       } else {
         unsigned idx = std::distance(trk_muon_map.first.begin(), it);
         if (debug_ > 0)
@@ -868,7 +869,23 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         }
 
         embedTriggerMatching(
-            muons->at(trk_muon_map.second[idx]), nt.prb_filter, nt.prb_eta, nt.prb_phi, ProbeFilters_, false, debug_);
+            muons->at(trk_muon_map.second[idx]), nt.prb_filter, nt.prb_eta, nt.prb_phi, probeFilters_, false, debug_);
+
+        // TuneP pair branches
+        if (tag.first.tunePMuonBestTrack().isNonnull() &&
+            muons->at(trk_muon_map.second[idx]).tunePMuonBestTrack().isNonnull()) {
+          const reco::TrackRef tag_tuneP = tag.first.tunePMuonBestTrack();
+          const reco::TrackRef probe_tuneP = muons->at(trk_muon_map.second[idx]).tunePMuonBestTrack();
+          FillTunePPairBranches<reco::Track, reco::Track>(*tag_tuneP, *probe_tuneP, nt);
+          std::vector<reco::TransientTrack> ttrk_pair_tuneP = {
+            reco::TransientTrack(*tag_tuneP, &(*bField)),
+            reco::TransientTrack(*probe_tuneP, &(*bField))
+          };
+          KlFitter vtx_tuneP(ttrk_pair_tuneP);
+          vtx_tuneP.fillNtuple(nt, true);
+        } else {
+          FillTunePPairBranchesDummy(nt);
+        }
       }
 
       if (itdsa == trk_dsA_map.first.end()) {
@@ -925,10 +942,10 @@ void MuonFullAODAnalyzer::beginJob() {
   t1 = fs->make<TTree>("Events", "Events");
   nt.SetTree(t1);
   nt.CreateBranches(HLTPaths_);
-  if (!HLTFilters_.empty())
-    nt.CreateExtraTrgBranches(HLTFilters_, true);
-  if (!ProbeFilters_.empty())
-    nt.CreateExtraTrgBranches(ProbeFilters_, false);
+  if (!tagFilters_.empty())
+    nt.CreateExtraTrgBranches(tagFilters_, true);
+  if (!probeFilters_.empty())
+    nt.CreateExtraTrgBranches(probeFilters_, false);
 }
 
 // ------------ method called once each job just after ending the event loop

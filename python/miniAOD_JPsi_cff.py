@@ -3,14 +3,11 @@ parameters for miniAOD'''
 
 import FWCore.ParameterSet.Config as cms
 
-
-Path=["HLT_Mu8_v","HLT_Mu17_v","HLT_Mu19_v","HLT_Mu20_v","HLT_IsoMu20_v","HLT_IsoMu24_v","HLT_Mu50"]  #paths for tag muon
-
-
 muon = cms.EDAnalyzer('MuonMiniAODAnalyzer',
            isMC=cms.bool(False),
            includeJets=cms.bool(False),
            era = cms.string('dummy'), # updated in run_muonAnalyzer_cfg.py
+           pileupInfo=cms.InputTag('slimmedAddPileupInfo'),
            Rho=cms.InputTag('fixedGridRhoFastjetAll'),
            beamSpot=cms.InputTag('offlineBeamSpot'),
            vertices=cms.InputTag("offlineSlimmedPrimaryVertices"),
@@ -28,9 +25,9 @@ muon = cms.EDAnalyzer('MuonMiniAODAnalyzer',
            rhoJetsNC = cms.InputTag("fixedGridRhoFastjetCentralNeutral"),
            jets = cms.InputTag("slimmedJets"),
            genJets = cms.InputTag("slimmedGenJets"),
-           HLTPaths=cms.vstring(Path),
-           TagPathsOrFilters=cms.vstring(Path),
-           ProbePathsOrFilters=cms.vstring(Path),
+           triggerPaths=cms.vstring(), # updated in run_muonAnalyzer_cfg.py
+           tagFilters=cms.vstring(), # updated in run_muonAnalyzer_cfg.py
+           probeFilters=cms.vstring(), # updated in run_muonAnalyzer_cfg.py
            tagQuality = cms.uint32(0), # quality of tag muon following muonSelector convention
            tagSelection = cms.string("pt()>0"), # string to pass cuts on tag
            ProbeHPurity = cms.bool(True), # skips non High purity probes
