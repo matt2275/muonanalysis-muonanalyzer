@@ -192,9 +192,9 @@ process.muonL1InfoByQ = process.muonL1Info.clone(
 
 from MuonAnalysis.MuonAnalyzer.hltInfo_cff import getHLTInfo
 hltInfo = getHLTInfo(options.resonance, options.era)
-process.muon.triggerPaths = cms.vstring(['triggerPaths'])
-process.muon.tagFilters = cms.vstring(['tagFilters'])
-process.muon.probeFilters = cms.vstring(['probeFilters'])
+process.muon.triggerPaths = cms.vstring(hltInfo['triggerPaths'])
+process.muon.tagFilters = cms.vstring(hltInfo['tagFilters'])
+process.muon.probeFilters = cms.vstring(hltInfo['probeFilters'])
 
 if options.includeJets:
     if not options.isMC:
