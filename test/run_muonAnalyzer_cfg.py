@@ -190,11 +190,11 @@ process.muonL1InfoByQ = process.muonL1Info.clone(
     sortByPt       = cms.bool(False)
 )
 
-from MuonAnalysis.MuonAnalyzer.hltInfo_cff import getHLTInfo
-hltInfo = getHLTInfo(options.resonance, options.era, options.isFullAOD)
-process.muon.triggerPaths = cms.vstring(hltInfo['triggerPaths'])
-process.muon.tagFilters = cms.vstring(hltInfo['tagFilters'])
-process.muon.probeFilters = cms.vstring(hltInfo['probeFilters'])
+from MuonAnalysis.MuonAnalyzer.hltInfo_cff import getHLTInfo, selectTriggers
+hltInfo = getHLTInfo(options.resonance, options.era)
+process.muon.triggerPaths = cms.vstring(selectTriggers(hltInfo['triggerPaths'], True, False))
+process.muon.tagFilters = cms.vstring(selectTriggers(hltInfo['tagFilters'], not options.isFullAOD))
+process.muon.probeFilters = cms.vstring(selectTriggers(hltInfo['probeFilters'], not options.isFullAOD))
 
 if options.includeJets:
     if not options.isMC:

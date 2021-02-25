@@ -154,15 +154,21 @@ def getShortEraForHLT(era):
   else:  # any other era will use the trigger list for Run2018
     return 'Run2018'
 
-def getHLTInfo(resonance, era, filtersOnly = False):
+def selectTriggers(trgList, keepPaths = True, keepFilters = True):
+  assert (keepFilters or keepPaths)
+  if keepFilters and keepPaths:
+    return trgList
+
+  out = []
+  for trg in trgList:
+    if keepFilters and not trg.startswith('hlt'):
+      continue
+    if keepPaths and not trg.startswith('HLT_'):
+      continue
+    out.append(trg)
+  return out
+
+def getHLTInfo(resonance, era):
   check_size(hltInfoAll)
-  if filtersOnly:
-    # remove trigger path names from list
-    out = []
-    for filt in hltInfoAll[resonance][getShortEraForHLT(era)]:
-      if filt.startswith('hlt') and 'HLT_' not in filt:
-        out.append(filt)
-    return out
-  else:
-    return hltInfoAll[resonance][getShortEraForHLT(era)]
+  return hltInfoAll[resonance][getShortEraForHLT(era)]
 
