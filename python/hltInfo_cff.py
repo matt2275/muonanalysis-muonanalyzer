@@ -150,7 +150,6 @@ def check_size(info, max_size = 100, keys = []):
         exit()
     if len(keys) > 0 and k == info.keys()[-1]:
       keys.pop()
-check_size(hltInfoAll)
 
 def getShortEraForHLT(era):
   if 'Run2016' in era:
@@ -161,5 +160,6 @@ def getShortEraForHLT(era):
     return 'Run2018'
 
 def getHLTInfo(resonance, era):
+  check_size(hltInfoAll)
   return hltInfoAll[resonance][getShortEraForHLT(era)]
 
