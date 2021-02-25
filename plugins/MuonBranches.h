@@ -232,4 +232,26 @@ inline void FillPairBranches(const MUO &muon, const TRK &trk, NtupleContent &nt)
   nt.pair_dz = muon.vz() - trk.vz();
 }
 
+template <typename MUO, typename TRK>
+inline void FillTunePPairBranches(const MUO &muon, const TRK &trk, NtupleContent &nt) {
+  math::PtEtaPhiMLorentzVector mu1(muon.pt(), muon.eta(), muon.phi(), MU_MASS);
+  math::PtEtaPhiMLorentzVector mu2(trk.pt(), trk.eta(), trk.phi(), MU_MASS);
+  nt.pair_tuneP_pt = (mu1 + mu2).pt();
+  nt.pair_tuneP_mass = (mu1 + mu2).mass();
+  nt.pair_tuneP_eta = (mu1 + mu2).eta();
+  nt.pair_tuneP_phi = (mu1 + mu2).phi();
+  nt.pair_tuneP_dz = muon.vz() - trk.vz();
+}
+
+inline void FillTunePPairBranchesDummy(NtupleContent &nt) {
+  nt.pair_tuneP_pt = -99;
+  nt.pair_tuneP_mass = -99;
+  nt.pair_tuneP_eta = -99;
+  nt.pair_tuneP_phi = -99;
+  nt.pair_tuneP_dz = -99;
+  nt.pair_tuneP_fit_mass = -99;
+  nt.pair_tuneP_svprob = -99;
+  nt.pair_tuneP_normalchi2 = -99;
+}
+
 #endif
