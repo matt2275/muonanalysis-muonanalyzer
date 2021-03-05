@@ -3,14 +3,6 @@ option for AOD run'''
 
 import FWCore.ParameterSet.Config as cms
 
-#paths and corresponding l3 filters
-Path=["HLT_Mu7p5_Track7_Jpsi", "HLT_Mu7p5_Track3p5_Jpsi", "HLT_Mu7p5_Track2_Jpsi"]  #WARNING lower than 100 path!!!!
-Filter=["hltL3fLMu7p5TrackL3Filtered7p5", "hltL3fLMu7p5TrackL3Filtered7p5", "hltL3fLMu7p5TrackL3Filtered7p5"]
-
-if len(Path)>100:
-  print "WARNING either put less than 101 paths, or increase the path quota from NtupleContent.h/.cc"
-  exit()
-
 muon = cms.EDAnalyzer('MuonFullAODAnalyzer',
         isMC=cms.bool(False),
         includeJets=cms.bool(False),
@@ -32,8 +24,9 @@ muon = cms.EDAnalyzer('MuonFullAODAnalyzer',
         l1MatchesByQ = cms.InputTag("muonL1InfoByQ"),
         l1MatchesByQQuality = cms.InputTag("muonL1InfoByQ", "quality"),
         l1MatchesByQDeltaR = cms.InputTag("muonL1InfoByQ", "deltaR"),
-        triggerPaths=cms.vstring(Path),
-        triggerFilters=cms.vstring(Filter),
+        triggerPaths=cms.vstring(), # updated in run_muonAnalyzer_cfg.py
+        tagFilters=cms.vstring(), # updated in run_muonAnalyzer_cfg.py
+        probeFilters=cms.vstring(), # updated in run_muonAnalyzer_cfg.py
         gen = cms.InputTag("genParticles"),
         rhoJetsNC = cms.InputTag("fixedGridRhoFastjetCentralNeutral"),
         PFCands = cms.InputTag("particleFlow"),
@@ -44,8 +37,6 @@ muon = cms.EDAnalyzer('MuonFullAODAnalyzer',
         deepCSVProbbb = cms.InputTag("pfDeepCSVJetTags:probbb"),
         deepFlavProbb = cms.InputTag("pfDeepFlavourJetTags:probb"),
         deepFlavProbbb = cms.InputTag("pfDeepFlavourJetTags:probbb"),
-        ProbePaths=cms.vstring(Path),
-        ProbeFilters=cms.vstring(Filter),
         trgDRwindow= cms.double(0.1), # dr winwow hlt mu/offline
         tagQuality = cms.uint32(0),
         tagSelection = cms.string("pt()>0"),

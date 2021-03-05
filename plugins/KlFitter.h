@@ -21,7 +21,7 @@ public:
   KlFitter(std::vector<reco::TransientTrack> &);
   ~KlFitter();
 
-  void fillNtuple(NtupleContent &nt);
+  void fillNtuple(NtupleContent &nt, bool isTuneP = false);
   bool status() { return status_; }
   float prob() { return prob_; }
   float normalchi2() { return normalchi2_; }

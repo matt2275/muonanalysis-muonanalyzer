@@ -212,6 +212,15 @@ public:
   float pair_dz;
   int pair_rank;
 
+  float pair_tuneP_pt;
+  float pair_tuneP_mass;
+  float pair_tuneP_eta;
+  float pair_tuneP_phi;
+  float pair_tuneP_fit_mass;
+  float pair_tuneP_svprob;
+  float pair_tuneP_normalchi2;
+  float pair_tuneP_dz;
+
 private:
   TTree *t1;
 };

@@ -153,24 +153,6 @@ process.options = cms.untracked.PSet(
     numberOfThreads = cms.untracked.uint32(options.numThreads)
 )
 
-# Trigger matching
-muonSrc = "muons" if options.isFullAOD else "slimmedMuons"
-from MuonAnalysis.MuonAssociators.muonL1Match_cfi import muonL1Match as _muonL1Match
-process.muonL1Info = _muonL1Match.clone(
-    src = cms.InputTag(muonSrc),
-    useMB2InOverlap = cms.bool(True),
-    useStage2L1 = cms.bool(True),
-    preselection = cms.string(""),
-    matched = cms.InputTag("gmtStage2Digis:Muon:")
-)
-process.muonL1InfoByQ = process.muonL1Info.clone(
-    sortBy = cms.string("quality"),
-    sortByQuality  = cms.bool(True),
-    sortByDeltaPhi = cms.bool(False),
-    sortByDeltaEta = cms.bool(False),
-    sortByPt       = cms.bool(False)
-)
-
 from MuonAnalysis.MuonAnalyzer.tools.ntuple_tools import *
 if options.isFullAOD:
     if options.resonance == 'Z':
@@ -189,6 +171,30 @@ else:
 process.muon.isMC = options.isMC
 process.muon.includeJets = options.includeJets
 process.muon.era = options.era
+
+# Trigger matching
+muonSrc = "muons" if options.isFullAOD else "slimmedMuons"
+from MuonAnalysis.MuonAssociators.muonL1Match_cfi import muonL1Match as _muonL1Match
+process.muonL1Info = _muonL1Match.clone(
+    src = cms.InputTag(muonSrc),
+    useMB2InOverlap = cms.bool(True),
+    useStage2L1 = cms.bool(True),
+    preselection = cms.string(""),
+    matched = cms.InputTag("gmtStage2Digis:Muon:")
+)
+process.muonL1InfoByQ = process.muonL1Info.clone(
+    sortBy = cms.string("quality"),
+    sortByQuality  = cms.bool(True),
+    sortByDeltaPhi = cms.bool(False),
+    sortByDeltaEta = cms.bool(False),
+    sortByPt       = cms.bool(False)
+)
+
+from MuonAnalysis.MuonAnalyzer.hltInfo_cff import getHLTInfo, selectTriggers
+hltInfo = getHLTInfo(options.resonance, options.era)
+process.muon.triggerPaths = cms.vstring(selectTriggers(hltInfo['triggerPaths'], True, False))
+process.muon.tagFilters = cms.vstring(selectTriggers(hltInfo['tagFilters'], not options.isFullAOD))
+process.muon.probeFilters = cms.vstring(selectTriggers(hltInfo['probeFilters'], not options.isFullAOD))
 
 if options.includeJets:
     if not options.isMC:

@@ -3,14 +3,6 @@ option for AOD run'''
 
 import FWCore.ParameterSet.Config as cms
 
-#paths and corresponding l3 filters
-Path=["HLT_Mu8_v","HLT_Mu17_v","HLT_Mu19_v","HLT_Mu20_v","HLT_IsoMu20_v","HLT_IsoMu24_v","HLT_Mu50"]  #WARNING lower than 100 path!!!!
-Filter=["hltL3fL1sMu5L1f0L2f5L3Filtered8","hltL3fL1sMu15DQlqL1f0L2f10L3Filtered17","hltL3fL1sMu15DQlqL1f0L2f10L3Filtered19","hltL3fL1sMu18L1f0L2f10QL3Filtered20Q","hltL3crIsoL1sMu18L1f0L2f10QL3f20QL3trkIsoFiltered0p07","hltL3crIsoL1sSingleMu22L1f0L2f10QL3f24QL3trkIsoFiltered0p07","hltL3fL1sMu22Or25L1f0L2f10QL3Filtered50Q"]
-
-if len(Path)>100:
-  print "WARNING either put less than 101 paths, or increase the path quota from NtupleContent.h/.cc"
-  exit()
-
 muon = cms.EDAnalyzer('MuonFullAODAnalyzer',
         isMC=cms.bool(False),
         includeJets=cms.bool(False),
@@ -32,8 +24,9 @@ muon = cms.EDAnalyzer('MuonFullAODAnalyzer',
         l1MatchesByQ = cms.InputTag("muonL1InfoByQ"),
         l1MatchesByQQuality = cms.InputTag("muonL1InfoByQ", "quality"),
         l1MatchesByQDeltaR = cms.InputTag("muonL1InfoByQ", "deltaR"),
-        triggerPaths=cms.vstring(Path),
-        triggerFilters=cms.vstring(Filter),
+        triggerPaths=cms.vstring(), # updated in run_muonAnalyzer_cfg.py
+        tagFilters=cms.vstring(), # updated in run_muonAnalyzer_cfg.py
+        probeFilters=cms.vstring(), # updated in run_muonAnalyzer_cfg.py
         gen = cms.InputTag("genParticles"),
         rhoJetsNC = cms.InputTag("fixedGridRhoFastjetCentralNeutral"),
         PFCands = cms.InputTag("particleFlow"),
@@ -44,15 +37,13 @@ muon = cms.EDAnalyzer('MuonFullAODAnalyzer',
         deepCSVProbbb = cms.InputTag("pfDeepCSVJetTags:probbb"),
         deepFlavProbb = cms.InputTag("pfDeepFlavourJetTags:probb"),
         deepFlavProbbb = cms.InputTag("pfDeepFlavourJetTags:probbb"),
-        ProbePaths=cms.vstring(Path),
-        ProbeFilters=cms.vstring(Filter),
         trgDRwindow= cms.double(0.1), # dr winwow hlt mu/offline
         tagQuality = cms.uint32(0),
         tagSelection = cms.string("pt()>10"),
         probeHPurity = cms.bool(False),
         probeSelection = cms.string("pt()>5"),
         pairMassMin = cms.double(60.0),
-        pairMassMax = cms.double(140.0),
+        pairMassMax = cms.double(9999.0), # 9999.0 for high mass C&C
         pairDz = cms.double(-1),
         RequireVtxCreation = cms.bool(False),
         minSVtxProb = cms.double(0.01),
