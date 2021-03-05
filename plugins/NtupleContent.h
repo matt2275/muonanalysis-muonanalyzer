@@ -210,6 +210,7 @@ public:
   float pair_svprob;
   float pair_normalchi2;
   float pair_dz;
+  float pair_dR;
   int pair_rank;
 
   float pair_tuneP_pt;
@@ -220,6 +221,7 @@ public:
   float pair_tuneP_svprob;
   float pair_tuneP_normalchi2;
   float pair_tuneP_dz;
+  float pair_tuneP_dR;
 
 private:
   TTree *t1;
