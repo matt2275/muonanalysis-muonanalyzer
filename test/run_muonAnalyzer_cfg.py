@@ -196,6 +196,10 @@ process.muon.triggerPaths = cms.vstring(selectTriggers(hltInfo['triggerPaths'], 
 process.muon.tagFilters = cms.vstring(selectTriggers(hltInfo['tagFilters'], not options.isFullAOD))
 process.muon.probeFilters = cms.vstring(selectTriggers(hltInfo['probeFilters'], not options.isFullAOD))
 
+# Standard selectors
+from MuonAnalysis.MuonAnalyzer.selectorInfo_cff import getSelectorNamesAndBits
+selectorNames, selectorBits = getSelectorNamesAndBits(options.era, options.isFullAOD)
+
 if options.includeJets:
     if not options.isMC:
         process.analysis_step = cms.Path(

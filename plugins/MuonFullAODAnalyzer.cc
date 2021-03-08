@@ -25,6 +25,7 @@
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
+#include "FWCore/Utilities/interface/Exception.h"
 
 #include "DataFormats/Common/interface/Handle.h"
 #include "DataFormats/Common/interface/Association.h"
@@ -160,6 +161,8 @@ private:
   std::vector<std::string> HLTPaths_;      // trigger fired
   std::vector<std::string> tagFilters_;    // tag-trigger matching
   std::vector<std::string> probeFilters_;  // probe-trigger matching
+  std::vector<std::string> probeSelectorNames_;
+  std::vector<unsigned> probeSelectorBits_;
 
   std::mt19937 m_random_generator = std::mt19937(37428479);
   const bool isMC_, includeJets_;
@@ -233,6 +236,8 @@ MuonFullAODAnalyzer::MuonFullAODAnalyzer(const edm::ParameterSet& iConfig)
       HLTPaths_(iConfig.getParameter<std::vector<std::string>>("triggerPaths")),
       tagFilters_(iConfig.getParameter<std::vector<std::string>>("tagFilters")),
       probeFilters_(iConfig.getParameter<std::vector<std::string>>("probeFilters")),
+      probeSelectorNames_(iConfig.getParameter<std::vector<std::string>>("probeSelectorNames")),
+      probeSelectorBits_(iConfig.getParameter<std::vector<unsigned>>("probeSelectorBits")),
       isMC_(iConfig.getParameter<bool>("isMC")),
       includeJets_(iConfig.getParameter<bool>("includeJets")),
       era_(iConfig.getParameter<std::string>("era")),
@@ -252,11 +257,13 @@ MuonFullAODAnalyzer::MuonFullAODAnalyzer(const edm::ParameterSet& iConfig)
       maxdr_trk_dsa_(iConfig.getParameter<double>("maxDRProbeTrkDSA")),
       momPdgId_(iConfig.getParameter<unsigned>("momPdgId")),
       genRecoDrMatch_(iConfig.getParameter<double>("genRecoDrMatch")),
-      debug_(iConfig.getParameter<int>("debug"))
-
-{
+      debug_(iConfig.getParameter<int>("debug")) {
   //  edm::ParameterSet
   //  runParameters=iConfig.getParameter<edm::ParameterSet>("RunParameters");
+
+  if (probeSelectorNames_.size() != probeSelectorBits_.size()) {
+    throw cms::Exception("ParameterError") << "length of probeSelectorNames and probeSelectorBits should be identical\n";
+  }
 }
 
 MuonFullAODAnalyzer::~MuonFullAODAnalyzer() {
@@ -834,6 +841,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         fakeMuon.setP4(mu2);
         fakeMuon.setCharge(probe.charge());
         FillProbeBranches<reco::Muon, reco::Track>(fakeMuon, *tracks, nt, false, *pv);
+        FillProbeBranchesSelector<reco::Muon>(fakeMuon, nt, probeSelectorBits_, false);
         FillMiniIso<reco::Muon, reco::PFCandidate>(*pfcands, fakeMuon, *rhoJetsNC, nt, false);
         if (includeJets_)
           FindJetProbePair<reco::PFJet, reco::Muon>(corrJets, fakeMuon, nt);
@@ -845,6 +853,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
                     << muons->at(trk_muon_map.second[idx]).eta() << " phi " << muons->at(trk_muon_map.second[idx]).phi()
                     << std::endl;
         FillProbeBranches<reco::Muon, reco::Track>(muons->at(trk_muon_map.second[idx]), *tracks, nt, true, *pv);
+        FillProbeBranchesSelector<reco::Muon>(muons->at(trk_muon_map.second[idx]), nt, probeSelectorBits_, true);
         FillMiniIso<reco::Muon, reco::PFCandidate>(
             *pfcands, muons->at(trk_muon_map.second[idx]), *rhoJetsNC, nt, false);
         if (includeJets_)
@@ -937,7 +946,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 void MuonFullAODAnalyzer::beginJob() {
   t1 = fs->make<TTree>("Events", "Events");
   nt.SetTree(t1);
-  nt.CreateBranches(HLTPaths_);
+  nt.CreateBranches(HLTPaths_, probeSelectorNames_);
   if (!tagFilters_.empty())
     nt.CreateExtraTrgBranches(tagFilters_, true);
   if (!probeFilters_.empty())

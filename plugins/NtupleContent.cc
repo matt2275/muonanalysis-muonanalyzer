@@ -6,7 +6,7 @@ NtupleContent::~NtupleContent() {}
 
 void NtupleContent::SetTree(TTree *mytree) { t1 = mytree; }
 
-void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs) {
+void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs, const std::vector<std::string> &selectorNames) {
   // General
   t1->Branch("run", &run);
   t1->Branch("event", &event);
@@ -156,6 +156,12 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs) {
   t1->Branch("probe_dsa_eta", &probe_dsa_eta);
   t1->Branch("probe_dsa_phi", &probe_dsa_phi);
   t1->Branch("probe_dsa_charge", &probe_dsa_charge);
+
+  // selectors for probe
+  for (unsigned int isel = 0; isel < selectorNames.size(); ++isel) {
+    t1->Branch(TString("probe_"+selectorNames[isel]), &probe_selectors[isel]);
+  }
+
   // Pair specific
   t1->Branch("pair_pt", &pair_pt);
   t1->Branch("pair_eta", &pair_eta);
@@ -209,6 +215,10 @@ void NtupleContent::ClearBranches() {
     trigger[itrg] = false;
     tag_trg[itrg] = false;
     probe_trg[itrg] = false;
+  }
+
+  for (unsigned int isel = 0; isel < 100; isel++) {
+    probe_selectors[isel] = false;
   }
 
   // Gens
