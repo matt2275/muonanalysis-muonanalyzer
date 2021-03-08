@@ -262,7 +262,8 @@ MuonFullAODAnalyzer::MuonFullAODAnalyzer(const edm::ParameterSet& iConfig)
   //  runParameters=iConfig.getParameter<edm::ParameterSet>("RunParameters");
 
   if (probeSelectorNames_.size() != probeSelectorBits_.size()) {
-    throw cms::Exception("ParameterError") << "length of probeSelectorNames and probeSelectorBits should be identical\n";
+    throw cms::Exception("ParameterError")
+        << "length of probeSelectorNames and probeSelectorBits should be identical\n";
   }
 }
 

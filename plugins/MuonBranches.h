@@ -183,17 +183,19 @@ inline void FillProbeBranches(
 }
 
 template <typename MUON>
-inline void FillProbeBranchesSelector(const MUON &mu, NtupleContent &nt, const std::vector<unsigned> selectorBits, bool success) {
+inline void FillProbeBranchesSelector(const MUON &mu,
+                                      NtupleContent &nt,
+                                      const std::vector<unsigned> selectorBits,
+                                      bool success) {
   for (unsigned int ibit = 0; ibit < selectorBits.size(); ++ibit) {
     if (success && mu.selectors() != 0) {
       unsigned bit = selectorBits.at(ibit);
-      nt.probe_selectors[ibit] = mu.passed(1UL<<bit);
+      nt.probe_selectors[ibit] = mu.passed(1UL << bit);
     } else {
       nt.probe_selectors[ibit] = false;
     }
   }
 }
-
 
 template <typename TRK>
 inline void FillProbeBranchesdSA(const TRK &trk, NtupleContent &nt, bool passdSA) {

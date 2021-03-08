@@ -6,7 +6,8 @@ NtupleContent::~NtupleContent() {}
 
 void NtupleContent::SetTree(TTree *mytree) { t1 = mytree; }
 
-void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs, const std::vector<std::string> &selectorNames) {
+void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
+                                   const std::vector<std::string> &selectorNames) {
   // General
   t1->Branch("run", &run);
   t1->Branch("event", &event);
@@ -159,7 +160,7 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs, const s
 
   // selectors for probe
   for (unsigned int isel = 0; isel < selectorNames.size(); ++isel) {
-    t1->Branch(TString("probe_"+selectorNames[isel]), &probe_selectors[isel]);
+    t1->Branch(TString("probe_" + selectorNames[isel]), &probe_selectors[isel]);
   }
 
   // Pair specific
