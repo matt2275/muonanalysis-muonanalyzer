@@ -216,10 +216,10 @@ def main():
         with open(sample_db, 'r') as db_file:
 
             db = json.load(db_file)
-            suberas = db['suberas'][dataTier]
 
             samples = {}
             try:
+                suberas = db['suberas'][dataTier]
                 if subEra == 'all':
                     samples = suberas
                 else:
