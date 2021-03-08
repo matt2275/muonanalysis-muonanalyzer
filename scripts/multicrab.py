@@ -187,17 +187,17 @@ def main():
         if storageSite == 'FNAL':
             # Requires write access to FNAL EOS space
             config.Site.storageSite = 'T3_US_FNALLPC'
-            config.Data.outLFNDirBase = '/store/user/%s/TnP_ntuples/%s/%s/%s' % (getUsername(), particle, resonance, era)
+            config.Data.outLFNDirBase = '/store/user/%s/TnP_ntuples/%s/%s/%s/%s' % (getUsername(), particle, resonance, era, dataTier)
         elif storageSite == 'CERN': # default option
             # Requires write access to Muon POG EOS space at CERN
             config.Site.storageSite = 'T2_CH_CERN'
-            config.Data.outLFNDirBase = '/store/group/phys_muon/%s/TnP_ntuples/%s/%s/%s' % (getUsername(), particle, resonance, era)
+            config.Data.outLFNDirBase = '/store/group/phys_muon/%s/TnP_ntuples/%s/%s/%s/%s' % (getUsername(), particle, resonance, era, dataTier)
         elif storageSite == 'CERNBOX':
             # CERNBOX write access from CRAB requires special permission from CERN IT
             # See https://twiki.cern.ch/twiki/bin/view/CMSPublic/CRAB3FAQ#Can_I_send_CRAB_output_to_CERNBO
             # and to ask permission: https://cern.service-now.com/service-portal?id=sc_cat_item&name=request-map-dn-to-gridmap&se=CERNBox-Service
             config.Site.storageSite = 'T2_CH_CERNBOX'
-            config.Data.outLFNDirBase = '/store/user/%s/TnP_ntuples/%s/%s/%s' % (getUsername(), particle, resonance, era)
+            config.Data.outLFNDirBase = '/store/user/%s/TnP_ntuples/%s/%s/%s/%s' % (getUsername(), particle, resonance, era, dataTier)
 
         #config.Site.ignoreGlobalBlacklist = True
         #config.Data.ignoreLocality = True
@@ -264,7 +264,7 @@ def main():
 
             config.Data.inputDataset = input_dataset
 
-            requestName = '_'.join(['TnP_ntuplizer', particle, resonance, era, subera_name])
+            requestName = '_'.join(['TnP_ntuplizer', particle, resonance, era, dataTier, subera_name])
             config.General.requestName = '_'.join([requestName, customSuffix]) if customSuffix != '' else requestName
             #config.Data.outputDatasetTag = sample (default CRAB dataset tag is 'crab_' + requestName)
 
