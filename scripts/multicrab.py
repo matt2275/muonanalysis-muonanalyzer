@@ -129,7 +129,7 @@ def getOptions():
     if options.crabCmd != 'submit':
         if not os.path.isdir(options.workArea):
             parser.error("'%s' is not a valid directory." % (options.workArea))
-    if options.crabCmd == 'submit' and options.dataTier not in ['AOD', 'MINIAOD']
+    if options.crabCmd == 'submit' and options.dataTier not in ['AOD', 'MINIAOD']:
         parser.error('dataTier must be "AOD" or "MINIAOD"')
 
     return options
