@@ -81,7 +81,7 @@ def getOptions():
     parser.add_option('-d', '--dataTier',
                       dest = 'dataTier',
                       default = 'AOD',
-                      help = "Data tier: AOD or MINIAOD.",
+                      help = "Data tier: AOD (default) or MINIAOD.",
                       metavar = 'DATATIER')
 
     parser.add_option('-t', '--sampleType',
