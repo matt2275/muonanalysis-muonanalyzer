@@ -199,6 +199,8 @@ process.muon.probeFilters = cms.vstring(selectTriggers(hltInfo['probeFilters'], 
 # Standard selectors
 from MuonAnalysis.MuonAnalyzer.selectorInfo_cff import getSelectorNamesAndBits
 selectorNames, selectorBits = getSelectorNamesAndBits(options.era, options.isFullAOD)
+process.muon.probeSelectorNames = cms.vstring(selectorNames)
+process.muon.probeSelectorBits = cms.vuint32(selectorBits)
 
 if options.includeJets:
     if not options.isMC:
