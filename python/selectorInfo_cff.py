@@ -5,6 +5,8 @@
 # Description:
 #    https://twiki.cern.ch/twiki/bin/viewauth/CMS/SWGuideMuonIdRun2#Muon_selectors_Since_9_4_X
 
+import copy
+
 muonSelectors = [
     ('CutBasedIdLoose'        ,  0),
     ('CutBasedIdMedium'       ,  1),
@@ -43,7 +45,7 @@ muonSelectors = [
 ]
 
 def getSelectorNamesAndBits(era, isFullAOD):
-    _selectors = muonSelectors
+    _selectors = copy.deepcopy(muonSelectors)
     if era == 'Run2016':
         if isFullAOD:
             # 80X, no standard selector
