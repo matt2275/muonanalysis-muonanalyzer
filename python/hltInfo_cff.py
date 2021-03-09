@@ -31,6 +31,9 @@ hltInfoAll = {
         "HLT_TkMu50_v",
         "HLT_Mu17_TrkIsoVVL_v",
         "HLT_Mu17_v",
+
+        # dSA (AOD only)
+        "HLT_L2DoubleMu28_NoVertex_2Cha_Angle2p5_Mass10_v",
       ],
       'tagFilters': [
         'HLT_IsoMu24_v',
@@ -87,6 +90,10 @@ hltInfoAll = {
         'HLT_Mu17_v',
         # 'hltL2fL1sMu10lqL1f0L2Filtered10',
         # 'hltL3fL1sMu10lqL1f0L2f10L3Filtered17',
+
+        # dSA (AOD only)
+        'hltL2fL1sDoubleMu114ORDoubleMu125L1f0L2NoVtxPreFiltered28',
+        'hltL2DoubleMu28NoVertexL2Filtered2ChaAngle2p5Mass10',
       ],
       'probeFilters': [
         'HLT_IsoMu24_v',
@@ -143,6 +150,10 @@ hltInfoAll = {
         'HLT_Mu17_v',
         # 'hltL2fL1sMu10lqL1f0L2Filtered10',
         # 'hltL3fL1sMu10lqL1f0L2f10L3Filtered17',
+
+        # dSA (AOD only)
+        'hltL2fL1sDoubleMu114ORDoubleMu125L1f0L2NoVtxPreFiltered28',
+        'hltL2DoubleMu28NoVertexL2Filtered2ChaAngle2p5Mass10',
       ]
     },
     'Run2017': {
@@ -224,6 +235,12 @@ hltInfoAll = {
         "HLT_TkMu100_v",
         "HLT_Mu17_TrkIsoVVL_v",
         "HLT_Mu17_v",
+
+        # dSA (AOD only)
+        "HLT_L2Mu23NoVtx_2Cha_v",
+        "HLT_L2Mu23NoVtx_2Cha_CosmicSeed_v",
+        "HLT_DoubleL2Mu23NoVtx_2Cha_v",
+        "HLT_DoubleL2Mu23NoVtx_2Cha_CosmicSeed_v",
       ],
       'tagFilters': [
         'HLT_IsoMu24_v',
@@ -247,6 +264,13 @@ hltInfoAll = {
         'hltL3fL1sMu1lqL1f0L2f10L3Filtered17TkIsoFiltered0p4',
         'HLT_Mu17_v',
         # 'hltL3fL1sMu15DQlqL1f0L2f10L3Filtered17',
+
+        # dSA (AOD only)
+        'hltL2fL1sMuORL1f0L2NoVtx23Q2Cha',
+        'hltL2fL1sMuORL1f0L2NoVtx23Q2ChaCosmicSeed',
+        'hltL2fL1sMuORL1f0DoubleL2NoVtx23Q',
+        'hltL2DoubleMu23NoVertexL2Filtered2Cha',
+        'hltL2fL1sMuORL1f0DoubleL2NoVtx23Q2ChaCosmicSeed',
       ],
       'probeFilters': [
         'HLT_IsoMu24_v',
@@ -270,16 +294,31 @@ hltInfoAll = {
         'hltL3fL1sMu1lqL1f0L2f10L3Filtered17TkIsoFiltered0p4',
         'HLT_Mu17_v',
         # 'hltL3fL1sMu15DQlqL1f0L2f10L3Filtered17',
+
+        # dSA (AOD only)
+        'hltL2fL1sMuORL1f0L2NoVtx23Q2Cha',
+        'hltL2fL1sMuORL1f0L2NoVtx23Q2ChaCosmicSeed',
+        'hltL2fL1sMuORL1f0DoubleL2NoVtx23Q',
+        'hltL2DoubleMu23NoVertexL2Filtered2Cha',
+        'hltL2fL1sMuORL1f0DoubleL2NoVtx23Q2ChaCosmicSeed',
       ]
     }
   },
   'JPsi': {
     'Run2016': {
       'triggerPaths': [
+        # dSA (AOD only)
+        "HLT_L2DoubleMu28_NoVertex_2Cha_Angle2p5_Mass10_v",
       ],
       'tagFilters': [
+        # dSA (AOD only)
+        'hltL2fL1sDoubleMu114ORDoubleMu125L1f0L2NoVtxPreFiltered28',
+        'hltL2DoubleMu28NoVertexL2Filtered2ChaAngle2p5Mass10',
       ],
       'probeFilters': [
+        # dSA (AOD only)
+        'hltL2fL1sDoubleMu114ORDoubleMu125L1f0L2NoVtxPreFiltered28',
+        'hltL2DoubleMu28NoVertexL2Filtered2ChaAngle2p5Mass10',
       ]
     },
     'Run2017': {
@@ -294,13 +333,33 @@ hltInfoAll = {
       'triggerPaths': [
         "HLT_Mu7p5_Track7_Jpsi",
         "HLT_Mu7p5_Track3p5_Jpsi",
-        "HLT_Mu7p5_Track2_Jpsi"
+        "HLT_Mu7p5_Track2_Jpsi",
+
+        # dSA (AOD only)
+        "HLT_L2Mu23NoVtx_2Cha_v",
+        "HLT_L2Mu23NoVtx_2Cha_CosmicSeed_v",
+        "HLT_DoubleL2Mu23NoVtx_2Cha_v",
+        "HLT_DoubleL2Mu23NoVtx_2Cha_CosmicSeed_v",
       ],
       'tagFilters': [
         'hltL3fLMu7p5TrackL3Filtered7p5',
+
+        # dSA (AOD only)
+        'hltL2fL1sMuORL1f0L2NoVtx23Q2Cha',
+        'hltL2fL1sMuORL1f0L2NoVtx23Q2ChaCosmicSeed',
+        'hltL2fL1sMuORL1f0DoubleL2NoVtx23Q',
+        'hltL2DoubleMu23NoVertexL2Filtered2Cha',
+        'hltL2fL1sMuORL1f0DoubleL2NoVtx23Q2ChaCosmicSeed',
       ],
       'probeFilters': [
         'hltL3fLMu7p5TrackL3Filtered7p5',
+
+        # dSA (AOD only)
+        'hltL2fL1sMuORL1f0L2NoVtx23Q2Cha',
+        'hltL2fL1sMuORL1f0L2NoVtx23Q2ChaCosmicSeed',
+        'hltL2fL1sMuORL1f0DoubleL2NoVtx23Q',
+        'hltL2DoubleMu23NoVertexL2Filtered2Cha',
+        'hltL2fL1sMuORL1f0DoubleL2NoVtx23Q2ChaCosmicSeed',
       ]
     }
   }
@@ -328,13 +387,15 @@ def getShortEraForHLT(era):
   else:  # any other era will use the trigger list for Run2018
     return 'Run2018'
 
-def selectTriggers(trgList, keepPaths = True, keepFilters = True):
+def selectTriggers(trgList, keepPaths = True, keepFilters = True, excludeDSA = False):
   assert (keepFilters or keepPaths)
   if keepFilters and keepPaths:
     return trgList
 
   out = []
   for trg in trgList:
+    if excludeDSA and ('NoVtx' in trg or 'NoVertex' in trg):
+        continue
     if keepFilters and not trg.startswith('hlt'):
       continue
     if keepPaths and not trg.startswith('HLT_'):

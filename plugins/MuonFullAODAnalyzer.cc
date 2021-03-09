@@ -335,6 +335,8 @@ void MuonFullAODAnalyzer::embedTriggerMatching(const reco::Muon& mu,
                                                const int& debug_ = 0) {
   for (const auto& thefilter : HLTFilters) {
     TString thefilter_tstr = TString(thefilter);
+    // temporary method to tag L2 filters for dSA paths...
+    bool isL2DSA = thefilter_tstr.BeginsWith("hltL2") && (thefilter_tstr.Contains("NoVtx") || thefilter_tstr.Contains("NoVertex"));
 
     bool matched = false;
     for (unsigned itrg = 0; itrg < trg_filter.size(); ++itrg) {
@@ -342,7 +344,7 @@ void MuonFullAODAnalyzer::embedTriggerMatching(const reco::Muon& mu,
       if (!filter_tstr.Contains(thefilter_tstr))
         continue;
       float dR_tmp = deltaR(mu.eta(), mu.phi(), trg_eta.at(itrg), trg_phi.at(itrg));
-      if (dR_tmp < trgDRwindow_) {
+      if (dR_tmp < trgDRwindow_ || (isL2DSA && dR_tmp < maxdr_trk_dsa_)) {
         matched = true;
         if (debug_ > 0) {
           std::cout << "embedTriggerMatching: isTag=" << isTag << "  filter=" << thefilter_tstr << "  dR=" << dR_tmp
