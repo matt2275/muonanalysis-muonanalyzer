@@ -396,11 +396,10 @@ def selectTriggers(trgList, keepPaths = True, keepFilters = True, excludeDSA = F
   for trg in trgList:
     if excludeDSA and ('NoVtx' in trg or 'NoVertex' in trg):
         continue
-    if keepFilters and not trg.startswith('hlt'):
-      continue
-    if keepPaths and not trg.startswith('HLT_'):
-      continue
-    out.append(trg)
+    if keepFilters and trg.startswith('hlt'):
+      out.append(trg)
+    if keepPaths and trg.startswith('HLT_'):
+      out.append(trg)
   return out
 
 def getHLTInfo(resonance, era):
