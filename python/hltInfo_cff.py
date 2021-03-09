@@ -389,7 +389,7 @@ def getShortEraForHLT(era):
 
 def selectTriggers(trgList, keepPaths = True, keepFilters = True, excludeDSA = False):
   assert (keepFilters or keepPaths)
-  if keepFilters and keepPaths:
+  if keepFilters and keepPaths and not excludeDSA:
     return trgList
 
   out = []
