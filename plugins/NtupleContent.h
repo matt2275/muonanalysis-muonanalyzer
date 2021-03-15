@@ -204,6 +204,22 @@ public:
   float probe_dsa_dxy;
   float probe_dsa_dz;
 
+  float probe_dgl_pt;
+  float probe_dgl_eta;
+  float probe_dgl_phi;
+  int probe_dgl_charge;
+  float probe_dgl_trkChi2;
+  float probe_dgl_muonStations;
+  float probe_dgl_muonHits;
+  float probe_dgl_totalHits;
+  float probe_dgl_outerTrackerHits;
+  float probe_dgl_trackerHits;
+  float probe_dgl_DTHits;
+  float probe_dgl_CSCHits;
+  float probe_dgl_pterr;
+  float probe_dgl_dxy;
+  float probe_dgl_dz;
+
   // Pair properties
   float pair_pt;
   float pair_mass;

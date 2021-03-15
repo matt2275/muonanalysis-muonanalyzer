@@ -163,6 +163,22 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
     t1->Branch(TString("probe_" + selectorNames[isel]), &probe_selectors[isel]);
   }
 
+  t1->Branch("probe_dgl_muonStations", &probe_dgl_muonStations);
+  t1->Branch("probe_dgl_muonHits", &probe_dgl_muonHits);
+  t1->Branch("probe_dgl_totalHits", &probe_dgl_totalHits);
+  t1->Branch("probe_dgl_outerTrackerHits", &probe_dgl_outerTrackerHits);
+  t1->Branch("probe_dgl_trackerHits", &probe_dgl_trackerHits);
+  t1->Branch("probe_dgl_DTHits", &probe_dgl_DTHits);
+  t1->Branch("probe_dgl_CSCHits", &probe_dgl_CSCHits);
+  t1->Branch("probe_dgl_pterr", &probe_dgl_pterr);
+  t1->Branch("probe_dgl_dxy", &probe_dgl_dxy);
+  t1->Branch("probe_dgl_dz", &probe_dgl_dz);
+  t1->Branch("probe_dgl_trkChi2", &probe_dgl_trkChi2);
+  t1->Branch("probe_dgl_pt", &probe_dgl_pt);
+  t1->Branch("probe_dgl_eta", &probe_dgl_eta);
+  t1->Branch("probe_dgl_phi", &probe_dgl_phi);
+  t1->Branch("probe_dgl_charge", &probe_dgl_charge);
+
   // Pair specific
   t1->Branch("pair_pt", &pair_pt);
   t1->Branch("pair_eta", &pair_eta);
@@ -365,6 +381,22 @@ void NtupleContent::ClearBranches() {
   probe_dsa_eta = -99;
   probe_dsa_phi = -99;
   probe_dsa_charge = -99;
+
+  probe_dgl_muonStations = -99;
+  probe_dgl_muonHits = -99;
+  probe_dgl_outerTrackerHits = -99;
+  probe_dgl_trackerHits = -99;
+  probe_dgl_totalHits = -99;
+  probe_dgl_DTHits = -99;
+  probe_dgl_CSCHits = -99;
+  probe_dgl_pterr = 0;
+  probe_dgl_dxy = -99;
+  probe_dgl_dz = -99;
+  probe_dgl_trkChi2 = -99;
+  probe_dgl_pt = 0;
+  probe_dgl_eta = -99;
+  probe_dgl_phi = -99;
+  probe_dgl_charge = -99;
 
   pair_pt = 0;
   pair_mass = 0;
