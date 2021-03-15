@@ -230,6 +230,34 @@ inline void FillProbeBranchesdSA(const TRK &trk, NtupleContent &nt, bool passdSA
 template <typename TRK>
 inline void FillProbeBranchesdgl(const TRK &trk, NtupleContent &nt, bool passdgl) {
   nt.probe_isdGlobal = passdgl;
+
+  nt.probe_dgl_pt = trk.pt();
+  nt.probe_dgl_eta = trk.eta();
+  nt.probe_dgl_phi = trk.phi();
+  nt.probe_dgl_charge = trk.charge();
+
+  if (passdgl) {
+    nt.probe_dgl_dxy = trk.dxy(reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
+    nt.probe_dgl_dz = trk.dz(reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
+    nt.probe_dgl_muonStations = trk.hitPattern().muonStationsWithValidHits();
+    nt.probe_dgl_muonHits = trk.hitPattern().numberOfValidMuonHits();
+    nt.probe_dgl_outerTrackerHits = trk.hitPattern().numberOfValidStripHits();
+    nt.probe_dgl_trackerHits = trk.hitPattern().numberOfValidTrackerHits();
+    nt.probe_dgl_totalHits = trk.hitPattern().numberOfValidHits();
+    nt.probe_dgl_DTHits = trk.hitPattern().numberOfValidMuonDTHits();
+    nt.probe_dgl_CSCHits = trk.hitPattern().numberOfValidMuonCSCHits();
+    nt.probe_dgl_pterr = trk.ptError() / trk.pt();
+    nt.probe_dgl_trkChi2 = trk.normalizedChi2();
+  } else {
+    nt.probe_dgl_dxy = -99;
+    nt.probe_dgl_dz = -99;
+    nt.probe_dgl_muonStations = -99;
+    nt.probe_dgl_muonHits = -99;
+    nt.probe_dgl_DTHits = -99;
+    nt.probe_dgl_CSCHits = -99;
+    nt.probe_dgl_pterr = -99;
+    nt.probe_dgl_trkChi2 = -99;
+  }
 }
 
 template <typename TRK>
