@@ -23,6 +23,7 @@
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
+#include "FWCore/Utilities/interface/Exception.h"
 
 #include "DataFormats/Common/interface/Handle.h"
 #include "DataFormats/Common/interface/Association.h"
@@ -35,6 +36,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSetDescription.h"
 
 #include "DataFormats/MuonReco/interface/Muon.h"
+#include "DataFormats/MuonReco/interface/MuonSelectors.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
@@ -139,6 +141,9 @@ private:
   std::vector<std::string> HLTPaths_;
   std::vector<std::string> tagFilters_;
   std::vector<std::string> probeFilters_;
+  std::vector<std::string> probeSelectorNames_;
+  std::vector<unsigned> probeSelectorBits_;
+
   const unsigned int tagQual_;
   const StringCutObjectSelector<pat::Muon> tagSelection_;  // kinematic cuts for tag
   const bool HighPurity_;
@@ -204,6 +209,8 @@ MuonMiniAODAnalyzer::MuonMiniAODAnalyzer(const edm::ParameterSet& iConfig)
       HLTPaths_(iConfig.getParameter<std::vector<std::string>>("triggerPaths")),
       tagFilters_(iConfig.getParameter<std::vector<std::string>>("tagFilters")),
       probeFilters_(iConfig.getParameter<std::vector<std::string>>("probeFilters")),
+      probeSelectorNames_(iConfig.getParameter<std::vector<std::string>>("probeSelectorNames")),
+      probeSelectorBits_(iConfig.getParameter<std::vector<unsigned>>("probeSelectorBits")),
       tagQual_(iConfig.getParameter<unsigned>("tagQuality")),
       tagSelection_(iConfig.getParameter<std::string>("tagSelection")),
       HighPurity_(iConfig.getParameter<bool>("ProbeHPurity")),
@@ -223,6 +230,11 @@ MuonMiniAODAnalyzer::MuonMiniAODAnalyzer(const edm::ParameterSet& iConfig)
       era_(iConfig.getParameter<std::string>("era")) {
   //  edm::ParameterSet
   //  runParameters=iConfig.getParameter<edm::ParameterSet>("RunParameters");
+
+  if (probeSelectorNames_.size() != probeSelectorBits_.size()) {
+    throw cms::Exception("ParameterError")
+        << "length of probeSelectorNames and probeSelectorBits should be identical\n";
+  }
 }
 
 MuonMiniAODAnalyzer::~MuonMiniAODAnalyzer() {
@@ -672,6 +684,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       if (it != trk_muon_map.first.end()) {
         unsigned idx = std::distance(trk_muon_map.first.begin(), it);
         FillProbeBranches<pat::Muon, pat::PackedCandidate>(muons->at(trk_muon_map.second[idx]), tracks, nt, true, *pv);
+        FillProbeBranchesSelector<pat::Muon>(muons->at(trk_muon_map.second[idx]), nt, probeSelectorBits_, true);
         FillMiniIso<pat::Muon, pat::PackedCandidate>(
             *pfcands, muons->at(trk_muon_map.second[idx]), *rhoJetsNC, nt, false);
         if (includeJets_)
@@ -713,7 +726,9 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       } else {
         reco::Muon fakeMuon;
         fakeMuon.setP4(mu2);
+        fakeMuon.setCharge(probe.charge());
         FillProbeBranches<reco::Muon, pat::PackedCandidate>(fakeMuon, tracks, nt, false, *pv);
+        FillProbeBranchesSelector<reco::Muon>(fakeMuon, nt, probeSelectorBits_, false);
         FillMiniIso<pat::Muon, pat::PackedCandidate>(*pfcands, fakeMuon, *rhoJetsNC, nt, false);
         if (includeJets_)
           FindJetProbePair<pat::Jet, pat::Muon>(*jets, fakeMuon, nt);
@@ -744,7 +759,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 void MuonMiniAODAnalyzer::beginJob() {
   t1 = fs->make<TTree>("Events", "Events");
   nt.SetTree(t1);
-  nt.CreateBranches(HLTPaths_);
+  nt.CreateBranches(HLTPaths_, probeSelectorNames_);
   if (!tagFilters_.empty())
     nt.CreateExtraTrgBranches(tagFilters_, true);
   if (!probeFilters_.empty())

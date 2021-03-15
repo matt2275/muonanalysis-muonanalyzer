@@ -192,9 +192,16 @@ process.muonL1InfoByQ = process.muonL1Info.clone(
 
 from MuonAnalysis.MuonAnalyzer.hltInfo_cff import getHLTInfo, selectTriggers
 hltInfo = getHLTInfo(options.resonance, options.era)
-process.muon.triggerPaths = cms.vstring(selectTriggers(hltInfo['triggerPaths'], True, False))
-process.muon.tagFilters = cms.vstring(selectTriggers(hltInfo['tagFilters'], not options.isFullAOD))
-process.muon.probeFilters = cms.vstring(selectTriggers(hltInfo['probeFilters'], not options.isFullAOD))
+excludeDSA = (not options.isFullAOD)
+process.muon.triggerPaths = cms.vstring(selectTriggers(hltInfo['triggerPaths'], True, False, excludeDSA))
+process.muon.tagFilters = cms.vstring(selectTriggers(hltInfo['tagFilters'], not options.isFullAOD, True, excludeDSA))
+process.muon.probeFilters = cms.vstring(selectTriggers(hltInfo['probeFilters'], not options.isFullAOD, True, excludeDSA))
+
+# Standard selectors
+from MuonAnalysis.MuonAnalyzer.selectorInfo_cff import getSelectorNamesAndBits
+selectorNames, selectorBits = getSelectorNamesAndBits(options.era, options.isFullAOD)
+process.muon.probeSelectorNames = cms.vstring(selectorNames)
+process.muon.probeSelectorBits = cms.vuint32(selectorBits)
 
 if options.includeJets:
     if not options.isMC:

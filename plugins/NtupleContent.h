@@ -17,7 +17,7 @@ public:
   NtupleContent();
   virtual ~NtupleContent();
   void SetTree(TTree *t1);
-  void CreateBranches(const std::vector<std::string> &);
+  void CreateBranches(const std::vector<std::string> &, const std::vector<std::string> &);
   void CreateExtraTrgBranches(const std::vector<std::string> &, bool);
   void ClearBranches();
 
@@ -62,6 +62,9 @@ public:
   // Trigger matches
   bool tag_trg[NTRIGGERMAX];
   bool probe_trg[NTRIGGERMAX];
+
+  // Standard selectors in reco::muon::Selector
+  bool probe_selectors[100];
 
   float l1pt;
   int l1q;
@@ -210,6 +213,7 @@ public:
   float pair_svprob;
   float pair_normalchi2;
   float pair_dz;
+  float pair_dR;
   int pair_rank;
 
   float pair_tuneP_pt;
@@ -220,6 +224,7 @@ public:
   float pair_tuneP_svprob;
   float pair_tuneP_normalchi2;
   float pair_tuneP_dz;
+  float pair_tuneP_dR;
 
 private:
   TTree *t1;

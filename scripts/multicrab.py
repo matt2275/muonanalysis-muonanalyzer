@@ -30,7 +30,7 @@ def getOptions():
     """
     Parse and return the arguments provided by the user.
     """
-    usage = ("Usage: %prog --crabCmd CMD [--workArea WAD --crabCmdOpts OPTS --sampleType TYPE --eraDB ERA_DB_FILE --subEra SUBERA]"
+    usage = ("Usage: %prog --crabCmd CMD [--workArea WAD --crabCmdOpts OPTS --sampleType TYPE --era ERA --subEra SUBERA --dataTier DATATIER]"
              "\nThe multicrab command executes 'crab CMD OPTS' for each project directory contained in WAD"
              "\nUse multicrab -h for help")
 
@@ -69,7 +69,7 @@ def getOptions():
     parser.add_option('-e', '--era',
                       dest = 'era',
                       default = 'Run2018',
-                      help = "Era to run samples over. Options are 'Run2018'/'Run2017'/'Run2016'/'Run2018UL'/'Run2017UL'/'Run2016UL'. Default is 'Run2018'.",
+                      help = "Era to run samples over. Options are 'Run2018'/'Run2017'/'Run2016'/'Run2018_UL'/'Run2017_UL'/'Run2016_UL'/'Run2016_UL_HIPM'. Default is 'Run2018'.",
                       metavar = 'ERA')
 
     parser.add_option('-s', '--subEra',
@@ -77,6 +77,12 @@ def getOptions():
                       default = 'all',
                       help = "Sub-era to process: 'all' (default), custom (e.g. 'Run2016B').",
                       metavar = 'SUBERA')
+
+    parser.add_option('-d', '--dataTier',
+                      dest = 'dataTier',
+                      default = 'AOD',
+                      help = "Data tier: AOD (default) or MINIAOD.",
+                      metavar = 'DATATIER')
 
     parser.add_option('-t', '--sampleType',
                       dest = 'sampleType',
@@ -108,6 +114,12 @@ def getOptions():
                       help = "Custom CRAB name suffix to output dataset tag",
                       metavar = 'SUFFIX')
 
+    parser.add_option('-b', '--eraDB',
+                      dest = 'eraDB',
+                      default = '',
+                      help = "Database file. default: data/samples/PART/RESON/ERA/database.json",
+                      metavar = 'ERA_DB_FILE')
+
     (options, arguments) = parser.parse_args()
 
     if arguments:
@@ -117,6 +129,8 @@ def getOptions():
     if options.crabCmd != 'submit':
         if not os.path.isdir(options.workArea):
             parser.error("'%s' is not a valid directory." % (options.workArea))
+    if options.crabCmd == 'submit' and options.dataTier not in ['AOD', 'MINIAOD']:
+        parser.error('dataTier must be "AOD" or "MINIAOD"')
 
     return options
 
@@ -133,6 +147,7 @@ def main():
     resonance = options.resonance
     era = options.era
     subEra = options.subEra
+    dataTier = options.dataTier
 
     customSuffix = options.customSuffix
     numThreads = options.numThreads
@@ -172,17 +187,17 @@ def main():
         if storageSite == 'FNAL':
             # Requires write access to FNAL EOS space
             config.Site.storageSite = 'T3_US_FNALLPC'
-            config.Data.outLFNDirBase = '/store/user/%s/TnP_ntuples/%s/%s/%s' % (getUsername(), particle, resonance, era)
+            config.Data.outLFNDirBase = '/store/user/%s/TnP_ntuples/%s/%s/%s/%s' % (getUsername(), particle, resonance, era, dataTier)
         elif storageSite == 'CERN': # default option
             # Requires write access to Muon POG EOS space at CERN
             config.Site.storageSite = 'T2_CH_CERN'
-            config.Data.outLFNDirBase = '/store/group/phys_muon/%s/TnP_ntuples/%s/%s/%s' % (getUsername(), particle, resonance, era)
+            config.Data.outLFNDirBase = '/store/group/phys_muon/%s/TnP_ntuples/%s/%s/%s/%s' % (getUsername(), particle, resonance, era, dataTier)
         elif storageSite == 'CERNBOX':
             # CERNBOX write access from CRAB requires special permission from CERN IT
             # See https://twiki.cern.ch/twiki/bin/view/CMSPublic/CRAB3FAQ#Can_I_send_CRAB_output_to_CERNBO
             # and to ask permission: https://cern.service-now.com/service-portal?id=sc_cat_item&name=request-map-dn-to-gridmap&se=CERNBox-Service
             config.Site.storageSite = 'T2_CH_CERNBOX'
-            config.Data.outLFNDirBase = '/store/user/%s/TnP_ntuples/%s/%s/%s' % (getUsername(), particle, resonance, era)
+            config.Data.outLFNDirBase = '/store/user/%s/TnP_ntuples/%s/%s/%s/%s' % (getUsername(), particle, resonance, era, dataTier)
 
         #config.Site.ignoreGlobalBlacklist = True
         #config.Data.ignoreLocality = True
@@ -190,15 +205,21 @@ def main():
 
         #--------------------------------------------------------
 
-        sample_db = os.path.join("data/samples", particle, resonance, era, "database.json")
+        if options.eraDB != '':
+            if not os.path.isfile(options.eraDB):
+                print 'Error!! database file "{}" does not exist. Please check argument.'.format(options.eraDB)
+            else:
+                sample_db = options.eraDB
+        else:
+            sample_db = os.path.join(os.environ['CMSSW_BASE'], "src/MuonAnalysis/MuonAnalyzer/data/samples", particle, resonance, era, "database.json")
 
         with open(sample_db, 'r') as db_file:
 
             db = json.load(db_file)
-            suberas = db['suberas']
 
             samples = {}
             try:
+                suberas = db['suberas'][dataTier]
                 if subEra == 'all':
                     samples = suberas
                 else:
@@ -213,7 +234,7 @@ def main():
             globalTag = subera_cfg['globalTag'] if 'globalTag' in subera_cfg else ''
             input_dataset = subera_cfg['dataset']
             datatier = input_dataset.split('/')[-1]
-            if 'AOD' not in datatier:
+            if 'AOD' not in datatier or 'NANOAOD' in datatier:
                 print 'Input dataset is not AOD(SIM) or MINIAOD(SIM). Ignoring...'
                 continue
             isFullAOD = False if 'MINIAOD' in datatier else True
@@ -243,7 +264,7 @@ def main():
 
             config.Data.inputDataset = input_dataset
 
-            requestName = '_'.join(['TnP_ntuplizer', particle, resonance, era, subera_name])
+            requestName = '_'.join(['TnP_ntuplizer', particle, resonance, era, dataTier, subera_name])
             config.General.requestName = '_'.join([requestName, customSuffix]) if customSuffix != '' else requestName
             #config.Data.outputDatasetTag = sample (default CRAB dataset tag is 'crab_' + requestName)
 

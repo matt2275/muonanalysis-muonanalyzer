@@ -13,6 +13,7 @@
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/Math/interface/deltaR.h"
 
 #include <type_traits>
 #include "NtupleContent.h"
@@ -181,6 +182,21 @@ inline void FillProbeBranches(
   }
 }
 
+template <typename MUON>
+inline void FillProbeBranchesSelector(const MUON &mu,
+                                      NtupleContent &nt,
+                                      const std::vector<unsigned> selectorBits,
+                                      bool success) {
+  for (unsigned int ibit = 0; ibit < selectorBits.size(); ++ibit) {
+    if (success && mu.selectors() != 0) {
+      unsigned bit = selectorBits.at(ibit);
+      nt.probe_selectors[ibit] = mu.passed(1UL << bit);
+    } else {
+      nt.probe_selectors[ibit] = false;
+    }
+  }
+}
+
 template <typename TRK>
 inline void FillProbeBranchesdSA(const TRK &trk, NtupleContent &nt, bool passdSA) {
   nt.probe_isdSA = passdSA;
@@ -230,6 +246,7 @@ inline void FillPairBranches(const MUO &muon, const TRK &trk, NtupleContent &nt)
   nt.pair_eta = (mu1 + mu2).eta();
   nt.pair_phi = (mu1 + mu2).phi();
   nt.pair_dz = muon.vz() - trk.vz();
+  nt.pair_dR = deltaR(muon.eta(), muon.phi(), trk.eta(), trk.phi());
 }
 
 template <typename MUO, typename TRK>
@@ -241,6 +258,7 @@ inline void FillTunePPairBranches(const MUO &muon, const TRK &trk, NtupleContent
   nt.pair_tuneP_eta = (mu1 + mu2).eta();
   nt.pair_tuneP_phi = (mu1 + mu2).phi();
   nt.pair_tuneP_dz = muon.vz() - trk.vz();
+  nt.pair_tuneP_dR = deltaR(muon.eta(), muon.phi(), trk.eta(), trk.phi());
 }
 
 inline void FillTunePPairBranchesDummy(NtupleContent &nt) {
@@ -249,6 +267,7 @@ inline void FillTunePPairBranchesDummy(NtupleContent &nt) {
   nt.pair_tuneP_eta = -99;
   nt.pair_tuneP_phi = -99;
   nt.pair_tuneP_dz = -99;
+  nt.pair_tuneP_dR = -99;
   nt.pair_tuneP_fit_mass = -99;
   nt.pair_tuneP_svprob = -99;
   nt.pair_tuneP_normalchi2 = -99;
