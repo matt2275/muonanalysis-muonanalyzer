@@ -25,6 +25,7 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
   t1->Branch("rho", &Rho);
   t1->Branch("nmuons", &nmuons);
   t1->Branch("ntag", &ntag);
+  t1->Branch("npairs", &npairs);
   t1->Branch("genmu1_pt", &genmu1_pt);
   t1->Branch("genmu1_eta", &genmu1_eta);
   t1->Branch("genmu1_phi", &genmu1_phi);
@@ -87,16 +88,19 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
   t1->Branch("probe_eta", &probe_eta);
   t1->Branch("probe_phi", &probe_phi);
   t1->Branch("probe_charge", &probe_charge);
+  t1->Branch("probe_pterr", &probe_pterr);
+  t1->Branch("probe_dxy", &probe_dxy);
+  t1->Branch("probe_dz", &probe_dz);
+  t1->Branch("probe_isPF", &probe_isPF);
+  t1->Branch("probe_isSA", &probe_isSA);
+  t1->Branch("probe_isTracker", &probe_isTracker);
+  t1->Branch("probe_isGlobal", &probe_isGlobal);
   t1->Branch("probe_isLoose", &probe_isLoose);
   t1->Branch("probe_isMedium", &probe_isMedium);
   t1->Branch("probe_isTight", &probe_isTight);
   t1->Branch("probe_isSoft", &probe_isSoft);
   t1->Branch("probe_isHighPt", &probe_isHighPt);
   t1->Branch("probe_isMuMatched", &probe_isMuMatched);
-  t1->Branch("probe_isPF", &probe_isPF);
-  t1->Branch("probe_isSA", &probe_isSA);
-  t1->Branch("probe_isTracker", &probe_isTracker);
-  t1->Branch("probe_isGlobal", &probe_isGlobal);
   t1->Branch("probe_isdSA", &probe_isdSA);
   t1->Branch("probe_isdGlobal", &probe_isdGlobal);
   t1->Branch("probe_isCosmic", &probe_isCosmic);
@@ -113,9 +117,6 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
   t1->Branch("probe_muonHits", &probe_muonHits);
   t1->Branch("probe_DTHits", &probe_DTHits);
   t1->Branch("probe_CSCHits", &probe_CSCHits);
-  t1->Branch("probe_pterr", &probe_pterr);
-  t1->Branch("probe_dxy", &probe_dxy);
-  t1->Branch("probe_dz", &probe_dz);
   t1->Branch("probe_relIso04", &probe_relIso04);
   t1->Branch("probe_miniIso", &probe_miniIso);
   t1->Branch("probe_miniIsoCharged", &probe_miniIsoCharged);
@@ -138,6 +139,7 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
   t1->Branch("probe_tuneP_pt", &probe_tuneP_pt);
   t1->Branch("probe_tuneP_pterr", &probe_tuneP_pterr);
   t1->Branch("probe_tuneP_muonHits", &probe_tuneP_muonHits);
+
   t1->Branch("l1pt", &l1pt);
   t1->Branch("l1q", &l1q);
   t1->Branch("l1dr", &l1dr);
@@ -145,6 +147,7 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
   t1->Branch("l1qByQ", &l1qByQ);
   t1->Branch("l1drByQ", &l1drByQ);
 
+  t1->Branch("probe_ndsa", &probe_ndsa);
   t1->Branch("probe_dsa_muonStations", &probe_dsa_muonStations);
   t1->Branch("probe_dsa_muonHits", &probe_dsa_muonHits);
   t1->Branch("probe_dsa_DTHits", &probe_dsa_DTHits);
@@ -156,6 +159,10 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
   t1->Branch("probe_dsa_pt", &probe_dsa_pt);
   t1->Branch("probe_dsa_eta", &probe_dsa_eta);
   t1->Branch("probe_dsa_phi", &probe_dsa_phi);
+  t1->Branch("probe_dsa_outerEta", &probe_dsa_outerEta);
+  t1->Branch("probe_dsa_outerPhi", &probe_dsa_outerPhi);
+  t1->Branch("probe_dsa_minDR", &probe_dsa_minDR);
+  t1->Branch("probe_dsa_minOuterDR", &probe_dsa_minOuterDR);
   t1->Branch("probe_dsa_charge", &probe_dsa_charge);
 
   // selectors for probe
@@ -189,7 +196,10 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
   t1->Branch("pair_normalchi2", &pair_normalchi2);
   t1->Branch("pair_dz", &pair_dz);
   t1->Branch("pair_dR", &pair_dR);
-  t1->Branch("pair_rank", &pair_rank);
+  t1->Branch("pair_rank_vtx_prob", &pair_rank_vtx_prob);
+  t1->Branch("pair_rank_dz_PV_SV", &pair_rank_dz_PV_SV);
+  t1->Branch("pair_rank_dPhi_muons", &pair_rank_dPhi_muons);
+  t1->Branch("pair_rank_dM_Z_Mmumu", &pair_rank_dM_Z_Mmumu);
 
   t1->Branch("pair_tuneP_pt", &pair_tuneP_pt);
   t1->Branch("pair_tuneP_eta", &pair_tuneP_eta);
@@ -227,6 +237,7 @@ void NtupleContent::ClearBranches() {
   Rho = -1;
   nmuons = 0;
   ntag = 0;
+  npairs = 0;
 
   for (unsigned int itrg = 0; itrg < NTRIGGERMAX; itrg++) {
     trigger[itrg] = false;
@@ -369,6 +380,7 @@ void NtupleContent::ClearBranches() {
   l1qByQ = -99;
   l1drByQ = -99;
 
+  probe_ndsa = -99;
   probe_dsa_muonStations = -99;
   probe_dsa_muonHits = -99;
   probe_dsa_DTHits = -99;
@@ -380,6 +392,10 @@ void NtupleContent::ClearBranches() {
   probe_dsa_pt = 0;
   probe_dsa_eta = -99;
   probe_dsa_phi = -99;
+  probe_dsa_outerEta = -99;
+  probe_dsa_outerPhi = -99;
+  probe_dsa_minDR = -99;
+  probe_dsa_minOuterDR = -99;
   probe_dsa_charge = -99;
 
   probe_dgl_muonStations = -99;
@@ -407,7 +423,10 @@ void NtupleContent::ClearBranches() {
   pair_normalchi2 = 0;
   pair_dz = -99;
   pair_dR = -99;
-  pair_rank = -1;
+  pair_rank_vtx_prob = -1;
+  pair_rank_dz_PV_SV = -1;
+  pair_rank_dPhi_muons = -1;
+  pair_rank_dM_Z_Mmumu = -1;
 
   pair_tuneP_pt = -99;
   pair_tuneP_mass = -99;

@@ -644,9 +644,9 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   auto compare_vtx = [=](t_pair_prob& a, t_pair_prob& b) { return a.second > b.second; };
   std::sort(pair_vtx_probs.begin(), pair_vtx_probs.end(), compare_vtx);
   // assign sorted vtx indices to ranking
-  map<std::pair<int, int>, int> pair_rankings;
+  map<std::pair<int, int>, int> pair_rank_vtx_prob;
   for (size_t i = 0; i < pair_vtx_probs.size(); i++)
-    pair_rankings[pair_vtx_probs[i].first] = i;
+    pair_rank_vtx_prob[pair_vtx_probs[i].first] = i;
 
   // Final pair selection
   // loop over tags
@@ -746,7 +746,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       nt.probe_isMatchedGen = (it_match != matched_track_idx.end());
 
       nt.iprobe++;
-      nt.pair_rank = pair_rankings[{&tag - &tag_muon_ttrack[0], &probe - &tracks[0]}];
+      nt.pair_rank_vtx_prob = pair_rank_vtx_prob[{&tag - &tag_muon_ttrack[0], &probe - &tracks[0]}];
       nt.probe_isHighPurity = probe.trackHighPurity();
 
       t1->Fill();

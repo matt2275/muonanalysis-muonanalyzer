@@ -207,6 +207,8 @@ inline void FillProbeBranchesdSA(const TRK &trk, NtupleContent &nt, bool passdSA
   nt.probe_dsa_charge = trk.charge();
 
   if (passdSA) {
+    nt.probe_dsa_outerEta = trk.outerEta();
+    nt.probe_dsa_outerPhi = trk.outerPhi();
     nt.probe_dsa_dxy = trk.dxy(reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
     nt.probe_dsa_dz = trk.dz(reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
     nt.probe_dsa_muonStations = trk.hitPattern().muonStationsWithValidHits();
@@ -216,6 +218,8 @@ inline void FillProbeBranchesdSA(const TRK &trk, NtupleContent &nt, bool passdSA
     nt.probe_dsa_pterr = trk.ptError() / trk.pt();
     nt.probe_dsa_trkChi2 = trk.normalizedChi2();
   } else {
+    nt.probe_dsa_outerEta = -99;
+    nt.probe_dsa_outerPhi = -99;
     nt.probe_dsa_dxy = -99;
     nt.probe_dsa_dz = -99;
     nt.probe_dsa_muonStations = -99;

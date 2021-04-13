@@ -25,6 +25,7 @@ public:
   bool status() { return status_; }
   float prob() { return prob_; }
   float normalchi2() { return normalchi2_; }
+  float dz_PV_SV(float pv_z) { return abs(dimuvtx.position().z() - pv_z); }
 
 private:
   TransientVertex dimuvtx;

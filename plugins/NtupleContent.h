@@ -45,6 +45,7 @@ public:
   int nmuons;
   int ntag;
   int iprobe;
+  int npairs;
 
   // Triggers
   static const int NTRIGGERMAX = 100;
@@ -191,9 +192,14 @@ public:
   float probe_tuneP_pterr;
   int probe_tuneP_muonHits;
 
+  int probe_ndsa;
   float probe_dsa_pt;
   float probe_dsa_eta;
   float probe_dsa_phi;
+  float probe_dsa_outerEta;
+  float probe_dsa_outerPhi;
+  float probe_dsa_minDR;
+  float probe_dsa_minOuterDR;
   int probe_dsa_charge;
   float probe_dsa_trkChi2;
   float probe_dsa_muonStations;
@@ -230,7 +236,10 @@ public:
   float pair_normalchi2;
   float pair_dz;
   float pair_dR;
-  int pair_rank;
+  int pair_rank_vtx_prob;
+  int pair_rank_dz_PV_SV;
+  int pair_rank_dPhi_muons;
+  int pair_rank_dM_Z_Mmumu;
 
   float pair_tuneP_pt;
   float pair_tuneP_mass;
