@@ -550,6 +550,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   nt.nmuons = muons->size();
 
   // select tags
+  std::vector<unsigned> tag_muon_map;  // idx of tag muon in muons
   RecoTrkAndTransientTrkCollection tag_trkttrk;
   std::vector<bool> genmatched_tag;
   for (const auto& mu : *muons) {
@@ -565,6 +566,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     if (std::find(trg_idx.begin(), trg_idx.end(), &mu - &muons->at(0)) == trg_idx.end())
       continue;
     tag_trkttrk.emplace_back(std::make_pair(mu, reco::TransientTrack(*mu.bestTrack(), &(*bField))));
+    tag_muon_map.push_back(&mu - &muons->at(0));
     if (std::find(matched_muon_idx.begin(), matched_muon_idx.end(), &mu - &muons->at(0)) != matched_muon_idx.end())
       genmatched_tag.push_back(true);
     else
@@ -632,11 +634,10 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         minDR = DR;
         minOuterDR = outerDR;
         idx_dSA = &dsA - &dSAmuons->at(0);
-      }
-      else
+      } else
         continue;
     }
-    if (idx_dSA == 1000) // corner case: no dSAs in event
+    if (idx_dSA == 1000)  // corner case: no dSAs in event
       continue;
     trk_dsA_map.first.push_back(idx_probe);
     trk_dsA_map.second.push_back(idx_dSA);
@@ -764,8 +765,8 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   using t_pair_prob = std::pair<float, std::pair<int, int>>;
   std::priority_queue<t_pair_prob> pair_vtx_probs;
   std::priority_queue<t_pair_prob> pair_dPhi_muons;
-  std::priority_queue<t_pair_prob, vector<t_pair_prob>, std::greater<t_pair_prob>> pair_dz_PV_SV; // inverse sort
-  std::priority_queue<t_pair_prob, vector<t_pair_prob>, std::greater<t_pair_prob>> pair_dM_Z_Mmumu; // inverse sort
+  std::priority_queue<t_pair_prob, vector<t_pair_prob>, std::greater<t_pair_prob>> pair_dz_PV_SV;    // inverse sort
+  std::priority_queue<t_pair_prob, vector<t_pair_prob>, std::greater<t_pair_prob>> pair_dM_Z_Mmumu;  // inverse sort
   // loop over tags
   for (auto& tag : tag_trkttrk) {
     auto tag_idx = &tag - &tag_trkttrk[0];
@@ -799,7 +800,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       float dPhi_muons = reco::deltaPhi(tag.first.phi(), probe.phi());
       math::PtEtaPhiMLorentzVector mu1(tag.first.pt(), tag.first.eta(), tag.first.phi(), MU_MASS);
       math::PtEtaPhiMLorentzVector mu2(probe.pt(), probe.eta(), probe.phi(), MU_MASS);
-      float dM_Z_Mmumu = abs(91.2 - (mu1+mu2).mass());
+      float dM_Z_Mmumu = abs(91.2 - (mu1 + mu2).mass());
 
       // save quantities to ordered heap
       auto pair_idx = std::make_pair(tag_idx, probe_idx);
@@ -817,22 +818,22 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   // assign sorted vtx indices to ranking
   map<std::pair<int, int>, int> pair_rank_vtx_prob;
   while (!pair_vtx_probs.empty()) {
-    pair_rank_vtx_prob[pair_vtx_probs.top().second] = pair_rank_vtx_prob.size(); // careful: RHS evaluated first
+    pair_rank_vtx_prob[pair_vtx_probs.top().second] = pair_rank_vtx_prob.size();  // careful: RHS evaluated first
     pair_vtx_probs.pop();
   }
   map<std::pair<int, int>, int> pair_rank_dz_PV_SV;
   while (!pair_dz_PV_SV.empty()) {
-    pair_rank_dz_PV_SV[pair_dz_PV_SV.top().second] = pair_rank_dz_PV_SV.size(); // careful: RHS evaluated first
+    pair_rank_dz_PV_SV[pair_dz_PV_SV.top().second] = pair_rank_dz_PV_SV.size();  // careful: RHS evaluated first
     pair_dz_PV_SV.pop();
   }
   map<std::pair<int, int>, int> pair_rank_dPhi_muons;
   while (!pair_dPhi_muons.empty()) {
-    pair_rank_dPhi_muons[pair_dPhi_muons.top().second] = pair_rank_dPhi_muons.size(); // careful: RHS evaluated first
+    pair_rank_dPhi_muons[pair_dPhi_muons.top().second] = pair_rank_dPhi_muons.size();  // careful: RHS evaluated first
     pair_dPhi_muons.pop();
   }
   map<std::pair<int, int>, int> pair_rank_dM_Z_Mmumu;
   while (!pair_dM_Z_Mmumu.empty()) {
-    pair_rank_dM_Z_Mmumu[pair_dM_Z_Mmumu.top().second] = pair_rank_dM_Z_Mmumu.size(); // careful: RHS evaluated first
+    pair_rank_dM_Z_Mmumu[pair_dM_Z_Mmumu.top().second] = pair_rank_dM_Z_Mmumu.size();  // careful: RHS evaluated first
     pair_dM_Z_Mmumu.pop();
   }
   // for (size_t i = 0; i < pair_vtx_probs.size(); i++)
@@ -882,6 +883,28 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       FillMiniIso<reco::Muon, reco::PFCandidate>(*pfcands, tag.first, *rhoJetsNC, nt, true);
 
       // Tag-trigger matching
+      auto tagRef = muonsView->refAt(tag_muon_map[&tag - &tag_trkttrk[0]]);
+      pat::TriggerObjectStandAloneRef tagl1Match = (*l1Matches)[tagRef];
+      if (tagl1Match.isNonnull()) {
+        nt.tag_l1pt = tagl1Match->pt();
+        nt.tag_l1q = (*l1Qualities)[tagRef];
+        nt.tag_l1dr = (*l1Drs)[tagRef];
+      } else {
+        nt.tag_l1pt = -99.;
+        nt.tag_l1q = -99;
+        nt.tag_l1dr = -99.;
+      }
+
+      pat::TriggerObjectStandAloneRef tagl1MatchByQ = (*l1MatchesByQ)[tagRef];
+      if (tagl1MatchByQ.isNonnull()) {
+        nt.tag_l1ptByQ = tagl1MatchByQ->pt();
+        nt.tag_l1qByQ = (*l1QualitiesByQ)[tagRef];
+        nt.tag_l1drByQ = (*l1DrsByQ)[tagRef];
+      } else {
+        nt.tag_l1ptByQ = -99.;
+        nt.tag_l1qByQ = -99;
+        nt.tag_l1drByQ = -99.;
+      }
       embedTriggerMatching(tag.first, nt.trg_filter, nt.trg_eta, nt.trg_phi, tagFilters_, true, debug_);
 
       std::vector<unsigned>::iterator it =
@@ -925,6 +948,10 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           nt.l1pt = l1Match->pt();
           nt.l1q = (*l1Qualities)[muRef];
           nt.l1dr = (*l1Drs)[muRef];
+        } else {
+          nt.l1pt = -99.;
+          nt.l1q = -99;
+          nt.l1dr = -99.;
         }
 
         pat::TriggerObjectStandAloneRef l1MatchByQ = (*l1MatchesByQ)[muRef];
@@ -932,6 +959,10 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           nt.l1ptByQ = l1MatchByQ->pt();
           nt.l1qByQ = (*l1QualitiesByQ)[muRef];
           nt.l1drByQ = (*l1DrsByQ)[muRef];
+        } else {
+          nt.l1ptByQ = -99.;
+          nt.l1qByQ = -99;
+          nt.l1drByQ = -99.;
         }
 
         embedTriggerMatching(

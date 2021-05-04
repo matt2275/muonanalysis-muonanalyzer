@@ -434,6 +434,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   }
 
   // Find triggering muon
+  std::vector<unsigned> tag_muon_map;  // idx of tag muon in muons
   RecoTrkAndTransientTrkCollection tag_muon_ttrack;
   std::vector<bool> genmatched_tag;
   for (const pat::Muon& mu : *muons) {
@@ -458,6 +459,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     if (!tagSelection_(mu))
       continue;
     tag_muon_ttrack.emplace_back(std::make_pair(mu, reco::TransientTrack(*mu.bestTrack(), &(*bField))));
+    tag_muon_map.push_back(&mu - &muons->at(0));
     if (std::find(matched_muon_idx.begin(), matched_muon_idx.end(), &mu - &muons->at(0)) != matched_muon_idx.end())
       genmatched_tag.push_back(true);
     else
@@ -675,6 +677,29 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       FillMiniIso<pat::Muon, pat::PackedCandidate>(*pfcands, tag.first, *rhoJetsNC, nt, true);
 
       // Tag-trigger matching
+      auto tagRef = muonsView->refAt(tag_muon_map[&tag - &tag_muon_ttrack[0]]);
+      pat::TriggerObjectStandAloneRef tagl1Match = (*l1Matches)[tagRef];
+      if (tagl1Match.isNonnull()) {
+        nt.tag_l1pt = tagl1Match->pt();
+        nt.tag_l1q = (*l1Qualities)[tagRef];
+        nt.tag_l1dr = (*l1Drs)[tagRef];
+      } else {
+        nt.tag_l1pt = -99.;
+        nt.tag_l1q = -99;
+        nt.tag_l1dr = -99.;
+      }
+
+      pat::TriggerObjectStandAloneRef tagl1MatchByQ = (*l1MatchesByQ)[tagRef];
+      if (tagl1MatchByQ.isNonnull()) {
+        nt.tag_l1ptByQ = tagl1MatchByQ->pt();
+        nt.tag_l1qByQ = (*l1QualitiesByQ)[tagRef];
+        nt.tag_l1drByQ = (*l1DrsByQ)[tagRef];
+      } else {
+        nt.tag_l1ptByQ = -99.;
+        nt.tag_l1qByQ = -99;
+        nt.tag_l1drByQ = -99.;
+      }
+
       embedTriggerMatching(iEvent, trigResults, tag.first, nt, tagFilters_, true);
 
       math::PtEtaPhiMLorentzVector mu1(tag.first.pt(), tag.first.eta(), tag.first.phi(), MU_MASS);
@@ -697,6 +722,10 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           nt.l1pt = l1Match->pt();
           nt.l1q = (*l1Qualities)[muRef];
           nt.l1dr = (*l1Drs)[muRef];
+        } else {
+          nt.l1pt = -99.;
+          nt.l1q = -99;
+          nt.l1dr = -99.;
         }
 
         pat::TriggerObjectStandAloneRef l1MatchByQ = (*l1MatchesByQ)[muRef];
@@ -704,6 +733,10 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           nt.l1ptByQ = l1MatchByQ->pt();
           nt.l1qByQ = (*l1QualitiesByQ)[muRef];
           nt.l1drByQ = (*l1DrsByQ)[muRef];
+        } else {
+          nt.l1ptByQ = -99.;
+          nt.l1qByQ = -99;
+          nt.l1drByQ = -99.;
         }
 
         // Probe-trigger matching

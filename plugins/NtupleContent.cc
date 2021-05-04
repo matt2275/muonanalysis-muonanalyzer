@@ -147,6 +147,13 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
   t1->Branch("l1qByQ", &l1qByQ);
   t1->Branch("l1drByQ", &l1drByQ);
 
+  t1->Branch("tag_l1pt", &tag_l1pt);
+  t1->Branch("tag_l1q", &tag_l1q);
+  t1->Branch("tag_l1dr", &tag_l1dr);
+  t1->Branch("tag_l1ptByQ", &tag_l1ptByQ);
+  t1->Branch("tag_l1qByQ", &tag_l1qByQ);
+  t1->Branch("tag_l1drByQ", &tag_l1drByQ);
+
   t1->Branch("probe_ndsa", &probe_ndsa);
   t1->Branch("probe_dsa_muonStations", &probe_dsa_muonStations);
   t1->Branch("probe_dsa_muonHits", &probe_dsa_muonHits);
@@ -379,6 +386,13 @@ void NtupleContent::ClearBranches() {
   l1ptByQ = -99;
   l1qByQ = -99;
   l1drByQ = -99;
+
+  tag_l1pt = -99;
+  tag_l1q = -99;
+  tag_l1dr = -99;
+  tag_l1ptByQ = -99;
+  tag_l1qByQ = -99;
+  tag_l1drByQ = -99;
 
   probe_ndsa = -99;
   probe_dsa_muonStations = -99;
