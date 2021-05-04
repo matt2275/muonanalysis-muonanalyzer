@@ -74,6 +74,13 @@ public:
   int l1qByQ;
   float l1drByQ;
 
+  float tag_l1pt;
+  int tag_l1q;
+  float tag_l1dr;
+  float tag_l1ptByQ;
+  int tag_l1qByQ;
+  float tag_l1drByQ;
+
   float genmu1_pt;
   float genmu1_eta;
   float genmu1_phi;
