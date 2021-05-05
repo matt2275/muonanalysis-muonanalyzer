@@ -232,6 +232,40 @@ inline void FillProbeBranchesdSA(const TRK &trk, NtupleContent &nt, bool passdSA
 }
 
 template <typename TRK>
+inline void FillTagBranchesdSA(const TRK &trk, NtupleContent &nt, bool passdSA) {
+  nt.tag_isdSA = passdSA;
+
+  nt.tag_dsa_pt = trk.pt();
+  nt.tag_dsa_eta = trk.eta();
+  nt.tag_dsa_phi = trk.phi();
+  nt.tag_dsa_charge = trk.charge();
+
+  if (passdSA) {
+    nt.tag_dsa_outerEta = trk.outerEta();
+    nt.tag_dsa_outerPhi = trk.outerPhi();
+    nt.tag_dsa_dxy = trk.dxy(reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
+    nt.tag_dsa_dz = trk.dz(reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
+    nt.tag_dsa_muonStations = trk.hitPattern().muonStationsWithValidHits();
+    nt.tag_dsa_muonHits = trk.hitPattern().numberOfValidMuonHits();
+    nt.tag_dsa_DTHits = trk.hitPattern().numberOfValidMuonDTHits();
+    nt.tag_dsa_CSCHits = trk.hitPattern().numberOfValidMuonCSCHits();
+    nt.tag_dsa_pterr = trk.ptError() / trk.pt();
+    nt.tag_dsa_trkChi2 = trk.normalizedChi2();
+  } else {
+    nt.tag_dsa_outerEta = -99;
+    nt.tag_dsa_outerPhi = -99;
+    nt.tag_dsa_dxy = -99;
+    nt.tag_dsa_dz = -99;
+    nt.tag_dsa_muonStations = -99;
+    nt.tag_dsa_muonHits = -99;
+    nt.tag_dsa_DTHits = -99;
+    nt.tag_dsa_CSCHits = -99;
+    nt.tag_dsa_pterr = -99;
+    nt.tag_dsa_trkChi2 = -99;
+  }
+}
+
+template <typename TRK>
 inline void FillProbeBranchesdgl(const TRK &trk, NtupleContent &nt, bool passdgl) {
   nt.probe_isdGlobal = passdgl;
 

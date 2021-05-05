@@ -605,87 +605,93 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     trk_muon_map.first.push_back(idx_trk);
     trk_muon_map.second.push_back(&mu - &muons->at(0));
   }
-
   if (debug_ > 0)
     std::cout << "Matched trk-mu " << trk_muon_map.first.size() << std::endl;
 
-  // probe track mapping with displaced standalone track
-  // start with tracks at first loop level and dSA at second level instead,
-  // to ensure each track that has a dSA match is actually recorded
-  // i.e. a dSA track can be matched to more than one generalTrack
-  // but all generalTracks that match should be pushed to the map
-  std::pair<std::vector<unsigned>, std::vector<unsigned>> trk_dsA_map;
-  std::vector<float> trk_dsA_DR, trk_dsA_outerDR;
-  std::map<unsigned, int> trk_ndsa;
-  for (const reco::Track& trks : *tracks) {
-    unsigned idx_probe = &trks - &tracks->at(0);
-    trk_ndsa[idx_probe] = 0;
-    float minDR = 1000;
-    float minOuterDR = 1000;
-    unsigned idx_dSA = 1000;
-    for (const reco::Track& dsA : *dSAmuons) {
-      float DR = deltaR(dsA.eta(), dsA.phi(), trks.eta(), trks.phi());
-      float outerDR = deltaR(dsA.outerEta(), dsA.outerPhi(), trks.eta(), trks.phi());
-      // first add to number of dSAs within 0.5 dR cone of probe
-      if (DR < 0.5)
-        trk_ndsa[idx_probe]++;
-      // now check if this dSA is the closest one to probe so far
-      if (DR < minDR) {
-        minDR = DR;
-        minOuterDR = outerDR;
-        idx_dSA = &dsA - &dSAmuons->at(0);
-      } else
-        continue;
-    }
-    if (idx_dSA == 1000)  // corner case: no dSAs in event
-      continue;
-    trk_dsA_map.first.push_back(idx_probe);
-    trk_dsA_map.second.push_back(idx_dSA);
-    trk_dsA_DR.push_back(minDR);
-    trk_dsA_outerDR.push_back(minOuterDR);
-  }
-  if (debug_ > 0)
-    std::cout << "Matched trk-dSA " << trk_dsA_map.first.size() << std::endl;
+  using map_type = std::pair<std::vector<unsigned>, std::vector<unsigned>>;
 
-  // probe track mapping with displaced global track
-  std::pair<std::vector<unsigned>, std::vector<unsigned>> trk_dglobal_map;
-  for (const reco::Track& dgl : *dGlmuons) {
-    float minDltR = 1000;
-    unsigned int idx_dgltrk;
-    for (const reco::Track& tk : *tracks) {
-      float dltDR = deltaR(dgl.eta(), dgl.phi(), tk.eta(), tk.phi());
-      if (minDltR < dltDR)
-        continue;
-      minDltR = dltDR;
-      idx_dgltrk = &tk - &tracks->at(0);
-    }
-    if (minDltR > maxdr_trk_dsa_)
-      continue;
-    trk_dglobal_map.first.push_back(idx_dgltrk);
-    trk_dglobal_map.second.push_back(&dgl - &dGlmuons->at(0));
-  }
-  if (debug_ > 0)
-    std::cout << "Matched trk-dgl " << trk_dglobal_map.first.size() << std::endl;
+  // Generic functions to map probe track with a second collection of tracks (e.g. dSA, cosmics, dGl, etc)
 
-  // probe track mapping with standalone cosmic muon
-  std::pair<std::vector<unsigned>, std::vector<unsigned>> trk_cosmic_map;
-  for (const reco::Track& cosmicMu : *staCosmic) {
-    float minDtR = 1000;
-    unsigned int idx_cosmictrk;
-    for (const reco::Track& tks : *tracks) {
-      float dtDR = deltaR(cosmicMu.eta(), cosmicMu.phi(), tks.eta(), tks.phi());
-      if (minDtR < dtDR)
+  // Simple mapping (not currently used) -- just check for the closest match between collections
+  // If closest match has dR < config cone value, include match in mapping
+  // This is not flexible for later use in spark (see Inclusive function below)
+  auto mapTrackCollectionsSimple = [&](const std::vector<reco::Track> & coll_1, const std::vector<reco::Track> & coll_2, map_type & coll_map) {
+    for (const reco::Track & trk_1 : coll_1) {
+      unsigned idx_1 = &trk_1 - &coll_1.at(0);
+      float min_dR = 1000;
+      unsigned min_idx_2;
+      for (const reco::Track & trk_2 : coll_2) {
+        unsigned idx_2 = &trk_2 - &coll_2.at(0);
+        float dR = deltaR(trk_1.eta(), trk_1.phi(), trk_2.eta(), trk_2.phi());
+        if (min_dR < dR)
+          continue;
+        min_dR = dR;
+        min_idx_2 = idx_2;
+      }
+      if (min_dR > maxdr_trk_dsa_)
         continue;
-      minDtR = dtDR;
-      idx_cosmictrk = &tks - &tracks->at(0);
+      coll_map.first.push_back(min_idx_2);
+      coll_map.second.push_back(idx_1);
     }
-    if (minDtR > maxdr_trk_dsa_)
-      continue;
-    trk_cosmic_map.first.push_back(idx_cosmictrk);
-    trk_cosmic_map.second.push_back(&cosmicMu - &staCosmic->at(0));
-  }
-  if (debug_ > 0)
-    std::cout << "Matched trk-cosmic " << trk_cosmic_map.first.size() << std::endl;
+  };
+  (void)mapTrackCollectionsSimple; // prevent "unused method" error
+
+  // Inclusive mapping (currently used for all) -- check and count all possible matches within a config dR cone value
+  // Also pick the pair with smallest dR, *even* if it is greater than config dR cone -- this allows to customize match criteria in spark later on
+  // Also this should work even for collimated muons where nmatched may be greater than 1
+  auto mapTrackCollectionsInclusive = [&]<typename T>(const vector<T> & coll_1, const vector<reco::Track> & coll_2, map_type & coll_map, vector<float> & min_dRs, vector<unsigned> & n_matched) {
+    // Start with probe at first loop level and dSA/cosmic/dGl at second level instead, to ensure each probe that has a match is actually recorded
+    // i.e. a dSA/cosmic/dGl track can be matched to more than one generalTrack probem, but all generalTrack probes that match should be pushed to the map
+    for (const T & trk_1 : coll_1) {
+      unsigned idx_1 = &trk_1 - &coll_1.at(0);
+      unsigned matched = 0;
+      float min_dR = 1000;
+      unsigned min_idx_2 = 1000;
+      for (const reco::Track & trk_2 : coll_2) {
+        unsigned idx_2 = &trk_2 - &coll_2.at(0);
+        float dR = deltaR(trk_1.eta(), trk_1.phi(), trk_2.eta(), trk_2.phi());
+        // first add to count of matched items in coll 2 within X dR cone of track in coll 1
+        if (dR < maxdr_trk_dsa_)
+          matched++;
+        // now check if this is the closest one so far
+        if (dR < min_dR) {
+          min_dR = dR;
+          min_idx_2 = idx_2;
+        }
+      }
+      if (min_idx_2 == 1000) // corner case: coll 2 is empty
+        continue;
+      coll_map.first.push_back(idx_1);
+      coll_map.second.push_back(min_idx_2);
+      min_dRs.push_back(min_dR);
+      n_matched.push_back(matched);
+    }
+  };
+
+  // Map probe and dSA
+  map_type probe_dSA_map;
+  vector<float> probe_dSA_dRs;
+  vector<unsigned> probe_dSA_nmatched;
+  mapTrackCollectionsInclusive(*tracks, *dSAmuons, probe_dSA_map, probe_dSA_dRs, probe_dSA_nmatched);
+
+  // Map tag and dSA
+  map_type tag_dSA_map;
+  vector<float> tag_dSA_dRs;
+  vector<unsigned> tag_dSA_nmatched;
+  mapTrackCollectionsInclusive(*muons, *dSAmuons, tag_dSA_map, tag_dSA_dRs, tag_dSA_nmatched);
+
+  // Map probe and dGl
+  map_type probe_dGl_map;
+  vector<float> probe_dGl_dRs;
+  vector<unsigned> probe_dGl_nmatched;
+  mapTrackCollectionsInclusive(*tracks, *dGlmuons, probe_dGl_map, probe_dGl_dRs, probe_dGl_nmatched);
+
+  // Map probe and cosmics
+  map_type probe_cosmic_map;
+  vector<float> probe_cosmic_dRs;
+  vector<unsigned> probe_cosmic_nmatched;
+  mapTrackCollectionsInclusive(*tracks, *staCosmic, probe_cosmic_map, probe_cosmic_dRs, probe_cosmic_nmatched);
+
 
   // Muon collection for jet cleaning
   std::vector<reco::Muon> muForJetCleaning;
@@ -812,9 +818,6 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   }
   nt.npairs = pair_vtx_probs.size();
 
-  // reverse sort vertices by probability
-  // auto compare_vtx = [=](t_pair_prob& a, t_pair_prob& b) { return a.first > b.first; };
-  // std::sort(pair_vtx_probs.begin(), pair_vtx_probs.end(), compare_vtx);
   // assign sorted vtx indices to ranking
   map<std::pair<int, int>, int> pair_rank_vtx_prob;
   while (!pair_vtx_probs.empty()) {
@@ -836,8 +839,6 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     pair_rank_dM_Z_Mmumu[pair_dM_Z_Mmumu.top().second] = pair_rank_dM_Z_Mmumu.size();  // careful: RHS evaluated first
     pair_dM_Z_Mmumu.pop();
   }
-  // for (size_t i = 0; i < pair_vtx_probs.size(); i++)
-  //   pair_rankings[pair_vtx_probs[i].second] = i;
 
   // now run again to select probes
   // loop over tags
@@ -910,11 +911,13 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       std::vector<unsigned>::iterator it =
           std::find(trk_muon_map.first.begin(), trk_muon_map.first.end(), &probe - &tracks->at(0));
       std::vector<unsigned>::iterator itdsa =
-          std::find(trk_dsA_map.first.begin(), trk_dsA_map.first.end(), &probe - &tracks->at(0));
+          std::find(probe_dSA_map.first.begin(), probe_dSA_map.first.end(), &probe - &tracks->at(0));
+      std::vector<unsigned>::iterator itdsa_tag =
+          std::find(tag_dSA_map.first.begin(), tag_dSA_map.first.end(), &tag - &tag_trkttrk[0]);
       std::vector<unsigned>::iterator itdgl =
-          std::find(trk_dglobal_map.first.begin(), trk_dglobal_map.first.end(), &probe - &tracks->at(0));
+          std::find(probe_dGl_map.first.begin(), probe_dGl_map.first.end(), &probe - &tracks->at(0));
       std::vector<unsigned>::iterator itcosmic =
-          std::find(trk_cosmic_map.first.begin(), trk_cosmic_map.first.end(), &probe - &tracks->at(0));
+          std::find(probe_cosmic_map.first.begin(), probe_cosmic_map.first.end(), &probe - &tracks->at(0));
 
       if (it == trk_muon_map.first.end()) {
         if (debug_ > 0)
@@ -983,40 +986,60 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         }
       }
 
-      nt.probe_ndsa = trk_ndsa[&probe - &tracks->at(0)];
-      if (itdsa == trk_dsA_map.first.end()) {
+      if (itdsa == probe_dSA_map.first.end()) {
+        nt.probe_ndsa = 0;
         FillProbeBranchesdSA<reco::Track>(probe, nt, false);
       } else {
-        unsigned itdsax = std::distance(trk_dsA_map.first.begin(), itdsa);
-        nt.probe_dsa_minDR = trk_dsA_DR[itdsax];
-        nt.probe_dsa_minOuterDR = trk_dsA_outerDR[itdsax];
+        unsigned itdsax = std::distance(probe_dSA_map.first.begin(), itdsa);
+        nt.probe_ndsa = probe_dSA_nmatched[itdsax];
+        nt.probe_dsa_minDR = probe_dSA_dRs[itdsax];
         if (debug_ > 0)
-          std::cout << "Successful probe dsA " << dSAmuons->at(trk_dsA_map.second[itdsax]).pt() << " eta "
-                    << dSAmuons->at(trk_dsA_map.second[itdsax]).eta() << " phi "
-                    << dSAmuons->at(trk_dsA_map.second[itdsax]).phi() << std::endl;
-        FillProbeBranchesdSA<reco::Track>(dSAmuons->at(trk_dsA_map.second[itdsax]), nt, true);
+          std::cout << "Successful probe dSA " << dSAmuons->at(probe_dSA_map.second[itdsax]).pt() << " eta "
+                    << dSAmuons->at(probe_dSA_map.second[itdsax]).eta() << " phi "
+                    << dSAmuons->at(probe_dSA_map.second[itdsax]).phi() << std::endl;
+        FillProbeBranchesdSA<reco::Track>(dSAmuons->at(probe_dSA_map.second[itdsax]), nt, true);
       }
 
-      if (itdgl == trk_dglobal_map.first.end()) {
+      if (itdsa_tag == tag_dSA_map.first.end()) {
+        nt.tag_ndsa = 0;
+        FillTagBranchesdSA<reco::Track>(probe, nt, false);
+      } else {
+        unsigned itdsax = std::distance(tag_dSA_map.first.begin(), itdsa_tag);
+        nt.tag_ndsa = tag_dSA_nmatched[itdsax];
+        nt.tag_dsa_minDR = tag_dSA_dRs[itdsax];
+        if (debug_ > 0)
+          std::cout << "Successful tag dSA " << dSAmuons->at(tag_dSA_map.second[itdsax]).pt() << " eta "
+                    << dSAmuons->at(tag_dSA_map.second[itdsax]).eta() << " phi "
+                    << dSAmuons->at(tag_dSA_map.second[itdsax]).phi() << std::endl;
+        FillTagBranchesdSA<reco::Track>(dSAmuons->at(tag_dSA_map.second[itdsax]), nt, true);
+      }
+
+      if (itdgl == probe_dGl_map.first.end()) {
+        nt.probe_ndgl = 0;
         FillProbeBranchesdgl<reco::Track>(probe, nt, false);
       } else {
-        unsigned itdglx = std::distance(trk_dglobal_map.first.begin(), itdgl);
+        unsigned itdglx = std::distance(probe_dGl_map.first.begin(), itdgl);
+        nt.probe_ndgl = probe_dGl_nmatched[itdglx];
+        nt.probe_dgl_minDR = probe_dGl_dRs[itdglx];
         if (debug_ > 0)
-          std::cout << "Successful probe displaced global " << dGlmuons->at(trk_dglobal_map.second[itdglx]).pt()
-                    << " eta " << dGlmuons->at(trk_dglobal_map.second[itdglx]).eta() << " phi "
-                    << dGlmuons->at(trk_dglobal_map.second[itdglx]).phi() << std::endl;
-        FillProbeBranchesdgl<reco::Track>(dGlmuons->at(trk_dglobal_map.second[itdglx]), nt, true);
+          std::cout << "Successful probe displaced global " << dGlmuons->at(probe_dGl_map.second[itdglx]).pt()
+                    << " eta " << dGlmuons->at(probe_dGl_map.second[itdglx]).eta() << " phi "
+                    << dGlmuons->at(probe_dGl_map.second[itdglx]).phi() << std::endl;
+        FillProbeBranchesdgl<reco::Track>(dGlmuons->at(probe_dGl_map.second[itdglx]), nt, true);
       }
 
-      if (itcosmic == trk_cosmic_map.first.end()) {
+      if (itcosmic == probe_cosmic_map.first.end()) {
+        nt.probe_ncosmic = 0;
         FillProbeBranchesCosmic<reco::Track>(probe, nt, false);
       } else {
-        unsigned itcosmicx = std::distance(trk_cosmic_map.first.begin(), itcosmic);
+        unsigned itcosmicx = std::distance(probe_cosmic_map.first.begin(), itcosmic);
+        nt.probe_ncosmic = probe_cosmic_nmatched[itcosmicx];
+        nt.probe_cosmic_minDR = probe_cosmic_dRs[itcosmicx];
         if (debug_ > 0)
-          std::cout << "Successful probe cosmic " << staCosmic->at(trk_cosmic_map.second[itcosmicx]).pt() << " eta "
-                    << staCosmic->at(trk_cosmic_map.second[itcosmicx]).eta() << " phi "
-                    << staCosmic->at(trk_cosmic_map.second[itcosmicx]).phi() << std::endl;
-        FillProbeBranchesCosmic<reco::Track>(staCosmic->at(trk_cosmic_map.second[itcosmicx]), nt, true);
+          std::cout << "Successful probe cosmic " << staCosmic->at(probe_cosmic_map.second[itcosmicx]).pt() << " eta "
+                    << staCosmic->at(probe_cosmic_map.second[itcosmicx]).eta() << " phi "
+                    << staCosmic->at(probe_cosmic_map.second[itcosmicx]).phi() << std::endl;
+        FillProbeBranchesCosmic<reco::Track>(staCosmic->at(probe_cosmic_map.second[itcosmicx]), nt, true);
       }
 
       FillPairBranches<reco::Muon, reco::Track>(tag.first, probe, nt);
