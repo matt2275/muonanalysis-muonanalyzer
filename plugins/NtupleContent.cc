@@ -60,6 +60,7 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
   t1->Branch("tag_dz", &tag_dz);
   t1->Branch("tag_isPF", &tag_isPF);
   t1->Branch("tag_isSA", &tag_isSA);
+  t1->Branch("tag_isdSA", &tag_isdSA);
   t1->Branch("tag_isTracker", &tag_isTracker);
   t1->Branch("tag_isGlobal", &tag_isGlobal);
   t1->Branch("tag_isLoose", &tag_isLoose);
@@ -104,6 +105,8 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
   t1->Branch("probe_isdSA", &probe_isdSA);
   t1->Branch("probe_isdGlobal", &probe_isdGlobal);
   t1->Branch("probe_isCosmic", &probe_isCosmic);
+  t1->Branch("probe_ncosmic", &probe_ncosmic);
+  t1->Branch("probe_cosmic_minDR", &probe_cosmic_minDR);
   //  t1->Branch("probe_isGood", &probe_isGood);
   t1->Branch("probe_isHighPurity", &probe_isHighPurity);
   t1->Branch("probe_validFraction", &probe_validFraction);
@@ -172,11 +175,30 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
   t1->Branch("probe_dsa_minOuterDR", &probe_dsa_minOuterDR);
   t1->Branch("probe_dsa_charge", &probe_dsa_charge);
 
+  t1->Branch("tag_ndsa", &tag_ndsa);
+  t1->Branch("tag_dsa_muonStations", &tag_dsa_muonStations);
+  t1->Branch("tag_dsa_muonHits", &tag_dsa_muonHits);
+  t1->Branch("tag_dsa_DTHits", &tag_dsa_DTHits);
+  t1->Branch("tag_dsa_CSCHits", &tag_dsa_CSCHits);
+  t1->Branch("tag_dsa_pterr", &tag_dsa_pterr);
+  t1->Branch("tag_dsa_dxy", &tag_dsa_dxy);
+  t1->Branch("tag_dsa_dz", &tag_dsa_dz);
+  t1->Branch("tag_dsa_trkChi2", &tag_dsa_trkChi2);
+  t1->Branch("tag_dsa_pt", &tag_dsa_pt);
+  t1->Branch("tag_dsa_eta", &tag_dsa_eta);
+  t1->Branch("tag_dsa_phi", &tag_dsa_phi);
+  t1->Branch("tag_dsa_outerEta", &tag_dsa_outerEta);
+  t1->Branch("tag_dsa_outerPhi", &tag_dsa_outerPhi);
+  t1->Branch("tag_dsa_minDR", &tag_dsa_minDR);
+  t1->Branch("tag_dsa_minOuterDR", &tag_dsa_minOuterDR);
+  t1->Branch("tag_dsa_charge", &tag_dsa_charge);
+
   // selectors for probe
   for (unsigned int isel = 0; isel < selectorNames.size(); ++isel) {
     t1->Branch(TString("probe_" + selectorNames[isel]), &probe_selectors[isel]);
   }
 
+  t1->Branch("probe_ndgl", &probe_ndgl);
   t1->Branch("probe_dgl_muonStations", &probe_dgl_muonStations);
   t1->Branch("probe_dgl_muonHits", &probe_dgl_muonHits);
   t1->Branch("probe_dgl_totalHits", &probe_dgl_totalHits);
@@ -192,6 +214,7 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
   t1->Branch("probe_dgl_eta", &probe_dgl_eta);
   t1->Branch("probe_dgl_phi", &probe_dgl_phi);
   t1->Branch("probe_dgl_charge", &probe_dgl_charge);
+  t1->Branch("probe_dgl_minDR", &probe_dgl_minDR);
 
   // Pair specific
   t1->Branch("pair_pt", &pair_pt);
@@ -300,6 +323,7 @@ void NtupleContent::ClearBranches() {
   tag_dz = -99;
   tag_isPF = false;
   tag_isSA = false;
+  tag_isdSA = false;
   tag_isTracker = false;
   tag_isGlobal = false;
   tag_isLoose = false;
@@ -341,6 +365,8 @@ void NtupleContent::ClearBranches() {
   probe_isdSA = false;
   probe_isdGlobal = false;
   probe_isCosmic = false;
+  probe_ncosmic = -99;
+  probe_cosmic_minDR = +99;
   probe_isGood = false;
   probe_isHighPurity = false;
   probe_validFraction = -99;
@@ -408,10 +434,29 @@ void NtupleContent::ClearBranches() {
   probe_dsa_phi = -99;
   probe_dsa_outerEta = -99;
   probe_dsa_outerPhi = -99;
-  probe_dsa_minDR = -99;
+  probe_dsa_minDR = +99;
   probe_dsa_minOuterDR = -99;
   probe_dsa_charge = -99;
 
+  tag_ndsa = -99;
+  tag_dsa_muonStations = -99;
+  tag_dsa_muonHits = -99;
+  tag_dsa_DTHits = -99;
+  tag_dsa_CSCHits = -99;
+  tag_dsa_pterr = 0;
+  tag_dsa_dxy = -99;
+  tag_dsa_dz = -99;
+  tag_dsa_trkChi2 = -99;
+  tag_dsa_pt = 0;
+  tag_dsa_eta = -99;
+  tag_dsa_phi = -99;
+  tag_dsa_outerEta = -99;
+  tag_dsa_outerPhi = -99;
+  tag_dsa_minDR = +99;
+  tag_dsa_minOuterDR = -99;
+  tag_dsa_charge = -99;
+
+  probe_ndgl = -99;
   probe_dgl_muonStations = -99;
   probe_dgl_muonHits = -99;
   probe_dgl_outerTrackerHits = -99;
@@ -427,6 +472,7 @@ void NtupleContent::ClearBranches() {
   probe_dgl_eta = -99;
   probe_dgl_phi = -99;
   probe_dgl_charge = -99;
+  probe_dgl_minDR = +99;
 
   pair_pt = 0;
   pair_mass = 0;

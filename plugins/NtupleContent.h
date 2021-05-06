@@ -118,6 +118,7 @@ public:
   float tag_dz;
   bool tag_isPF;
   bool tag_isSA;
+  bool tag_isdSA;
   bool tag_isTracker;
   bool tag_isGlobal;
   bool tag_isLoose;
@@ -159,6 +160,8 @@ public:
   bool probe_isdSA;
   bool probe_isdGlobal;
   bool probe_isCosmic;
+  int probe_ncosmic;
+  float probe_cosmic_minDR;
   bool probe_isGood;
   bool probe_isHighPurity;
   float probe_relIso04;
@@ -217,10 +220,30 @@ public:
   float probe_dsa_dxy;
   float probe_dsa_dz;
 
+  int tag_ndsa;
+  float tag_dsa_pt;
+  float tag_dsa_eta;
+  float tag_dsa_phi;
+  float tag_dsa_outerEta;
+  float tag_dsa_outerPhi;
+  float tag_dsa_minDR;
+  float tag_dsa_minOuterDR;
+  int tag_dsa_charge;
+  float tag_dsa_trkChi2;
+  float tag_dsa_muonStations;
+  float tag_dsa_muonHits;
+  float tag_dsa_DTHits;
+  float tag_dsa_CSCHits;
+  float tag_dsa_pterr;
+  float tag_dsa_dxy;
+  float tag_dsa_dz;
+
+  int probe_ndgl;
   float probe_dgl_pt;
   float probe_dgl_eta;
   float probe_dgl_phi;
   int probe_dgl_charge;
+  float probe_dgl_minDR;
   float probe_dgl_trkChi2;
   float probe_dgl_muonStations;
   float probe_dgl_muonHits;
