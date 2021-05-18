@@ -127,6 +127,7 @@ private:
                             std::vector<TString>&,
                             std::vector<float>&,
                             std::vector<float>&,
+                            std::vector<float>&,
                             std::vector<std::string>&,
                             bool,
                             const int&);
@@ -331,6 +332,7 @@ void MuonFullAODAnalyzer::fillHLTmuon(const edm::Event& iEvent,
 
 void MuonFullAODAnalyzer::embedTriggerMatching(const reco::Muon& mu,
                                                std::vector<TString>& trg_filter,
+                                               std::vector<float>& trg_pt,
                                                std::vector<float>& trg_eta,
                                                std::vector<float>& trg_phi,
                                                std::vector<std::string>& HLTFilters,
@@ -343,25 +345,43 @@ void MuonFullAODAnalyzer::embedTriggerMatching(const reco::Muon& mu,
         thefilter_tstr.BeginsWith("hltL2") && (thefilter_tstr.Contains("NoVtx") || thefilter_tstr.Contains("NoVertex"));
 
     bool matched = false;
+    float matched_pt = -99;
+    float matched_eta = -99;
+    float matched_phi = -99;
+    float matched_dr = 99;
     for (unsigned itrg = 0; itrg < trg_filter.size(); ++itrg) {
       TString filter_tstr = TString(trg_filter.at(itrg));
       if (!filter_tstr.Contains(thefilter_tstr))
         continue;
       float dR_tmp = deltaR(mu.eta(), mu.phi(), trg_eta.at(itrg), trg_phi.at(itrg));
-      if (dR_tmp < trgDRwindow_ || (isL2DSA && dR_tmp < maxdr_trk_dsa_)) {
+      if ((dR_tmp < matched_dr && dR_tmp < trgDRwindow_) ||
+          (isL2DSA && dR_tmp < matched_dr && dR_tmp < maxdr_trk_dsa_)) {
         matched = true;
+        matched_pt = trg_pt.at(itrg);
+        matched_eta = trg_eta.at(itrg);
+        matched_phi = trg_phi.at(itrg);
+        matched_dr = dR_tmp;
+
         if (debug_ > 0) {
           std::cout << "embedTriggerMatching: isTag=" << isTag << "  filter=" << thefilter_tstr << "  dR=" << dR_tmp
                     << "  matched=" << matched << std::endl;
         }
-        break;
       }
     }
 
-    if (isTag)
+    if (isTag) {
       nt.tag_trg[&thefilter - &HLTFilters[0]] = matched;
-    else
+      nt.tag_trg_pt[&thefilter - &HLTFilters[0]] = matched_pt;
+      nt.tag_trg_eta[&thefilter - &HLTFilters[0]] = matched_eta;
+      nt.tag_trg_phi[&thefilter - &HLTFilters[0]] = matched_phi;
+      nt.tag_trg_dr[&thefilter - &HLTFilters[0]] = matched_dr;
+    } else {
       nt.probe_trg[&thefilter - &HLTFilters[0]] = matched;
+      nt.probe_trg_pt[&thefilter - &HLTFilters[0]] = matched_pt;
+      nt.probe_trg_eta[&thefilter - &HLTFilters[0]] = matched_eta;
+      nt.probe_trg_phi[&thefilter - &HLTFilters[0]] = matched_phi;
+      nt.probe_trg_dr[&thefilter - &HLTFilters[0]] = matched_dr;
+    }
   }
 
   return;
@@ -615,39 +635,44 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   // Simple mapping (not currently used) -- just check for the closest match between collections
   // If closest match has dR < config cone value, include match in mapping
   // This is not flexible for later use in spark (see Inclusive function below)
-  auto mapTrackCollectionsSimple = [&](const std::vector<reco::Track> & coll_1, const std::vector<reco::Track> & coll_2, map_type & coll_map) {
-    for (const reco::Track & trk_1 : coll_1) {
-      unsigned idx_1 = &trk_1 - &coll_1.at(0);
-      float min_dR = 1000;
-      unsigned min_idx_2;
-      for (const reco::Track & trk_2 : coll_2) {
-        unsigned idx_2 = &trk_2 - &coll_2.at(0);
-        float dR = deltaR(trk_1.eta(), trk_1.phi(), trk_2.eta(), trk_2.phi());
-        if (min_dR < dR)
-          continue;
-        min_dR = dR;
-        min_idx_2 = idx_2;
-      }
-      if (min_dR > maxdr_trk_dsa_)
-        continue;
-      coll_map.first.push_back(min_idx_2);
-      coll_map.second.push_back(idx_1);
-    }
-  };
-  (void)mapTrackCollectionsSimple; // prevent "unused method" error
+  auto mapTrackCollectionsSimple =
+      [&](const std::vector<reco::Track>& coll_1, const std::vector<reco::Track>& coll_2, map_type& coll_map) {
+        for (const reco::Track& trk_1 : coll_1) {
+          unsigned idx_1 = &trk_1 - &coll_1.at(0);
+          float min_dR = 1000;
+          unsigned min_idx_2;
+          for (const reco::Track& trk_2 : coll_2) {
+            unsigned idx_2 = &trk_2 - &coll_2.at(0);
+            float dR = deltaR(trk_1.eta(), trk_1.phi(), trk_2.eta(), trk_2.phi());
+            if (min_dR < dR)
+              continue;
+            min_dR = dR;
+            min_idx_2 = idx_2;
+          }
+          if (min_dR > maxdr_trk_dsa_)
+            continue;
+          coll_map.first.push_back(min_idx_2);
+          coll_map.second.push_back(idx_1);
+        }
+      };
+  (void)mapTrackCollectionsSimple;  // prevent "unused method" error
 
   // Inclusive mapping (currently used for all) -- check and count all possible matches within a config dR cone value
   // Also pick the pair with smallest dR, *even* if it is greater than config dR cone -- this allows to customize match criteria in spark later on
   // Also this should work even for collimated muons where nmatched may be greater than 1
-  auto mapTrackCollectionsInclusive = [&]<typename T>(const vector<T> & coll_1, const vector<reco::Track> & coll_2, map_type & coll_map, vector<float> & min_dRs, vector<unsigned> & n_matched) {
+  auto mapTrackCollectionsInclusive = [&]<typename T>(const vector<T>& coll_1,
+                                                      const vector<reco::Track>& coll_2,
+                                                      map_type& coll_map,
+                                                      vector<float>& min_dRs,
+                                                      vector<unsigned>& n_matched) {
     // Start with probe at first loop level and dSA/cosmic/dGl at second level instead, to ensure each probe that has a match is actually recorded
     // i.e. a dSA/cosmic/dGl track can be matched to more than one generalTrack probem, but all generalTrack probes that match should be pushed to the map
-    for (const T & trk_1 : coll_1) {
+    for (const T& trk_1 : coll_1) {
       unsigned idx_1 = &trk_1 - &coll_1.at(0);
       unsigned matched = 0;
       float min_dR = 1000;
       unsigned min_idx_2 = 1000;
-      for (const reco::Track & trk_2 : coll_2) {
+      for (const reco::Track& trk_2 : coll_2) {
         unsigned idx_2 = &trk_2 - &coll_2.at(0);
         float dR = deltaR(trk_1.eta(), trk_1.phi(), trk_2.eta(), trk_2.phi());
         // first add to count of matched items in coll 2 within X dR cone of track in coll 1
@@ -659,7 +684,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           min_idx_2 = idx_2;
         }
       }
-      if (min_idx_2 == 1000) // corner case: coll 2 is empty
+      if (min_idx_2 == 1000)  // corner case: coll 2 is empty
         continue;
       coll_map.first.push_back(idx_1);
       coll_map.second.push_back(min_idx_2);
@@ -691,7 +716,6 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   vector<float> probe_cosmic_dRs;
   vector<unsigned> probe_cosmic_nmatched;
   mapTrackCollectionsInclusive(*tracks, *staCosmic, probe_cosmic_map, probe_cosmic_dRs, probe_cosmic_nmatched);
-
 
   // Muon collection for jet cleaning
   std::vector<reco::Muon> muForJetCleaning;
@@ -893,7 +917,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       } else {
         nt.tag_l1pt = -99.;
         nt.tag_l1q = -99;
-        nt.tag_l1dr = -99.;
+        nt.tag_l1dr = 99.;
       }
 
       pat::TriggerObjectStandAloneRef tagl1MatchByQ = (*l1MatchesByQ)[tagRef];
@@ -904,9 +928,9 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       } else {
         nt.tag_l1ptByQ = -99.;
         nt.tag_l1qByQ = -99;
-        nt.tag_l1drByQ = -99.;
+        nt.tag_l1drByQ = 99.;
       }
-      embedTriggerMatching(tag.first, nt.trg_filter, nt.trg_eta, nt.trg_phi, tagFilters_, true, debug_);
+      embedTriggerMatching(tag.first, nt.trg_filter, nt.trg_pt, nt.trg_eta, nt.trg_phi, tagFilters_, true, debug_);
 
       std::vector<unsigned>::iterator it =
           std::find(trk_muon_map.first.begin(), trk_muon_map.first.end(), &probe - &tracks->at(0));
@@ -930,6 +954,22 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         FillMiniIso<reco::Muon, reco::PFCandidate>(*pfcands, fakeMuon, *rhoJetsNC, nt, false);
         if (includeJets_)
           FindJetProbePair<reco::PFJet, reco::Muon>(corrJets, fakeMuon, nt);
+
+        // store dummy trigger variables if offline muon is not found
+        for (const auto& path : probeFilters_) {
+          nt.probe_trg[&path - &probeFilters_[0]] = false;
+          nt.probe_trg_pt[&path - &probeFilters_[0]] = -99;
+          nt.probe_trg_eta[&path - &probeFilters_[0]] = -99;
+          nt.probe_trg_phi[&path - &probeFilters_[0]] = -99;
+          nt.probe_trg_dr[&path - &probeFilters_[0]] = 99;
+        }
+        nt.l1pt = -99.;
+        nt.l1q = -99;
+        nt.l1dr = 99.;
+        nt.l1ptByQ = -99.;
+        nt.l1qByQ = -99;
+        nt.l1drByQ = 99.;
+
         FillTunePPairBranchesDummy(nt);
       } else {
         unsigned idx = std::distance(trk_muon_map.first.begin(), it);
@@ -954,7 +994,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         } else {
           nt.l1pt = -99.;
           nt.l1q = -99;
-          nt.l1dr = -99.;
+          nt.l1dr = 99.;
         }
 
         pat::TriggerObjectStandAloneRef l1MatchByQ = (*l1MatchesByQ)[muRef];
@@ -965,11 +1005,17 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         } else {
           nt.l1ptByQ = -99.;
           nt.l1qByQ = -99;
-          nt.l1drByQ = -99.;
+          nt.l1drByQ = 99.;
         }
 
-        embedTriggerMatching(
-            muons->at(trk_muon_map.second[idx]), nt.prb_filter, nt.prb_eta, nt.prb_phi, probeFilters_, false, debug_);
+        embedTriggerMatching(muons->at(trk_muon_map.second[idx]),
+                             nt.prb_filter,
+                             nt.prb_pt,
+                             nt.prb_eta,
+                             nt.prb_phi,
+                             probeFilters_,
+                             false,
+                             debug_);
 
         // TuneP pair branches
         if (tag.first.tunePMuonBestTrack().isNonnull() &&
