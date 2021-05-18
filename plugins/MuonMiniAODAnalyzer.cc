@@ -278,16 +278,24 @@ void MuonMiniAODAnalyzer::embedTriggerMatching(const edm::Event& iEvent,
   for (const auto& trg : Triggers) {
     TString trg_tstr = TString(trg);
     bool matched = false;
+    float matched_pt = -99;
+    float matched_eta = -99;
+    float matched_phi = -99;
+    float matched_dr = 99;
     for (auto trigobj : mu.triggerObjectMatches()) {
       trigobj.unpackNamesAndLabels(iEvent, *trigResults);
+      float dR_tmp = deltaR(mu.eta(), mu.phi(), trigobj.eta(), trigobj.phi());
 
       // check path names
       if (trg_tstr.Contains("HLT_")) {
         for (auto path : trigobj.pathNames(true, true)) {
           TString path_tstr = TString(path);
-          if (path_tstr.Contains(trg_tstr)) {
+          if (path_tstr.Contains(trg_tstr) && dR_tmp < matched_dr) {
             matched = true;
-            break;
+            matched_pt = trigobj.pt();
+            matched_eta = trigobj.eta();
+            matched_phi = trigobj.phi();
+            matched_dr = dR_tmp;
           }
         }
       }
@@ -295,21 +303,30 @@ void MuonMiniAODAnalyzer::embedTriggerMatching(const edm::Event& iEvent,
       else {
         for (auto filter : trigobj.filterLabels()) {
           TString filter_tstr = TString(filter);
-          if (filter_tstr.Contains(trg_tstr)) {
+          if (filter_tstr.Contains(trg_tstr) && dR_tmp < matched_dr) {
             matched = true;
-            break;
+            matched_pt = trigobj.pt();
+            matched_eta = trigobj.eta();
+            matched_phi = trigobj.phi();
+            matched_dr = dR_tmp;
           }
         }
       }
-
-      if (matched)
-        break;
     }
 
-    if (isTag)
+    if (isTag) {
       nt.tag_trg[&trg - &Triggers[0]] = matched;
-    else
+      nt.tag_trg_pt[&trg - &Triggers[0]] = matched_pt;
+      nt.tag_trg_eta[&trg - &Triggers[0]] = matched_eta;
+      nt.tag_trg_phi[&trg - &Triggers[0]] = matched_phi;
+      nt.tag_trg_dr[&trg - &Triggers[0]] = matched_dr;
+    } else {
       nt.probe_trg[&trg - &Triggers[0]] = matched;
+      nt.probe_trg_pt[&trg - &Triggers[0]] = matched_pt;
+      nt.probe_trg_eta[&trg - &Triggers[0]] = matched_eta;
+      nt.probe_trg_phi[&trg - &Triggers[0]] = matched_phi;
+      nt.probe_trg_dr[&trg - &Triggers[0]] = matched_dr;
+    }
   }
 
   return;
@@ -686,7 +703,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       } else {
         nt.tag_l1pt = -99.;
         nt.tag_l1q = -99;
-        nt.tag_l1dr = -99.;
+        nt.tag_l1dr = 99.;
       }
 
       pat::TriggerObjectStandAloneRef tagl1MatchByQ = (*l1MatchesByQ)[tagRef];
@@ -697,7 +714,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       } else {
         nt.tag_l1ptByQ = -99.;
         nt.tag_l1qByQ = -99;
-        nt.tag_l1drByQ = -99.;
+        nt.tag_l1drByQ = 99.;
       }
 
       embedTriggerMatching(iEvent, trigResults, tag.first, nt, tagFilters_, true);
@@ -725,7 +742,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         } else {
           nt.l1pt = -99.;
           nt.l1q = -99;
-          nt.l1dr = -99.;
+          nt.l1dr = 99.;
         }
 
         pat::TriggerObjectStandAloneRef l1MatchByQ = (*l1MatchesByQ)[muRef];
@@ -736,7 +753,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         } else {
           nt.l1ptByQ = -99.;
           nt.l1qByQ = -99;
-          nt.l1drByQ = -99.;
+          nt.l1drByQ = 99.;
         }
 
         // Probe-trigger matching
@@ -765,9 +782,21 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         FillMiniIso<pat::Muon, pat::PackedCandidate>(*pfcands, fakeMuon, *rhoJetsNC, nt, false);
         if (includeJets_)
           FindJetProbePair<pat::Jet, pat::Muon>(*jets, fakeMuon, nt);
+
+        // store dummy trigger variables if offline muon is not found
         for (const auto& path : probeFilters_) {
           nt.probe_trg[&path - &probeFilters_[0]] = false;
+          nt.probe_trg_pt[&path - &probeFilters_[0]] = -99;
+          nt.probe_trg_eta[&path - &probeFilters_[0]] = -99;
+          nt.probe_trg_phi[&path - &probeFilters_[0]] = -99;
+          nt.probe_trg_dr[&path - &probeFilters_[0]] = 99;
         }
+        nt.l1pt = -99.;
+        nt.l1q = -99;
+        nt.l1dr = 99.;
+        nt.l1ptByQ = -99.;
+        nt.l1qByQ = -99;
+        nt.l1drByQ = 99.;
 
         FillTunePPairBranchesDummy(nt);
       }

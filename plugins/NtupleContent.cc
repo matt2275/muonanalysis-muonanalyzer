@@ -244,10 +244,19 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
 
 void NtupleContent::CreateExtraTrgBranches(const std::vector<std::string> &HLTs, bool isTag = false) {
   for (unsigned int ihlt = 0; ihlt < HLTs.size(); ihlt++) {
-    if (isTag)
+    if (isTag) {
       t1->Branch(TString("tag_" + HLTs[ihlt]), &tag_trg[ihlt]);
-    else
+      t1->Branch(TString("tag_" + HLTs[ihlt] + "_pt"), &tag_trg_pt[ihlt]);
+      t1->Branch(TString("tag_" + HLTs[ihlt] + "_eta"), &tag_trg_eta[ihlt]);
+      t1->Branch(TString("tag_" + HLTs[ihlt] + "_phi"), &tag_trg_phi[ihlt]);
+      t1->Branch(TString("tag_" + HLTs[ihlt] + "_dr"), &tag_trg_dr[ihlt]);
+    } else {
       t1->Branch(TString("probe_" + HLTs[ihlt]), &probe_trg[ihlt]);
+      t1->Branch(TString("probe_" + HLTs[ihlt] + "_pt"), &probe_trg_pt[ihlt]);
+      t1->Branch(TString("probe_" + HLTs[ihlt] + "_eta"), &probe_trg_eta[ihlt]);
+      t1->Branch(TString("probe_" + HLTs[ihlt] + "_phi"), &probe_trg_phi[ihlt]);
+      t1->Branch(TString("probe_" + HLTs[ihlt] + "_dr"), &probe_trg_dr[ihlt]);
+    }
   }
 }
 
@@ -272,7 +281,15 @@ void NtupleContent::ClearBranches() {
   for (unsigned int itrg = 0; itrg < NTRIGGERMAX; itrg++) {
     trigger[itrg] = false;
     tag_trg[itrg] = false;
+    tag_trg_pt[itrg] = -99;
+    tag_trg_eta[itrg] = -99;
+    tag_trg_phi[itrg] = -99;
+    tag_trg_dr[itrg] = 99;
     probe_trg[itrg] = false;
+    probe_trg_pt[itrg] = -99;
+    probe_trg_eta[itrg] = -99;
+    probe_trg_phi[itrg] = -99;
+    probe_trg_dr[itrg] = 99;
   }
 
   for (unsigned int isel = 0; isel < 100; isel++) {
@@ -408,17 +425,17 @@ void NtupleContent::ClearBranches() {
 
   l1pt = -99;
   l1q = -99;
-  l1dr = -99;
+  l1dr = 99;
   l1ptByQ = -99;
   l1qByQ = -99;
-  l1drByQ = -99;
+  l1drByQ = 99;
 
   tag_l1pt = -99;
   tag_l1q = -99;
-  tag_l1dr = -99;
+  tag_l1dr = 99;
   tag_l1ptByQ = -99;
   tag_l1qByQ = -99;
-  tag_l1drByQ = -99;
+  tag_l1drByQ = 99;
 
   probe_ndsa = -99;
   probe_dsa_muonStations = -99;

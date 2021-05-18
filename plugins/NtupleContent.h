@@ -62,7 +62,15 @@ public:
 
   // Trigger matches
   bool tag_trg[NTRIGGERMAX];
+  float tag_trg_pt[NTRIGGERMAX];
+  float tag_trg_eta[NTRIGGERMAX];
+  float tag_trg_phi[NTRIGGERMAX];
+  float tag_trg_dr[NTRIGGERMAX];
   bool probe_trg[NTRIGGERMAX];
+  float probe_trg_pt[NTRIGGERMAX];
+  float probe_trg_eta[NTRIGGERMAX];
+  float probe_trg_phi[NTRIGGERMAX];
+  float probe_trg_dr[NTRIGGERMAX];
 
   // Standard selectors in reco::muon::Selector
   bool probe_selectors[100];

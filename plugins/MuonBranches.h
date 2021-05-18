@@ -88,15 +88,13 @@ inline void FillProbeBranches(
     nt.probe_RPCLayers = mu.numberOfMatchedRPCLayers();
     nt.probe_stationMask = mu.stationMask();
     nt.probe_nShowers = mu.numberOfShowers();
-    if (mu.globalTrack().isNonnull()){
+    if (mu.globalTrack().isNonnull()) {
       nt.probe_muonHits = mu.globalTrack()->hitPattern().numberOfValidMuonHits();
       nt.probe_trkChi2 = mu.globalTrack()->normalizedChi2();
-    }
-    else if (mu.innerTrack().isNonnull() && mu.innerTrack().isAvailable()){
+    } else if (mu.innerTrack().isNonnull() && mu.innerTrack().isAvailable()) {
       nt.probe_trkChi2 = mu.innerTrack()->normalizedChi2();
       nt.probe_muonHits = mu.innerTrack()->hitPattern().numberOfValidMuonHits();
-    }
-    else{ 
+    } else {
       nt.probe_trkChi2 = -99;
       nt.probe_muonHits = -99;
     }
@@ -138,7 +136,7 @@ inline void FillProbeBranches(
     }
     nt.probe_positionChi2 = mu.combinedQuality().chi2LocalPosition;
     nt.probe_trkKink = mu.combinedQuality().trkKink;
-    nt.probe_segmentCompatibility=muon::segmentCompatibility(mu);
+    nt.probe_segmentCompatibility = muon::segmentCompatibility(mu);
     nt.probe_isMuMatched = true;
   }
   // no successs (no match)
