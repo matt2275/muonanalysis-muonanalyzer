@@ -55,6 +55,15 @@ inline void FillTagBranches(const MUON &muon,
     nt.tag_tuneP_pt = -99.;
     nt.tag_tuneP_pterr = -99.;
   }
+  int nsegments = 0;
+  for (auto & chamber : muon.matches()) {
+    if (chamber.id.det() != DetId::Muon)
+      continue;
+    if (chamber.id.subdetId() != MuonSubdetId::DT && chamber.id.subdetId() != MuonSubdetId::CSC)
+      continue;
+    nsegments += chamber.segmentMatches.size();
+  }
+  nt.tag_nsegments = nsegments;
 }
 
 template <typename MUON, typename TRK>
@@ -74,6 +83,7 @@ inline void FillProbeBranches(
     nt.probe_isTight = muon::isTightMuon(mu, vertex);
     nt.probe_isSoft = muon::isSoftMuon(mu, vertex, false);
     nt.probe_isHighPt = muon::isHighPtMuon(mu, vertex);
+    nt.probe_isArbitratedTracker = muon::isGoodMuon(mu, muon::TrackerMuonArbitrated);
     nt.probe_isPF = mu.isPFMuon();
     nt.probe_isSA = mu.isStandAloneMuon();
     nt.probe_isTracker = mu.isTrackerMuon();
@@ -138,6 +148,16 @@ inline void FillProbeBranches(
     nt.probe_trkKink = mu.combinedQuality().trkKink;
     nt.probe_segmentCompatibility = muon::segmentCompatibility(mu);
     nt.probe_isMuMatched = true;
+
+    int nsegments = 0;
+    for (auto & chamber : mu.matches()) {
+    if (chamber.id.det() != DetId::Muon)
+      continue;
+    if (chamber.id.subdetId() != MuonSubdetId::DT && chamber.id.subdetId() != MuonSubdetId::CSC)
+      continue;
+    nsegments += chamber.segmentMatches.size();
+    }
+    nt.probe_nsegments = nsegments;
   }
   // no successs (no match)
   else {
@@ -178,6 +198,7 @@ inline void FillProbeBranches(
     nt.probe_tuneP_pt = -99;
     nt.probe_tuneP_pterr = -99;
     nt.probe_tuneP_muonHits = -99;
+    nt.probe_nsegments = -99;
     nt.l1pt = -99;
     nt.l1q = -99;
     nt.l1dr = -99;
@@ -222,6 +243,18 @@ inline void FillProbeBranchesdSA(const TRK &trk, NtupleContent &nt, bool passdSA
     nt.probe_dsa_CSCHits = trk.hitPattern().numberOfValidMuonCSCHits();
     nt.probe_dsa_pterr = trk.ptError() / trk.pt();
     nt.probe_dsa_trkChi2 = trk.normalizedChi2();
+
+    // [Adapted from displaced dimuon analysis]
+    // Number of DT+CSC segments
+    unsigned int nsegments = 0;
+    for (auto & hit : trk.recHits()) {
+      if (!hit->isValid()) continue;
+      DetId id = hit->geographicalId();
+      if (id.det() != DetId::Muon) continue;
+      if (id.subdetId() == MuonSubdetId::DT || id.subdetId() == MuonSubdetId::CSC)
+        nsegments++;
+    }
+    nt.probe_dsa_nsegments = nsegments;
   } else {
     nt.probe_dsa_outerEta = -99;
     nt.probe_dsa_outerPhi = -99;
@@ -233,6 +266,7 @@ inline void FillProbeBranchesdSA(const TRK &trk, NtupleContent &nt, bool passdSA
     nt.probe_dsa_CSCHits = -99;
     nt.probe_dsa_pterr = -99;
     nt.probe_dsa_trkChi2 = -99;
+    nt.probe_dsa_nsegments = -99;
   }
 }
 
@@ -256,6 +290,17 @@ inline void FillTagBranchesdSA(const TRK &trk, NtupleContent &nt, bool passdSA) 
     nt.tag_dsa_CSCHits = trk.hitPattern().numberOfValidMuonCSCHits();
     nt.tag_dsa_pterr = trk.ptError() / trk.pt();
     nt.tag_dsa_trkChi2 = trk.normalizedChi2();
+    // [Adapted from displaced dimuon analysis]
+    // Number of DT+CSC segments
+    unsigned int nsegments = 0;
+    for (auto & hit : trk.recHits()) {
+      if (!hit->isValid()) continue;
+      DetId id = hit->geographicalId();
+      if (id.det() != DetId::Muon) continue;
+      if (id.subdetId() == MuonSubdetId::DT || id.subdetId() == MuonSubdetId::CSC)
+        nsegments++;
+    }
+    nt.tag_dsa_nsegments = nsegments;
   } else {
     nt.tag_dsa_outerEta = -99;
     nt.tag_dsa_outerPhi = -99;
@@ -267,6 +312,7 @@ inline void FillTagBranchesdSA(const TRK &trk, NtupleContent &nt, bool passdSA) 
     nt.tag_dsa_CSCHits = -99;
     nt.tag_dsa_pterr = -99;
     nt.tag_dsa_trkChi2 = -99;
+    nt.tag_dsa_nsegments = -99;
   }
 }
 
