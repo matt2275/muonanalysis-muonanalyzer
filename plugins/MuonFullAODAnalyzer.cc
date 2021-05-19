@@ -85,6 +85,9 @@
 #include "TrackingTools/Records/interface/TransientTrackRecord.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrack.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
+#include "Geometry/CSCGeometry/interface/CSCGeometry.h"
+#include "Geometry/DTGeometry/interface/DTGeometry.h"
+
 
 #include "KlFitter.h"
 #include "MuonBranches.h"
@@ -693,18 +696,6 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     }
   };
 
-  // Map probe and dSA
-  map_type probe_dSA_map;
-  vector<float> probe_dSA_dRs;
-  vector<unsigned> probe_dSA_nmatched;
-  mapTrackCollectionsInclusive(*tracks, *dSAmuons, probe_dSA_map, probe_dSA_dRs, probe_dSA_nmatched);
-
-  // Map tag and dSA
-  map_type tag_dSA_map;
-  vector<float> tag_dSA_dRs;
-  vector<unsigned> tag_dSA_nmatched;
-  mapTrackCollectionsInclusive(*muons, *dSAmuons, tag_dSA_map, tag_dSA_dRs, tag_dSA_nmatched);
-
   // Map probe and dGl
   map_type probe_dGl_map;
   vector<float> probe_dGl_dRs;
@@ -716,6 +707,155 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   vector<float> probe_cosmic_dRs;
   vector<unsigned> probe_cosmic_nmatched;
   mapTrackCollectionsInclusive(*tracks, *staCosmic, probe_cosmic_map, probe_cosmic_dRs, probe_cosmic_nmatched);
+
+  // Map probe and dSA
+  map_type probe_dSA_map;
+  vector<float> probe_dSA_dRs;
+  vector<unsigned> probe_dSA_segmentmatches;
+  // Don't use dR matching anymore for dSA, use segment matching below
+  // mapTrackCollectionsInclusive(*tracks, *dSAmuons, probe_dSA_map, probe_dSA_dRs, probe_dSA_nmatched);
+
+  // Map tag and dSA
+  map_type tag_dSA_map;
+  vector<float> tag_dSA_dRs;
+  vector<unsigned> tag_dSA_segmentmatches;
+  // Don't use dR matching anymore for dSA, use segment matching below
+  // mapTrackCollectionsInclusive(*muons, *dSAmuons, tag_dSA_map, tag_dSA_dRs, tag_dSA_nmatched);
+
+  // [Adapted from displaced dimuon analysis]
+  // Segment match: consider probe reco::Muons and dSA tracks
+  // matched if the segments used to build the dSA are the
+  // same as or a subset of segments of the reco::Muons.
+  for (const auto & track : *tracks) {
+    // can only do segment matching on probe tracks that are matched to muons
+    auto it = std::find(trk_muon_map.first.begin(), trk_muon_map.first.end(), &track - &tracks->at(0));
+    if (it == trk_muon_map.first.end())
+      continue;
+    unsigned idx_map = std::distance(trk_muon_map.first.begin(), it);
+    unsigned idx_track = trk_muon_map.first[idx_map];
+    unsigned idx_muon = trk_muon_map.second[idx_map];
+    auto muon = muons->at(idx_muon);
+    // also make sure probes are arbitrated tracker muons
+    if (!(muon.isTrackerMuon() && muon::isGoodMuon(muon, muon::TrackerMuonArbitrated)))
+      continue;
+
+    int max_nmatches = -1;
+    float min_dR = +99.f;
+    unsigned matched_idx;
+    for (const auto & dsa : *dSAmuons) {
+      unsigned idx_dsa = &dsa - &dSAmuons->at(0);
+
+      float dR = deltaR(dsa.eta(), dsa.phi(), muon.eta(), muon.phi());
+      // Don't waste time with far away dSA tracks and muons
+      if (dR > 0.7)
+        continue;
+
+      int nmatches = 0;
+      for (auto & hit : dsa.recHits()) {
+        if (!hit->isValid())
+          continue;
+        DetId id = hit->geographicalId();
+        if (id.det() != DetId::Muon)
+          continue;
+        if (id.subdetId() == MuonSubdetId::DT || id.subdetId() == MuonSubdetId::CSC) {
+          for (auto & chamber : muon.matches()) {
+            if (chamber.id.rawId() != id.rawId())
+              continue;
+            for (auto & segment : chamber.segmentMatches) {
+              if (fabs(segment.x - hit->localPosition().x()) < 1e-6 && fabs(segment.y - hit->localPosition().y()) < 1e-6) {
+                if (debug_)
+                  std::cout << "matched segment found!!! subdet "
+                    << ((chamber.id.subdetId() == MuonSubdetId::DT) ? "DT" : "CSC")
+                    << " id = " << chamber.id.rawId()
+                    << " x = " << segment.x
+                    << " y = " << segment.y << std::endl;
+                nmatches++;
+                break;
+              }
+            }
+          }
+        }
+      }
+      if (nmatches > max_nmatches) {
+        max_nmatches = nmatches;
+        min_dR = dR;
+        matched_idx = idx_dsa;
+      }
+      else if (nmatches == max_nmatches && dR < min_dR) {
+        min_dR = dR;
+        matched_idx = idx_dsa;
+      }
+    }
+    if (max_nmatches > -1) {
+      probe_dSA_map.first.push_back(idx_track);
+      probe_dSA_map.second.push_back(matched_idx);
+      probe_dSA_dRs.push_back(min_dR);
+      probe_dSA_segmentmatches.push_back(max_nmatches);
+    }
+  }
+
+  // [Adapted from displaced dimuon analysis]
+  // Segment match: consider tag reco::Muons and dSA tracks
+  // matched if the segments used to build the dSA are the
+  // same as or a subset of segments of the reco::Muons.
+  for (const auto & muon : *muons) {
+    unsigned idx_muon = &muon - &muons->at(0);
+
+    int max_nmatches = -1;
+    float min_dR = +99.f;
+    unsigned matched_idx;
+    for (const auto & dsa : *dSAmuons) {
+      unsigned idx_dsa = &dsa - &dSAmuons->at(0);
+
+      float dR = deltaR(dsa.eta(), dsa.phi(), muon.eta(), muon.phi());
+      // Don't waste time with far away dSA tracks and muons
+      if (dR > 0.7)
+        continue;
+
+      int nmatches = 0;
+      for (auto & hit : dsa.recHits()) {
+        if (!hit->isValid())
+          continue;
+        DetId id = hit->geographicalId();
+        if (id.det() != DetId::Muon)
+          continue;
+        if (id.subdetId() == MuonSubdetId::DT || id.subdetId() == MuonSubdetId::CSC) {
+          for (auto & chamber : muon.matches()) {
+            if (chamber.id.rawId() != id.rawId())
+              continue;
+            for (auto & segment : chamber.segmentMatches) {
+              if (fabs(segment.x - hit->localPosition().x()) < 1e-6 && fabs(segment.y - hit->localPosition().y()) < 1e-6) {
+                if (debug_)
+                  std::cout << "matched segment found!!! subdet "
+                    << ((chamber.id.subdetId() == MuonSubdetId::DT) ? "DT" : "CSC")
+                    << " id = " << chamber.id.rawId()
+                    << " x = " << segment.x
+                    << " y = " << segment.y << std::endl;
+                nmatches++;
+                break;
+              }
+            }
+          }
+        }
+      }
+      if (nmatches > max_nmatches) {
+        max_nmatches = nmatches;
+        min_dR = dR;
+        matched_idx = idx_dsa;
+      }
+      else if (nmatches == max_nmatches && dR < min_dR) {
+        min_dR = dR;
+        matched_idx = idx_dsa;
+      }
+    }
+    if (max_nmatches > -1) {
+      tag_dSA_map.first.push_back(idx_muon);
+      tag_dSA_map.second.push_back(matched_idx);
+      tag_dSA_dRs.push_back(min_dR);
+      tag_dSA_segmentmatches.push_back(max_nmatches);
+    }
+  }
+
 
   // Muon collection for jet cleaning
   std::vector<reco::Muon> muForJetCleaning;
@@ -932,16 +1072,11 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       }
       embedTriggerMatching(tag.first, nt.trg_filter, nt.trg_pt, nt.trg_eta, nt.trg_phi, tagFilters_, true, debug_);
 
-      std::vector<unsigned>::iterator it =
-          std::find(trk_muon_map.first.begin(), trk_muon_map.first.end(), &probe - &tracks->at(0));
-      std::vector<unsigned>::iterator itdsa =
-          std::find(probe_dSA_map.first.begin(), probe_dSA_map.first.end(), &probe - &tracks->at(0));
-      std::vector<unsigned>::iterator itdsa_tag =
-          std::find(tag_dSA_map.first.begin(), tag_dSA_map.first.end(), &tag - &tag_trkttrk[0]);
-      std::vector<unsigned>::iterator itdgl =
-          std::find(probe_dGl_map.first.begin(), probe_dGl_map.first.end(), &probe - &tracks->at(0));
-      std::vector<unsigned>::iterator itcosmic =
-          std::find(probe_cosmic_map.first.begin(), probe_cosmic_map.first.end(), &probe - &tracks->at(0));
+      auto it = std::find(trk_muon_map.first.begin(), trk_muon_map.first.end(), &probe - &tracks->at(0));
+      auto itdsa = std::find(probe_dSA_map.first.begin(), probe_dSA_map.first.end(), &probe - &tracks->at(0));
+      auto itdsa_tag = std::find(tag_dSA_map.first.begin(), tag_dSA_map.first.end(), &tag - &tag_trkttrk[0]);
+      auto itdgl = std::find(probe_dGl_map.first.begin(), probe_dGl_map.first.end(), &probe - &tracks->at(0));
+      auto itcosmic = std::find(probe_cosmic_map.first.begin(), probe_cosmic_map.first.end(), &probe - &tracks->at(0));
 
       if (it == trk_muon_map.first.end()) {
         if (debug_ > 0)
@@ -1033,66 +1168,66 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       }
 
       if (itdsa == probe_dSA_map.first.end()) {
-        nt.probe_ndsa = 0;
+        nt.probe_dsa_segmentMatches = -1;
         FillProbeBranchesdSA<reco::Track>(probe, nt, false);
       } else {
-        unsigned itdsax = std::distance(probe_dSA_map.first.begin(), itdsa);
-        nt.probe_ndsa = probe_dSA_nmatched[itdsax];
-        nt.probe_dsa_minDR = probe_dSA_dRs[itdsax];
+        unsigned idx = std::distance(probe_dSA_map.first.begin(), itdsa);
+        nt.probe_dsa_segmentMatches = probe_dSA_segmentmatches[idx];
+        nt.probe_dsa_minDR = probe_dSA_dRs[idx];
         if (debug_ > 0)
-          std::cout << "Successful probe dSA " << dSAmuons->at(probe_dSA_map.second[itdsax]).pt() << " eta "
-                    << dSAmuons->at(probe_dSA_map.second[itdsax]).eta() << " phi "
-                    << dSAmuons->at(probe_dSA_map.second[itdsax]).phi() << std::endl;
-        FillProbeBranchesdSA<reco::Track>(dSAmuons->at(probe_dSA_map.second[itdsax]), nt, true);
+          std::cout << "Successful probe dSA " << dSAmuons->at(probe_dSA_map.second[idx]).pt() << " eta "
+                    << dSAmuons->at(probe_dSA_map.second[idx]).eta() << " phi "
+                    << dSAmuons->at(probe_dSA_map.second[idx]).phi() << std::endl;
+        FillProbeBranchesdSA<reco::Track>(dSAmuons->at(probe_dSA_map.second[idx]), nt, true);
       }
 
       if (itdsa_tag == tag_dSA_map.first.end()) {
-        nt.tag_ndsa = 0;
+        nt.tag_dsa_segmentMatches = -1;
         FillTagBranchesdSA<reco::Track>(probe, nt, false);
       } else {
-        unsigned itdsax = std::distance(tag_dSA_map.first.begin(), itdsa_tag);
-        nt.tag_ndsa = tag_dSA_nmatched[itdsax];
-        nt.tag_dsa_minDR = tag_dSA_dRs[itdsax];
+        unsigned idx = std::distance(tag_dSA_map.first.begin(), itdsa_tag);
+        nt.tag_dsa_segmentMatches = tag_dSA_segmentmatches[idx];
+        nt.tag_dsa_minDR = tag_dSA_dRs[idx];
         if (debug_ > 0)
-          std::cout << "Successful tag dSA " << dSAmuons->at(tag_dSA_map.second[itdsax]).pt() << " eta "
-                    << dSAmuons->at(tag_dSA_map.second[itdsax]).eta() << " phi "
-                    << dSAmuons->at(tag_dSA_map.second[itdsax]).phi() << std::endl;
-        FillTagBranchesdSA<reco::Track>(dSAmuons->at(tag_dSA_map.second[itdsax]), nt, true);
+          std::cout << "Successful tag dSA " << dSAmuons->at(tag_dSA_map.second[idx]).pt() << " eta "
+                    << dSAmuons->at(tag_dSA_map.second[idx]).eta() << " phi "
+                    << dSAmuons->at(tag_dSA_map.second[idx]).phi() << std::endl;
+        FillTagBranchesdSA<reco::Track>(dSAmuons->at(tag_dSA_map.second[idx]), nt, true);
       }
 
       if (itdgl == probe_dGl_map.first.end()) {
         nt.probe_ndgl = 0;
         FillProbeBranchesdgl<reco::Track>(probe, nt, false);
       } else {
-        unsigned itdglx = std::distance(probe_dGl_map.first.begin(), itdgl);
-        nt.probe_ndgl = probe_dGl_nmatched[itdglx];
-        nt.probe_dgl_minDR = probe_dGl_dRs[itdglx];
+        unsigned idx = std::distance(probe_dGl_map.first.begin(), itdgl);
+        nt.probe_ndgl = probe_dGl_nmatched[idx];
+        nt.probe_dgl_minDR = probe_dGl_dRs[idx];
         if (debug_ > 0)
-          std::cout << "Successful probe displaced global " << dGlmuons->at(probe_dGl_map.second[itdglx]).pt()
-                    << " eta " << dGlmuons->at(probe_dGl_map.second[itdglx]).eta() << " phi "
-                    << dGlmuons->at(probe_dGl_map.second[itdglx]).phi() << std::endl;
-        FillProbeBranchesdgl<reco::Track>(dGlmuons->at(probe_dGl_map.second[itdglx]), nt, true);
+          std::cout << "Successful probe displaced global " << dGlmuons->at(probe_dGl_map.second[idx]).pt()
+                    << " eta " << dGlmuons->at(probe_dGl_map.second[idx]).eta() << " phi "
+                    << dGlmuons->at(probe_dGl_map.second[idx]).phi() << std::endl;
+        FillProbeBranchesdgl<reco::Track>(dGlmuons->at(probe_dGl_map.second[idx]), nt, true);
       }
 
       if (itcosmic == probe_cosmic_map.first.end()) {
         nt.probe_ncosmic = 0;
         FillProbeBranchesCosmic<reco::Track>(probe, nt, false);
       } else {
-        unsigned itcosmicx = std::distance(probe_cosmic_map.first.begin(), itcosmic);
-        nt.probe_ncosmic = probe_cosmic_nmatched[itcosmicx];
-        nt.probe_cosmic_minDR = probe_cosmic_dRs[itcosmicx];
+        unsigned idx = std::distance(probe_cosmic_map.first.begin(), itcosmic);
+        nt.probe_ncosmic = probe_cosmic_nmatched[idx];
+        nt.probe_cosmic_minDR = probe_cosmic_dRs[idx];
         if (debug_ > 0)
-          std::cout << "Successful probe cosmic " << staCosmic->at(probe_cosmic_map.second[itcosmicx]).pt() << " eta "
-                    << staCosmic->at(probe_cosmic_map.second[itcosmicx]).eta() << " phi "
-                    << staCosmic->at(probe_cosmic_map.second[itcosmicx]).phi() << std::endl;
-        FillProbeBranchesCosmic<reco::Track>(staCosmic->at(probe_cosmic_map.second[itcosmicx]), nt, true);
+          std::cout << "Successful probe cosmic " << staCosmic->at(probe_cosmic_map.second[idx]).pt() << " eta "
+                    << staCosmic->at(probe_cosmic_map.second[idx]).eta() << " phi "
+                    << staCosmic->at(probe_cosmic_map.second[idx]).phi() << std::endl;
+        FillProbeBranchesCosmic<reco::Track>(staCosmic->at(probe_cosmic_map.second[idx]), nt, true);
       }
 
       FillPairBranches<reco::Muon, reco::Track>(tag.first, probe, nt);
       vtx.fillNtuple(nt);
 
-      auto it_match = std::find(matched_track_idx.begin(), matched_track_idx.end(), &probe - &tracks->at(0));
-      nt.probe_isMatchedGen = (it_match != matched_track_idx.end());
+      auto it_genmatch = std::find(matched_track_idx.begin(), matched_track_idx.end(), &probe - &tracks->at(0));
+      nt.probe_isMatchedGen = (it_genmatch != matched_track_idx.end());
 
       nt.iprobe++;
       nt.pair_rank_vtx_prob = pair_rank_vtx_prob[{&tag - &tag_trkttrk[0], &probe - &tracks->at(0)}];

@@ -149,6 +149,7 @@ public:
   float tag_pfIso04_sumPU;
   float tag_tuneP_pt;
   float tag_tuneP_pterr;
+  int tag_nsegments;
 
   // Probe properties
   float probe_pt;
@@ -160,6 +161,7 @@ public:
   bool probe_isTight;
   bool probe_isSoft;
   bool probe_isHighPt;
+  bool probe_isArbitratedTracker;
   bool probe_isMuMatched;
   bool probe_isPF;
   bool probe_isSA;
@@ -209,15 +211,16 @@ public:
   float probe_tuneP_pt;
   float probe_tuneP_pterr;
   int probe_tuneP_muonHits;
+  int probe_nsegments;
 
-  int probe_ndsa;
+  int probe_dsa_segmentMatches;
+  int probe_dsa_nsegments;
   float probe_dsa_pt;
   float probe_dsa_eta;
   float probe_dsa_phi;
   float probe_dsa_outerEta;
   float probe_dsa_outerPhi;
   float probe_dsa_minDR;
-  float probe_dsa_minOuterDR;
   int probe_dsa_charge;
   float probe_dsa_trkChi2;
   float probe_dsa_muonStations;
@@ -228,14 +231,14 @@ public:
   float probe_dsa_dxy;
   float probe_dsa_dz;
 
-  int tag_ndsa;
+  int tag_dsa_segmentMatches;
+  int tag_dsa_nsegments;
   float tag_dsa_pt;
   float tag_dsa_eta;
   float tag_dsa_phi;
   float tag_dsa_outerEta;
   float tag_dsa_outerPhi;
   float tag_dsa_minDR;
-  float tag_dsa_minOuterDR;
   int tag_dsa_charge;
   float tag_dsa_trkChi2;
   float tag_dsa_muonStations;

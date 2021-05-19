@@ -83,6 +83,7 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
   t1->Branch("tag_pfIso04_sumPU", &tag_pfIso04_sumPU);
   t1->Branch("tag_tuneP_pt", &tag_tuneP_pt);
   t1->Branch("tag_tuneP_pterr", &tag_tuneP_pterr);
+  t1->Branch("tag_nsegments", &tag_nsegments);
   // Probe specific
   t1->Branch("iprobe", &iprobe);
   t1->Branch("probe_pt", &probe_pt);
@@ -101,6 +102,7 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
   t1->Branch("probe_isTight", &probe_isTight);
   t1->Branch("probe_isSoft", &probe_isSoft);
   t1->Branch("probe_isHighPt", &probe_isHighPt);
+  t1->Branch("probe_isArbitratedTracker", &probe_isArbitratedTracker);
   t1->Branch("probe_isMuMatched", &probe_isMuMatched);
   t1->Branch("probe_isdSA", &probe_isdSA);
   t1->Branch("probe_isdGlobal", &probe_isdGlobal);
@@ -142,6 +144,7 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
   t1->Branch("probe_tuneP_pt", &probe_tuneP_pt);
   t1->Branch("probe_tuneP_pterr", &probe_tuneP_pterr);
   t1->Branch("probe_tuneP_muonHits", &probe_tuneP_muonHits);
+  t1->Branch("probe_nsegments", &probe_nsegments);
 
   t1->Branch("l1pt", &l1pt);
   t1->Branch("l1q", &l1q);
@@ -157,7 +160,8 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
   t1->Branch("tag_l1qByQ", &tag_l1qByQ);
   t1->Branch("tag_l1drByQ", &tag_l1drByQ);
 
-  t1->Branch("probe_ndsa", &probe_ndsa);
+  t1->Branch("probe_dsa_segmentMatches", &probe_dsa_segmentMatches);
+  t1->Branch("probe_dsa_nsegments", &probe_dsa_nsegments);
   t1->Branch("probe_dsa_muonStations", &probe_dsa_muonStations);
   t1->Branch("probe_dsa_muonHits", &probe_dsa_muonHits);
   t1->Branch("probe_dsa_DTHits", &probe_dsa_DTHits);
@@ -172,10 +176,10 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
   t1->Branch("probe_dsa_outerEta", &probe_dsa_outerEta);
   t1->Branch("probe_dsa_outerPhi", &probe_dsa_outerPhi);
   t1->Branch("probe_dsa_minDR", &probe_dsa_minDR);
-  t1->Branch("probe_dsa_minOuterDR", &probe_dsa_minOuterDR);
   t1->Branch("probe_dsa_charge", &probe_dsa_charge);
 
-  t1->Branch("tag_ndsa", &tag_ndsa);
+  t1->Branch("tag_dsa_segmentMatches", &tag_dsa_segmentMatches);
+  t1->Branch("tag_dsa_nsegments", &tag_dsa_nsegments);
   t1->Branch("tag_dsa_muonStations", &tag_dsa_muonStations);
   t1->Branch("tag_dsa_muonHits", &tag_dsa_muonHits);
   t1->Branch("tag_dsa_DTHits", &tag_dsa_DTHits);
@@ -190,7 +194,6 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
   t1->Branch("tag_dsa_outerEta", &tag_dsa_outerEta);
   t1->Branch("tag_dsa_outerPhi", &tag_dsa_outerPhi);
   t1->Branch("tag_dsa_minDR", &tag_dsa_minDR);
-  t1->Branch("tag_dsa_minOuterDR", &tag_dsa_minOuterDR);
   t1->Branch("tag_dsa_charge", &tag_dsa_charge);
 
   // selectors for probe
@@ -363,6 +366,7 @@ void NtupleContent::ClearBranches() {
   tag_pfIso04_sumPU = -99;
   tag_tuneP_pt = -99;
   tag_tuneP_pterr = -99;
+  tag_nsegments = -99;
 
   iprobe = 0;
   probe_pt = 0;
@@ -374,6 +378,7 @@ void NtupleContent::ClearBranches() {
   probe_isTight = false;
   probe_isSoft = false;
   probe_isHighPt = false;
+  probe_isArbitratedTracker = false;
   probe_isMuMatched = false;
   probe_isPF = false;
   probe_isSA = false;
@@ -422,6 +427,7 @@ void NtupleContent::ClearBranches() {
   probe_tuneP_pt = -99;
   probe_tuneP_pterr = -99;
   probe_tuneP_muonHits = -99;
+  probe_nsegments = -99;
 
   l1pt = -99;
   l1q = -99;
@@ -437,7 +443,8 @@ void NtupleContent::ClearBranches() {
   tag_l1qByQ = -99;
   tag_l1drByQ = 99;
 
-  probe_ndsa = -99;
+  probe_dsa_segmentMatches = -99;
+  probe_dsa_nsegments = -99;
   probe_dsa_muonStations = -99;
   probe_dsa_muonHits = -99;
   probe_dsa_DTHits = -99;
@@ -452,10 +459,10 @@ void NtupleContent::ClearBranches() {
   probe_dsa_outerEta = -99;
   probe_dsa_outerPhi = -99;
   probe_dsa_minDR = +99;
-  probe_dsa_minOuterDR = -99;
   probe_dsa_charge = -99;
 
-  tag_ndsa = -99;
+  tag_dsa_segmentMatches = -99;
+  tag_dsa_nsegments = -99;
   tag_dsa_muonStations = -99;
   tag_dsa_muonHits = -99;
   tag_dsa_DTHits = -99;
@@ -470,7 +477,6 @@ void NtupleContent::ClearBranches() {
   tag_dsa_outerEta = -99;
   tag_dsa_outerPhi = -99;
   tag_dsa_minDR = +99;
-  tag_dsa_minOuterDR = -99;
   tag_dsa_charge = -99;
 
   probe_ndgl = -99;
