@@ -26,9 +26,9 @@ public:
 private:
   edm::Handle<edm::View<reco::GenParticle>> gens;
   TLorentzVector gmuon1, gmuon2;
-  int gcharge1, gcharge2;
+  TLorentzVector gmuonFSfromHP1, gmuonFSfromHP2;  // mu-, mu+
   //    unsigned reco_idx1,reco_idx2;
-  bool success = true;
+  // bool success = true;
 };
 
 #endif

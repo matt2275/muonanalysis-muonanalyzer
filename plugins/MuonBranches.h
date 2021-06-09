@@ -14,6 +14,7 @@
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/Math/interface/deltaR.h"
+#include "DataFormats/MuonReco/interface/MuonSimInfo.h"
 
 #include <type_traits>
 #include "NtupleContent.h"
@@ -56,7 +57,7 @@ inline void FillTagBranches(const MUON &muon,
     nt.tag_tuneP_pterr = -99.;
   }
   int nsegments = 0;
-  for (auto & chamber : muon.matches()) {
+  for (auto &chamber : muon.matches()) {
     if (chamber.id.det() != DetId::Muon)
       continue;
     if (chamber.id.subdetId() != MuonSubdetId::DT && chamber.id.subdetId() != MuonSubdetId::CSC)
@@ -150,12 +151,12 @@ inline void FillProbeBranches(
     nt.probe_isMuMatched = true;
 
     int nsegments = 0;
-    for (auto & chamber : mu.matches()) {
-    if (chamber.id.det() != DetId::Muon)
-      continue;
-    if (chamber.id.subdetId() != MuonSubdetId::DT && chamber.id.subdetId() != MuonSubdetId::CSC)
-      continue;
-    nsegments += chamber.segmentMatches.size();
+    for (auto &chamber : mu.matches()) {
+      if (chamber.id.det() != DetId::Muon)
+        continue;
+      if (chamber.id.subdetId() != MuonSubdetId::DT && chamber.id.subdetId() != MuonSubdetId::CSC)
+        continue;
+      nsegments += chamber.segmentMatches.size();
     }
     nt.probe_nsegments = nsegments;
   }
@@ -247,10 +248,12 @@ inline void FillProbeBranchesdSA(const TRK &trk, NtupleContent &nt, bool passdSA
     // [Adapted from displaced dimuon analysis]
     // Number of DT+CSC segments
     unsigned int nsegments = 0;
-    for (auto & hit : trk.recHits()) {
-      if (!hit->isValid()) continue;
+    for (auto &hit : trk.recHits()) {
+      if (!hit->isValid())
+        continue;
       DetId id = hit->geographicalId();
-      if (id.det() != DetId::Muon) continue;
+      if (id.det() != DetId::Muon)
+        continue;
       if (id.subdetId() == MuonSubdetId::DT || id.subdetId() == MuonSubdetId::CSC)
         nsegments++;
     }
@@ -293,10 +296,12 @@ inline void FillTagBranchesdSA(const TRK &trk, NtupleContent &nt, bool passdSA) 
     // [Adapted from displaced dimuon analysis]
     // Number of DT+CSC segments
     unsigned int nsegments = 0;
-    for (auto & hit : trk.recHits()) {
-      if (!hit->isValid()) continue;
+    for (auto &hit : trk.recHits()) {
+      if (!hit->isValid())
+        continue;
       DetId id = hit->geographicalId();
-      if (id.det() != DetId::Muon) continue;
+      if (id.det() != DetId::Muon)
+        continue;
       if (id.subdetId() == MuonSubdetId::DT || id.subdetId() == MuonSubdetId::CSC)
         nsegments++;
     }
@@ -388,6 +393,96 @@ inline void FillTunePPairBranchesDummy(NtupleContent &nt) {
   nt.pair_tuneP_fit_mass = -99;
   nt.pair_tuneP_svprob = -99;
   nt.pair_tuneP_normalchi2 = -99;
+}
+
+inline void FillSimMatchingBranches(const pat::Muon &mu, NtupleContent &nt, bool isTag) {
+  if (isTag) {
+    nt.tag_simType = mu.simType();
+    nt.tag_simExtType = mu.simExtType();
+    nt.tag_simFlavour = mu.simFlavour();
+    nt.tag_simHeaviestMotherFlavour = mu.simHeaviestMotherFlavour();
+    nt.tag_simPdgId = mu.simPdgId();
+    nt.tag_simMotherPdgId = mu.simMotherPdgId();
+    nt.tag_simBX = mu.simBX();
+    nt.tag_simProdRho = mu.simProdRho();
+    nt.tag_simProdZ = mu.simProdZ();
+    nt.tag_simPt = mu.simPt();
+    nt.tag_simEta = mu.simEta();
+    nt.tag_simPhi = mu.simPhi();
+  } else {
+    nt.probe_simType = mu.simType();
+    nt.probe_simExtType = mu.simExtType();
+    nt.probe_simFlavour = mu.simFlavour();
+    nt.probe_simHeaviestMotherFlavour = mu.simHeaviestMotherFlavour();
+    nt.probe_simPdgId = mu.simPdgId();
+    nt.probe_simMotherPdgId = mu.simMotherPdgId();
+    nt.probe_simBX = mu.simBX();
+    nt.probe_simProdRho = mu.simProdRho();
+    nt.probe_simProdZ = mu.simProdZ();
+    nt.probe_simPt = mu.simPt();
+    nt.probe_simEta = mu.simEta();
+    nt.probe_simPhi = mu.simPhi();
+  }
+}
+
+inline void FillSimMatchingBranchesAOD(const reco::MuonSimInfo &msi, NtupleContent &nt, bool isTag) {
+  if (isTag) {
+    nt.tag_simType = msi.primaryClass;
+    nt.tag_simExtType = msi.extendedClass;
+    nt.tag_simFlavour = msi.flavour;
+    nt.tag_simHeaviestMotherFlavour = msi.heaviestMotherFlavour;
+    nt.tag_simPdgId = msi.pdgId;
+    nt.tag_simMotherPdgId = msi.motherPdgId;
+    nt.tag_simBX = msi.tpBX;
+    nt.tag_simProdRho = msi.vertex.Rho();
+    nt.tag_simProdZ = msi.vertex.Z();
+    nt.tag_simPt = msi.p4.pt();
+    nt.tag_simEta = msi.p4.eta();
+    nt.tag_simPhi = msi.p4.phi();
+  } else {
+    nt.probe_simType = msi.primaryClass;
+    nt.probe_simExtType = msi.extendedClass;
+    nt.probe_simFlavour = msi.flavour;
+    nt.probe_simHeaviestMotherFlavour = msi.heaviestMotherFlavour;
+    nt.probe_simPdgId = msi.pdgId;
+    nt.probe_simMotherPdgId = msi.motherPdgId;
+    nt.probe_simBX = msi.tpBX;
+    nt.probe_simProdRho = msi.vertex.Rho();
+    nt.probe_simProdZ = msi.vertex.Z();
+    nt.probe_simPt = msi.p4.pt();
+    nt.probe_simEta = msi.p4.eta();
+    nt.probe_simPhi = msi.p4.phi();
+  }
+}
+
+inline void FillSimMatchingBranchesDummy(NtupleContent &nt, bool isTag) {
+  if (isTag) {
+    nt.tag_simType = -99;
+    nt.tag_simExtType = -99;
+    nt.tag_simFlavour = -99;
+    nt.tag_simHeaviestMotherFlavour = -99;
+    nt.tag_simPdgId = -99;
+    nt.tag_simMotherPdgId = -99;
+    nt.tag_simBX = -99;
+    nt.tag_simProdRho = -99;
+    nt.tag_simProdZ = -99;
+    nt.tag_simPt = -99;
+    nt.tag_simEta = -99;
+    nt.tag_simPhi = -99;
+  } else {
+    nt.probe_simType = -99;
+    nt.probe_simExtType = -99;
+    nt.probe_simFlavour = -99;
+    nt.probe_simHeaviestMotherFlavour = -99;
+    nt.probe_simPdgId = -99;
+    nt.probe_simMotherPdgId = -99;
+    nt.probe_simBX = -99;
+    nt.probe_simProdRho = -99;
+    nt.probe_simProdZ = -99;
+    nt.probe_simPt = -99;
+    nt.probe_simEta = -99;
+    nt.probe_simPhi = -99;
+  }
 }
 
 #endif

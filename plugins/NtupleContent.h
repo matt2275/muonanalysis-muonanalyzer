@@ -27,6 +27,8 @@ public:
   int ls;
   bool fromFullAOD;
 
+  float genWeight;
+
   // Beamspot and vertex
   float BSpot_x;
   float BSpot_y;
@@ -89,6 +91,7 @@ public:
   int tag_l1qByQ;
   float tag_l1drByQ;
 
+  // genmu1: mu-, genmu2: mu+
   float genmu1_pt;
   float genmu1_eta;
   float genmu1_phi;
@@ -97,6 +100,18 @@ public:
   float genmu2_eta;
   float genmu2_phi;
   float genmu2_charge;
+  float genMass;
+
+  // genmuFSfromHP1: mu-, genmuFSfromHP2: mu+
+  float genmuFSfromHP1_pt;
+  float genmuFSfromHP1_eta;
+  float genmuFSfromHP1_phi;
+  float genmuFSfromHP1_charge;
+  float genmuFSfromHP2_pt;
+  float genmuFSfromHP2_eta;
+  float genmuFSfromHP2_phi;
+  float genmuFSfromHP2_charge;
+  float genMassFSfromHP;
 
   // Gen Jet properties
   std::vector<float> genJets_pt;
@@ -291,6 +306,33 @@ public:
   float pair_tuneP_normalchi2;
   float pair_tuneP_dz;
   float pair_tuneP_dR;
+
+  // sim matching information
+  int tag_simType;
+  int tag_simExtType;
+  int tag_simFlavour;
+  int tag_simHeaviestMotherFlavour;
+  int tag_simPdgId;
+  int tag_simMotherPdgId;
+  int tag_simBX;
+  float tag_simProdRho;
+  float tag_simProdZ;
+  float tag_simPt;
+  float tag_simEta;
+  float tag_simPhi;
+
+  int probe_simType;
+  int probe_simExtType;
+  int probe_simFlavour;
+  int probe_simHeaviestMotherFlavour;
+  int probe_simPdgId;
+  int probe_simMotherPdgId;
+  int probe_simBX;
+  float probe_simProdRho;
+  float probe_simProdZ;
+  float probe_simPt;
+  float probe_simEta;
+  float probe_simPhi;
 
 private:
   TTree *t1;
