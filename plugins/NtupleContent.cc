@@ -13,6 +13,7 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
   t1->Branch("event", &event);
   t1->Branch("ls", &ls);
   t1->Branch("fromFullAOD", &fromFullAOD);
+  t1->Branch("genWeight", &genWeight);
   t1->Branch("BSpot_x", &BSpot_x);
   t1->Branch("BSpot_y", &BSpot_y);
   t1->Branch("BSpot_z", &BSpot_z);
@@ -34,6 +35,16 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
   t1->Branch("genmu2_eta", &genmu2_eta);
   t1->Branch("genmu2_phi", &genmu2_phi);
   t1->Branch("genmu2_charge", &genmu2_charge);
+  t1->Branch("genMass", &genMass);
+  t1->Branch("genmuFSfromHP1_pt", &genmuFSfromHP1_pt);
+  t1->Branch("genmuFSfromHP1_eta", &genmuFSfromHP1_eta);
+  t1->Branch("genmuFSfromHP1_phi", &genmuFSfromHP1_phi);
+  t1->Branch("genmuFSfromHP1_charge", &genmuFSfromHP1_charge);
+  t1->Branch("genmuFSfromHP2_pt", &genmuFSfromHP2_pt);
+  t1->Branch("genmuFSfromHP2_eta", &genmuFSfromHP2_eta);
+  t1->Branch("genmuFSfromHP2_phi", &genmuFSfromHP2_phi);
+  t1->Branch("genmuFSfromHP2_charge", &genmuFSfromHP2_charge);
+  t1->Branch("genMassFSfromHP", &genMassFSfromHP);
   for (unsigned int ihlt = 0; ihlt < HLTs.size(); ihlt++)
     t1->Branch(TString(HLTs[ihlt]), &trigger[ihlt]);
   t1->Branch("genJets_pt", &genJets_pt);
@@ -243,6 +254,32 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
   t1->Branch("pair_tuneP_normalchi2", &pair_tuneP_normalchi2);
   t1->Branch("pair_tuneP_dz", &pair_tuneP_dz);
   t1->Branch("pair_tuneP_dR", &pair_tuneP_dR);
+
+  t1->Branch("tag_simType", &tag_simType);
+  t1->Branch("tag_simExtType", &tag_simExtType);
+  t1->Branch("tag_simFlavour", &tag_simFlavour);
+  t1->Branch("tag_simHeaviestMotherFlavour", &tag_simHeaviestMotherFlavour);
+  t1->Branch("tag_simPdgId", &tag_simPdgId);
+  t1->Branch("tag_simMotherPdgId", &tag_simMotherPdgId);
+  t1->Branch("tag_simBX", &tag_simBX);
+  t1->Branch("tag_simProdRho", &tag_simProdRho);
+  t1->Branch("tag_simProdZ", &tag_simProdZ);
+  t1->Branch("tag_simPt", &tag_simPt);
+  t1->Branch("tag_simEta", &tag_simEta);
+  t1->Branch("tag_simPhi", &tag_simPhi);
+
+  t1->Branch("probe_simType", &probe_simType);
+  t1->Branch("probe_simExtType", &probe_simExtType);
+  t1->Branch("probe_simFlavour", &probe_simFlavour);
+  t1->Branch("probe_simHeaviestMotherFlavour", &probe_simHeaviestMotherFlavour);
+  t1->Branch("probe_simPdgId", &probe_simPdgId);
+  t1->Branch("probe_simMotherPdgId", &probe_simMotherPdgId);
+  t1->Branch("probe_simBX", &probe_simBX);
+  t1->Branch("probe_simProdRho", &probe_simProdRho);
+  t1->Branch("probe_simProdZ", &probe_simProdZ);
+  t1->Branch("probe_simPt", &probe_simPt);
+  t1->Branch("probe_simEta", &probe_simEta);
+  t1->Branch("probe_simPhi", &probe_simPhi);
 }
 
 void NtupleContent::CreateExtraTrgBranches(const std::vector<std::string> &HLTs, bool isTag = false) {
@@ -267,6 +304,7 @@ void NtupleContent::ClearBranches() {
   run = -1;
   event = -1;
   ls = -1;
+  genWeight = -99;
   BSpot_x = -99;
   BSpot_y = -99;
   BSpot_z = -99;
@@ -308,6 +346,17 @@ void NtupleContent::ClearBranches() {
   genmu2_eta = -99;
   genmu2_phi = -99;
   genmu2_charge = 0;
+  genMass = -99;
+
+  genmuFSfromHP1_pt = -99;
+  genmuFSfromHP1_eta = -99;
+  genmuFSfromHP1_phi = -99;
+  genmuFSfromHP1_charge = -99;
+  genmuFSfromHP2_pt = -99;
+  genmuFSfromHP2_eta = -99;
+  genmuFSfromHP2_phi = -99;
+  genmuFSfromHP2_charge = -99;
+  genMassFSfromHP = -99;
 
   trg_filter.clear();
   trg_pt.clear();
@@ -520,4 +569,30 @@ void NtupleContent::ClearBranches() {
   pair_tuneP_normalchi2 = -99;
   pair_tuneP_dz = -99;
   pair_tuneP_dR = -99;
+
+  tag_simType = -99;
+  tag_simExtType = -99;
+  tag_simFlavour = -99;
+  tag_simHeaviestMotherFlavour = -99;
+  tag_simPdgId = -99;
+  tag_simMotherPdgId = -99;
+  tag_simBX = -99;
+  tag_simProdRho = -99;
+  tag_simProdZ = -99;
+  tag_simPt = -99;
+  tag_simEta = -99;
+  tag_simPhi = -99;
+
+  probe_simType = -99;
+  probe_simExtType = -99;
+  probe_simFlavour = -99;
+  probe_simHeaviestMotherFlavour = -99;
+  probe_simPdgId = -99;
+  probe_simMotherPdgId = -99;
+  probe_simBX = -99;
+  probe_simProdRho = -99;
+  probe_simProdZ = -99;
+  probe_simPt = -99;
+  probe_simEta = -99;
+  probe_simPhi = -99;
 }

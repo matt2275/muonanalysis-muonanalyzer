@@ -46,6 +46,7 @@
 #include "DataFormats/JetReco/interface/GenJet.h"
 
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
+#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "FWCore/Common/interface/TriggerNames.h"
@@ -119,6 +120,7 @@ private:
   void analyze(const edm::Event&, const edm::EventSetup&) override;
   void endJob() override;
 
+  edm::EDGetTokenT<GenEventInfoProduct> genEventInfoToken_;
   edm::EDGetTokenT<double> rhoToken_;
   edm::EDGetTokenT<std::vector<PileupSummaryInfo>> pileupSummaryToken_;
   edm::EDGetTokenT<reco::BeamSpot> beamSpotToken_;
@@ -148,6 +150,8 @@ private:
   const StringCutObjectSelector<pat::Muon> tagSelection_;  // kinematic cuts for tag
   const bool HighPurity_;
   const StringCutObjectSelector<pat::PackedCandidate> probeSelection_;  // kinematic cuts for probe
+  const bool muonOnly_;
+  const StringCutObjectSelector<pat::Muon> probeMuonSelection_;
   const double pairMassMin_;
   const double pairMassMax_;
   const double pairDz_;
@@ -184,7 +188,8 @@ private:
 //
 
 MuonMiniAODAnalyzer::MuonMiniAODAnalyzer(const edm::ParameterSet& iConfig)
-    : rhoToken_(consumes<double>(iConfig.getParameter<edm::InputTag>("Rho"))),
+    : genEventInfoToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("genEventInfo"))),
+      rhoToken_(consumes<double>(iConfig.getParameter<edm::InputTag>("Rho"))),
       pileupSummaryToken_(consumes<std::vector<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileupInfo"))),
       beamSpotToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"))),
       vtxToken_(consumes<std::vector<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("vertices"))),
@@ -215,6 +220,8 @@ MuonMiniAODAnalyzer::MuonMiniAODAnalyzer(const edm::ParameterSet& iConfig)
       tagSelection_(iConfig.getParameter<std::string>("tagSelection")),
       HighPurity_(iConfig.getParameter<bool>("ProbeHPurity")),
       probeSelection_(iConfig.getParameter<std::string>("probeSelection")),
+      muonOnly_(iConfig.getParameter<bool>("muonOnly")),
+      probeMuonSelection_(iConfig.getParameter<std::string>("probeMuonSelection")),
       pairMassMin_(iConfig.getParameter<double>("pairMassMin")),
       pairMassMax_(iConfig.getParameter<double>("pairMassMax")),
       pairDz_(iConfig.getParameter<double>("pairDz")),
@@ -390,6 +397,15 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   nt.BSpot_z = theBeamSpot->z0();
   nt.nvertices = vertices->size();
 
+  // Gen weights
+  if (!iEvent.isRealData()) {
+    edm::Handle<GenEventInfoProduct> genEventInfoHandle;
+    iEvent.getByToken(genEventInfoToken_, genEventInfoHandle);
+    nt.genWeight = genEventInfoHandle->weight();
+  } else {  // data
+    nt.genWeight = 1.;
+  }
+
   // Pileup information
   edm::Handle<double> rhoHandle;
   iEvent.getByToken(rhoToken_, rhoHandle);
@@ -513,6 +529,8 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   }
   std::pair<std::vector<unsigned>, std::vector<unsigned>> trk_muon_map;
   for (const auto& mu : *muons) {
+    if (muonOnly_ && !probeMuonSelection_(mu))
+      continue;
     float minDR = 1000;
     unsigned int idx_trk;
     for (const auto& trk : tracks) {
@@ -689,6 +707,10 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       if (minSVtxProb_ > 0 && vtx.prob() < minSVtxProb_)
         continue;
 
+      auto it = std::find(trk_muon_map.first.begin(), trk_muon_map.first.end(), &probe - &tracks[0]);
+      if (muonOnly_ && it == trk_muon_map.first.end())
+        continue;
+
       FillTagBranches<pat::Muon, pat::PackedCandidate>(tag.first, tracks, nt, *pv);
       nt.tag_isMatchedGen = genmatched_tag[&tag - &tag_muon_ttrack[0]];
       FillMiniIso<pat::Muon, pat::PackedCandidate>(*pfcands, tag.first, *rhoJetsNC, nt, true);
@@ -719,10 +741,14 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
       embedTriggerMatching(iEvent, trigResults, tag.first, nt, tagFilters_, true);
 
+      if (iEvent.isRealData())
+        FillSimMatchingBranchesDummy(nt, true);
+      else
+        FillSimMatchingBranches(tag.first, nt, true);
+
       math::PtEtaPhiMLorentzVector mu1(tag.first.pt(), tag.first.eta(), tag.first.phi(), MU_MASS);
       math::PtEtaPhiMLorentzVector mu2(probe.pt(), probe.eta(), probe.phi(), MU_MASS);
 
-      auto it = std::find(trk_muon_map.first.begin(), trk_muon_map.first.end(), &probe - &tracks[0]);
       if (it != trk_muon_map.first.end()) {
         unsigned idx = std::distance(trk_muon_map.first.begin(), it);
         FillProbeBranches<pat::Muon, pat::PackedCandidate>(muons->at(trk_muon_map.second[idx]), tracks, nt, true, *pv);
@@ -758,6 +784,11 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
         // Probe-trigger matching
         embedTriggerMatching(iEvent, trigResults, muons->at(trk_muon_map.second[idx]), nt, probeFilters_, false);
+
+        if (iEvent.isRealData())
+          FillSimMatchingBranchesDummy(nt, false);
+        else
+          FillSimMatchingBranches(muons->at(trk_muon_map.second[idx]), nt, false);
 
         // TuneP pair branches
         if (tag.first.tunePMuonBestTrack().isNonnull() &&
@@ -797,6 +828,8 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         nt.l1ptByQ = -99.;
         nt.l1qByQ = -99;
         nt.l1drByQ = 99.;
+
+        FillSimMatchingBranchesDummy(nt, false);
 
         FillTunePPairBranchesDummy(nt);
       }
