@@ -87,7 +87,7 @@ def getOptions():
     parser.add_option('-t', '--sampleType',
                       dest = 'sampleType',
                       default = 'all',
-                      help = "Samples to process: 'all' (default), 'data', 'mc'. Only allowed if subEra='all'.",
+                      help = "Samples to process: 'all' (default), 'data', data_dm, 'mc'. Only allowed if subEra='all'.",
                       metavar = 'TYPE')
 
     parser.add_option('-k', '--storageSite',
@@ -120,6 +120,38 @@ def getOptions():
                       help = "Database file. default: data/samples/PART/RESON/ERA/database.json",
                       metavar = 'ERA_DB_FILE')
 
+    parser.add_option('--splittingData',
+                      dest = 'splittingData',
+                      default = 'LumiBased',
+                      help = "job splitting option for data",
+                      metavar = 'SPLITTING_DATA')
+
+    parser.add_option('--unitsPerJobData',
+                      dest = 'unitsPerJobData',
+                      type = 'int',
+                      default = 100,
+                      help = "unitsPerJob option for data",
+                      metavar = 'UNIT_PER_JOB_DATA')
+
+    parser.add_option('--splittingMC',
+                      dest = 'splittingMC',
+                      default = 'LumiBased',
+                      help = "job splitting option for MC",
+                      metavar = 'SPLITTING_MC')
+
+    parser.add_option('--unitsPerJobMC',
+                      dest = 'unitsPerJobMC',
+                      type = 'int',
+                      default = 100,
+                      help = "unitsPerJob option for MC",
+                      metavar = 'UNIT_PER_JOB_MC')
+
+    parser.add_option('--dryrun',
+                      dest = 'dryrun',
+                      action = 'store_true',
+                      default = False,
+                      help = "print out CRAB configuration instead of submitting it")
+
     (options, arguments) = parser.parse_args()
 
     if arguments:
@@ -140,8 +172,9 @@ def main():
     # Read options
     options = getOptions()
 
-    doData = options.sampleType in ['all', 'data']
+    doData = options.sampleType in ['all', 'data', 'data_dm']
     doMC = options.sampleType in ['all', 'mc']
+    doDataDM = options.sampleType == 'data_dm'
 
     particle = options.particle
     resonance = options.resonance
@@ -178,9 +211,6 @@ def main():
         config.JobType.allowUndistributedCMSSW = True
         #config.JobType.maxMemoryMB = 4000
 
-        #config.Data.splitting = 'Automatic' # Not working after rucio transition
-        config.Data.splitting = 'LumiBased'
-        config.Data.unitsPerJob = 100
         config.Data.publication = False
         config.Data.allowNonValidInputDataset = True # for validation samples
 
@@ -242,14 +272,34 @@ def main():
             if isData and not doData: continue
             if not isData and not doMC: continue
 
+            # if sampleType is data_dm, submit only DoubleMuon datasets
+            isDataDM = ('Run' in subera_name and 'DM' in subera_name)
+            if doDataDM and not isDataDM: continue
+
             config.Data.lumiMask = ''
             if isData:
-                if '2018' in era:
-                    config.Data.lumiMask = 'https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions18/13TeV/ReReco/Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt'
-                elif '2017' in era:
-                    config.Data.lumiMask = 'https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions17/13TeV/ReReco/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_v1.txt'
-                elif '2016' in era:
-                    config.Data.lumiMask = 'https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions16/13TeV/ReReco/Final/Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON.txt'
+                if 'UL' in era:
+                    if '2018' in era:
+                        config.Data.lumiMask = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/Legacy_2018/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt'
+                    elif '2017' in era:
+                        config.Data.lumiMask = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/Legacy_2017/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt'
+                    elif '2016' in era:
+                        config.Data.lumiMask = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Legacy_2016/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt'
+                else:
+                    if '2018' in era:
+                        config.Data.lumiMask = 'https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions18/13TeV/ReReco/Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt'
+                    elif '2017' in era:
+                        config.Data.lumiMask = 'https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions17/13TeV/ReReco/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_v1.txt'
+                    elif '2016' in era:
+                        config.Data.lumiMask = 'https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions16/13TeV/ReReco/Final/Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON.txt'
+
+                #config.Data.splitting = 'Automatic' # Not working after rucio transition
+                config.Data.splitting = options.splittingData
+                config.Data.unitsPerJob = options.unitsPerJobData
+
+            else:
+                config.Data.splitting = options.splittingMC
+                config.Data.unitsPerJob = options.unitsPerJobMC
 
             config.JobType.pyCfgParams = [
                     'resonance={}'.format(resonance),
@@ -275,7 +325,11 @@ def main():
             def submit(config, options):
                 try:
                     print "Submitting for input dataset %s with options %s" % (input_dataset, options.crabCmdOpts)
-                    crabCommand(options.crabCmd, config = config, *options.crabCmdOpts.split())
+                    if options.dryrun:
+                        print '-'*50
+                        print config
+                    else:
+                        crabCommand(options.crabCmd, config = config, *options.crabCmdOpts.split())
                 except HTTPException as hte:
                     print "Submission for input dataset %s failed: %s" % (input_dataset, hte.headers)
                 except ClientException as cle:
