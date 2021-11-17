@@ -29,3 +29,4 @@
  <use name="JetMETCorrections/JetCorrector" />
  <use name="JetMETCorrections/Objects" />
  <use name="JetMETCorrections/Modules" />
+ <use name="MuonAnalysis/MuonAssociators"/>

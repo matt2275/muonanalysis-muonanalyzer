@@ -59,7 +59,14 @@ muon = cms.EDAnalyzer('MuonFullAODAnalyzer',
         maxDRProbeTrkDSA =  cms.double(0.5), # max DR for general track and dSA
         momPdgId= cms.uint32(23),
         genRecoDrMatch = cms.double(0.03),
-        debug = cms.int32(0)
+        debug = cms.int32(0),
+        propM1 = cms.PSet(
+            useStation2 = cms.bool(False),
+            useTrack = cms.string("tracker"),
+            useState = cms.string("atVertex"),  # in AOD
+            useSimpleGeometry = cms.bool(True), # use just one cylinder and two planes, not all the fancy chambers  
+        ),
+
 )
 
 fullAODSequence=cms.Sequence(muon)

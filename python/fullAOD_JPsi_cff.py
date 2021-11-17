@@ -43,23 +43,29 @@ muon = cms.EDAnalyzer('MuonFullAODAnalyzer',
         deepFlavProbbb = cms.InputTag("pfDeepFlavourJetTags:probbb"),
         trgDRwindow= cms.double(0.1), # dr winwow hlt mu/offline
         tagQuality = cms.uint32(0),
-        tagSelection = cms.string("pt()>0"),
+        tagSelection = cms.string("pt()>5"),
         probeHPurity = cms.bool(False),
-        probeSelection = cms.string("pt()>0"),
+        probeSelection = cms.string("pt()>2"),
         muonOnly = cms.bool(False), # allow only reco or pat Muon for probes
         probeMuonSelection = cms.string("pt()>0"), #string for probe (reco or pat Muon)
         pairMassMin = cms.double(2.8),
         pairMassMax = cms.double(3.4),
         pairDz = cms.double(10.1),
         RequireVtxCreation = cms.bool(True),
-        minSVtxProb = cms.double(0.01),
+        minSVtxProb = cms.double(0),
         maxDzProbeTrkMuon = cms.double(0.01), # max Dz(mu1,mu2)
         maxRelPtProbeTrkMuon = cms.double(1.0),# max [pt(mu)-pt(trk)]/pt(trk) for probe/offline
         maxDRProbeTrkMuon =  cms.double(0.03), # max DR for probe/offline
         maxDRProbeTrkDSA =  cms.double(0.4), # max DR for general track and dSA
         momPdgId= cms.uint32(443),
         genRecoDrMatch = cms.double(0.03),
-        debug = cms.int32(0)
+        debug = cms.int32(0),
+        propM1 = cms.PSet(
+            useStation2 = cms.bool(False),
+            useTrack = cms.string("tracker"),
+            useState = cms.string("atVertex"),  # in AOD
+            useSimpleGeometry = cms.bool(True), # use just one cylinder and two planes, not all the fancy chambers  
+        ),
 )
 
 fullAODSequence=cms.Sequence(muon)

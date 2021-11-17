@@ -163,6 +163,7 @@ private:
   const double maxdr_trk_mu_;
   const unsigned momPdgId_;
   const double genRecoDrMatch_;
+  PropagateToMuon prop1_;
 
   edm::Service<TFileService> fs;
   TTree* t1;
@@ -232,6 +233,7 @@ MuonMiniAODAnalyzer::MuonMiniAODAnalyzer(const edm::ParameterSet& iConfig)
       maxdr_trk_mu_(iConfig.getParameter<double>("maxDRProbeTrkMuon")),
       momPdgId_(iConfig.getParameter<unsigned>("momPdgId")),
       genRecoDrMatch_(iConfig.getParameter<double>("genRecoDrMatch")),
+      prop1_(iConfig.getParameter<edm::ParameterSet>("propM1")),
       isMC_(iConfig.getParameter<bool>("isMC")),
       includeJets_(iConfig.getParameter<bool>("includeJets")),
       era_(iConfig.getParameter<std::string>("era")) {
@@ -341,6 +343,8 @@ void MuonMiniAODAnalyzer::embedTriggerMatching(const edm::Event& iEvent,
 // ------------ method called for each event  ------------
 
 void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+  prop1_.init(iSetup);
+
   edm::Handle<reco::BeamSpot> theBeamSpot;
   iEvent.getByToken(beamSpotToken_, theBeamSpot);
   edm::Handle<reco::VertexCollection> vertices;
@@ -834,7 +838,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         FillTunePPairBranchesDummy(nt);
       }
 
-      FillPairBranches<pat::Muon, pat::PackedCandidate>(tag.first, probe, nt);
+      FillPairBranches<pat::Muon, pat::PackedCandidate>(tag.first, probe, nt, prop1_);
       vtx.fillNtuple(nt);
 
       auto it_match = std::find(matched_track_idx.begin(), matched_track_idx.end(), &probe - &tracks[0]);
