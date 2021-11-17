@@ -15,6 +15,7 @@
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/MuonReco/interface/MuonSimInfo.h"
+#include "MuonAnalysis/MuonAssociators/interface/PropagateToMuon.h"
 
 #include <type_traits>
 #include "NtupleContent.h"
@@ -360,7 +361,7 @@ inline void FillProbeBranchesCosmic(const TRK &trk, NtupleContent &nt, bool pass
 }
 
 template <typename MUO, typename TRK>
-inline void FillPairBranches(const MUO &muon, const TRK &trk, NtupleContent &nt) {
+inline void FillPairBranches(const MUO &muon, const TRK &trk, NtupleContent &nt, PropagateToMuon &prop1_) {
   math::PtEtaPhiMLorentzVector mu1(muon.pt(), muon.eta(), muon.phi(), MU_MASS);
   math::PtEtaPhiMLorentzVector mu2(trk.pt(), trk.eta(), trk.phi(), MU_MASS);
   nt.pair_pt = (mu1 + mu2).pt();
@@ -369,6 +370,14 @@ inline void FillPairBranches(const MUO &muon, const TRK &trk, NtupleContent &nt)
   nt.pair_phi = (mu1 + mu2).phi();
   nt.pair_dz = muon.vz() - trk.vz();
   nt.pair_dR = deltaR(muon.eta(), muon.phi(), trk.eta(), trk.phi());
+
+  TrajectoryStateOnSurface prop1_M1 = prop1_.extrapolate(muon);
+  TrajectoryStateOnSurface prop2_M1 = prop1_.extrapolate(trk);
+
+  if (prop1_M1.isValid() && prop2_M1.isValid()) {
+    float dphiM1 = deltaPhi<float>(prop1_M1.globalPosition().phi(), prop2_M1.globalPosition().phi());
+    nt.pair_drM1 = hypot(dphiM1, std::abs<float>(prop1_M1.globalPosition().eta() - prop2_M1.globalPosition().eta()));
+  }
 }
 
 template <typename MUO, typename TRK>

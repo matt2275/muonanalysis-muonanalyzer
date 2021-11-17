@@ -292,6 +292,7 @@ public:
   float pair_normalchi2;
   float pair_dz;
   float pair_dR;
+  float pair_drM1;
   int pair_rank_vtx_prob;
   int pair_rank_dz_PV_SV;
   int pair_rank_dPhi_muons;

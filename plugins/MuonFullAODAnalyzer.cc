@@ -119,6 +119,7 @@ public:
 
 private:
   void beginJob() override;
+
   bool HLTaccept(const edm::Event&, NtupleContent&, std::vector<std::string>&);
   void fillHLTmuon(const edm::Event&,
                    std::vector<TString>&,
@@ -198,6 +199,7 @@ private:
   const unsigned momPdgId_;
   const double genRecoDrMatch_;
   const int debug_;
+  PropagateToMuon prop1_;
 
   edm::Service<TFileService> fs;
   TTree* t1;
@@ -274,7 +276,8 @@ MuonFullAODAnalyzer::MuonFullAODAnalyzer(const edm::ParameterSet& iConfig)
       maxdr_trk_dsa_(iConfig.getParameter<double>("maxDRProbeTrkDSA")),
       momPdgId_(iConfig.getParameter<unsigned>("momPdgId")),
       genRecoDrMatch_(iConfig.getParameter<double>("genRecoDrMatch")),
-      debug_(iConfig.getParameter<int>("debug")) {
+      debug_(iConfig.getParameter<int>("debug")),
+      prop1_(iConfig.getParameter<edm::ParameterSet>("propM1")) {
   //  edm::ParameterSet
   //  runParameters=iConfig.getParameter<edm::ParameterSet>("RunParameters");
 
@@ -406,6 +409,8 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   using namespace edm;
   using namespace reco;
   using namespace trigger;
+
+  prop1_.init(iSetup);
 
   // Get data
   edm::Handle<reco::BeamSpot> theBeamSpot;
@@ -1264,7 +1269,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         FillProbeBranchesCosmic<reco::Track>(staCosmic->at(probe_cosmic_map.second[idx]), nt, true);
       }
 
-      FillPairBranches<reco::Muon, reco::Track>(tag.first, probe, nt);
+      FillPairBranches<reco::Muon, reco::Track>(tag.first, probe, nt, prop1_);
       vtx.fillNtuple(nt);
 
       auto it_genmatch = std::find(matched_track_idx.begin(), matched_track_idx.end(), &probe - &tracks->at(0));

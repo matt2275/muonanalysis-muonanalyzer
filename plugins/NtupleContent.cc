@@ -240,6 +240,7 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
   t1->Branch("pair_normalchi2", &pair_normalchi2);
   t1->Branch("pair_dz", &pair_dz);
   t1->Branch("pair_dR", &pair_dR);
+  t1->Branch("pair_drM1", &pair_drM1);
   t1->Branch("pair_rank_vtx_prob", &pair_rank_vtx_prob);
   t1->Branch("pair_rank_dz_PV_SV", &pair_rank_dz_PV_SV);
   t1->Branch("pair_rank_dPhi_muons", &pair_rank_dPhi_muons);
@@ -555,6 +556,7 @@ void NtupleContent::ClearBranches() {
   pair_normalchi2 = 0;
   pair_dz = -99;
   pair_dR = -99;
+  pair_drM1 = -99;
   pair_rank_vtx_prob = -1;
   pair_rank_dz_PV_SV = -1;
   pair_rank_dPhi_muons = -1;
