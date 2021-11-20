@@ -729,8 +729,9 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   // Map probe and dGl
   map_type probe_dGl_map;
   vector<float> probe_dGl_dRs;
-  vector<unsigned> probe_dGl_nmatched;
-  mapTrackCollectionsInclusive(*tracks, *dGlmuons, probe_dGl_map, probe_dGl_dRs, probe_dGl_nmatched);
+  vector<unsigned> probe_dGl_segmentmatches;
+  // Don't use dR matching anymore for dGl, use segment matching below
+  // mapTrackCollectionsInclusive(*tracks, *dGlmuons, probe_dGl_map, probe_dGl_dRs, probe_dGl_nmatched);
 
   // Map probe and cosmics
   map_type probe_cosmic_map;
@@ -777,8 +778,9 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
       float dR = deltaR(dsa.eta(), dsa.phi(), muon.eta(), muon.phi());
       // Don't waste time with far away dSA tracks and muons
-      if (dR > 0.7)
-        continue;
+      // Aug. 2021: comment out for now to test dSA-dGl correspondence
+      // if (dR > 0.7)
+        // continue;
 
       int nmatches = 0;
       for (auto& hit : dsa.recHits()) {
@@ -824,6 +826,79 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   }
 
   // [Adapted from displaced dimuon analysis]
+  // Segment match: consider probe reco::Muons and dGl tracks
+  // matched if the segments used to build the dGl are the
+  // same as or a subset of segments of the reco::Muons.
+  for (const auto & track : *tracks) {
+    // can only do segment matching on probe tracks that are matched to muons
+    auto it = std::find(trk_muon_map.first.begin(), trk_muon_map.first.end(), &track - &tracks->at(0));
+    if (it == trk_muon_map.first.end())
+      continue;
+    unsigned idx_map = std::distance(trk_muon_map.first.begin(), it);
+    unsigned idx_track = trk_muon_map.first[idx_map];
+    unsigned idx_muon = trk_muon_map.second[idx_map];
+    auto muon = muons->at(idx_muon);
+    // also make sure probes are arbitrated tracker muons
+    if (!(muon.isTrackerMuon() && muon::isGoodMuon(muon, muon::TrackerMuonArbitrated)))
+      continue;
+
+    int max_nmatches = -1;
+    float min_dR = +99.f;
+    unsigned matched_idx;
+    for (const auto & dgl : *dGlmuons) {
+      unsigned idx_dgl = &dgl - &dGlmuons->at(0);
+
+      float dR = deltaR(dgl.eta(), dgl.phi(), muon.eta(), muon.phi());
+      // Don't waste time with far away dGl tracks and muons
+      // Aug. 2021: comment out for now to test dSA-dGl correspondence
+      // if (dR > 0.7)
+        // continue;
+
+      int nmatches = 0;
+      for (auto & hit : dgl.recHits()) {
+        if (!hit->isValid())
+          continue;
+        DetId id = hit->geographicalId();
+        if (id.det() != DetId::Muon)
+          continue;
+        if (id.subdetId() == MuonSubdetId::DT || id.subdetId() == MuonSubdetId::CSC) {
+          for (auto & chamber : muon.matches()) {
+            if (chamber.id.rawId() != id.rawId())
+              continue;
+            for (auto & segment : chamber.segmentMatches) {
+              if (fabs(segment.x - hit->localPosition().x()) < 1e-6 && fabs(segment.y - hit->localPosition().y()) < 1e-6) {
+                if (debug_)
+                  std::cout << "matched segment found!!! subdet "
+                    << ((chamber.id.subdetId() == MuonSubdetId::DT) ? "DT" : "CSC")
+                    << " id = " << chamber.id.rawId()
+                    << " x = " << segment.x
+                    << " y = " << segment.y << std::endl;
+                nmatches++;
+                break;
+              }
+            }
+          }
+        }
+      }
+      if (nmatches > max_nmatches) {
+        max_nmatches = nmatches;
+        min_dR = dR;
+        matched_idx = idx_dgl;
+      }
+      else if (nmatches == max_nmatches && dR < min_dR) {
+        min_dR = dR;
+        matched_idx = idx_dgl;
+      }
+    }
+    if (max_nmatches > -1) {
+      probe_dGl_map.first.push_back(idx_track);
+      probe_dGl_map.second.push_back(matched_idx);
+      probe_dGl_dRs.push_back(min_dR);
+      probe_dGl_segmentmatches.push_back(max_nmatches);
+    }
+  }
+
+  // [Adapted from displaced dimuon analysis]
   // Segment match: consider tag reco::Muons and dSA tracks
   // matched if the segments used to build the dSA are the
   // same as or a subset of segments of the reco::Muons.
@@ -838,8 +913,9 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
       float dR = deltaR(dsa.eta(), dsa.phi(), muon.eta(), muon.phi());
       // Don't waste time with far away dSA tracks and muons
-      if (dR > 0.7)
-        continue;
+      // Aug. 2021: comment out for now to test dSA-dGl correspondence
+      // if (dR > 0.7)
+        // continue;
 
       int nmatches = 0;
       for (auto& hit : dsa.recHits()) {
@@ -1242,11 +1318,11 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       }
 
       if (itdgl == probe_dGl_map.first.end()) {
-        nt.probe_ndgl = 0;
+        nt.probe_dgl_segmentMatches = -1;
         FillProbeBranchesdgl<reco::Track>(probe, nt, false);
       } else {
         unsigned idx = std::distance(probe_dGl_map.first.begin(), itdgl);
-        nt.probe_ndgl = probe_dGl_nmatched[idx];
+        nt.probe_dgl_segmentMatches = probe_dGl_segmentmatches[idx];
         nt.probe_dgl_minDR = probe_dGl_dRs[idx];
         if (debug_ > 0)
           std::cout << "Successful probe displaced global " << dGlmuons->at(probe_dGl_map.second[idx]).pt() << " eta "

@@ -264,7 +264,8 @@ public:
   float tag_dsa_dxy;
   float tag_dsa_dz;
 
-  int probe_ndgl;
+  int probe_dgl_segmentMatches;
+  int probe_dgl_nsegments;
   float probe_dgl_pt;
   float probe_dgl_eta;
   float probe_dgl_phi;

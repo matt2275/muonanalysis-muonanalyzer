@@ -680,6 +680,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       pair_vtx_probs.emplace_back(std::make_pair(std::make_pair(tag_idx, probe_idx), vtx.prob()));
     }
   }
+  nt.npairs = pair_vtx_probs.size();
 
   // reverse sort vertices by probability
   auto compare_vtx = [=](t_pair_prob& a, t_pair_prob& b) { return a.second > b.second; };
