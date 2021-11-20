@@ -212,7 +212,8 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
     t1->Branch(TString("probe_" + selectorNames[isel]), &probe_selectors[isel]);
   }
 
-  t1->Branch("probe_ndgl", &probe_ndgl);
+  t1->Branch("probe_dgl_segmentMatches", &probe_dgl_segmentMatches);
+  t1->Branch("probe_dgl_nsegments", &probe_dgl_nsegments);
   t1->Branch("probe_dgl_muonStations", &probe_dgl_muonStations);
   t1->Branch("probe_dgl_muonHits", &probe_dgl_muonHits);
   t1->Branch("probe_dgl_totalHits", &probe_dgl_totalHits);
@@ -529,7 +530,8 @@ void NtupleContent::ClearBranches() {
   tag_dsa_minDR = +99;
   tag_dsa_charge = -99;
 
-  probe_ndgl = -99;
+  probe_dgl_segmentMatches = -99;
+  probe_dgl_nsegments = -99;
   probe_dgl_muonStations = -99;
   probe_dgl_muonHits = -99;
   probe_dgl_outerTrackerHits = -99;

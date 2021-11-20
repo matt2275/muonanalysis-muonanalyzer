@@ -343,6 +343,17 @@ inline void FillProbeBranchesdgl(const TRK &trk, NtupleContent &nt, bool passdgl
     nt.probe_dgl_CSCHits = trk.hitPattern().numberOfValidMuonCSCHits();
     nt.probe_dgl_pterr = trk.ptError() / trk.pt();
     nt.probe_dgl_trkChi2 = trk.normalizedChi2();
+    // [Adapted from displaced dimuon analysis]
+    // Number of DT+CSC segments
+    unsigned int nsegments = 0;
+    for (auto & hit : trk.recHits()) {
+      if (!hit->isValid()) continue;
+      DetId id = hit->geographicalId();
+      if (id.det() != DetId::Muon) continue;
+      if (id.subdetId() == MuonSubdetId::DT || id.subdetId() == MuonSubdetId::CSC)
+        nsegments++;
+    }
+    nt.probe_dgl_nsegments = nsegments;
   } else {
     nt.probe_dgl_dxy = -99;
     nt.probe_dgl_dz = -99;
@@ -352,6 +363,7 @@ inline void FillProbeBranchesdgl(const TRK &trk, NtupleContent &nt, bool passdgl
     nt.probe_dgl_CSCHits = -99;
     nt.probe_dgl_pterr = -99;
     nt.probe_dgl_trkChi2 = -99;
+    nt.probe_dgl_nsegments = -99;
   }
 }
 
