@@ -68,11 +68,6 @@ options.parseArguments()
 
 # defaults
 
-if options.fromCRAB == True:
-    options.maxEvents = -1
-else:
-    options.maxEvents = 100
-
 if options._beenSet['globalTag'] and options.globalTag != '':
     globaltag = options.globalTag
 else:

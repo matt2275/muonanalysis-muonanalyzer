@@ -232,6 +232,7 @@ def main():
         #config.Site.ignoreGlobalBlacklist = True
         #config.Data.ignoreLocality = True
         #config.Site.whitelist = ['T2_US_*']
+        #config.Site.blacklist = ['T2_FI_HIP']
 
         #--------------------------------------------------------
 
@@ -259,6 +260,9 @@ def main():
                 sys.exit()
 
         for subera_name, subera_cfg in samples.items():
+
+            if subera_cfg.pop('include_by_default', '') == 'no' and subEra != subera_name:
+                continue
             
             isData = 'Run' in subera_name
             globalTag = subera_cfg['globalTag'] if 'globalTag' in subera_cfg else ''
@@ -287,11 +291,11 @@ def main():
                         config.Data.lumiMask = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Legacy_2016/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt'
                 else:
                     if '2018' in era:
-                        config.Data.lumiMask = 'https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions18/13TeV/ReReco/Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt'
+                        config.Data.lumiMask = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/ReReco/Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt'
                     elif '2017' in era:
-                        config.Data.lumiMask = 'https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions17/13TeV/ReReco/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_v1.txt'
+                        config.Data.lumiMask = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/ReReco/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_v1.txt'
                     elif '2016' in era:
-                        config.Data.lumiMask = 'https://cms-service-dqm.web.cern.ch/cms-service-dqm/CAF/certification/Collisions16/13TeV/ReReco/Final/Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON.txt'
+                        config.Data.lumiMask = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/ReReco/Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON.txt'
 
                 #config.Data.splitting = 'Automatic' # Not working after rucio transition
                 config.Data.splitting = options.splittingData
@@ -308,7 +312,7 @@ def main():
                     'globalTag={}'.format(globalTag),
                     'numThreads={}'.format(numThreads),
                     'era={}'.format(era),
-                    'includeJets={}'.format(True),
+                    'includeJets={}'.format(False),
                     'fromCRAB={}'.format(True)
                     ]
 

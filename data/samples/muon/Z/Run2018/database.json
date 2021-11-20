@@ -10,7 +10,8 @@
             },
             "TT_powheg": {
                 "dataset": "/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18DRPremix-102X_upgrade2018_realistic_v15-v1/AODSIM",
-                "globalTag": "102X_upgrade2018_realistic_v15"
+                "globalTag": "102X_upgrade2018_realistic_v15",
+                "include_by_default": "no"
             },
             "Run2018A": {
                 "dataset": "/SingleMuon/Run2018A-17Sep2018-v2/AOD",
