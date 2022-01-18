@@ -12,7 +12,7 @@ def muonAnalysis_customizeFullAOD_Z(process):
    process.load("RecoBTag.CTagging.cTagging_cff")
    process.load("RecoBTag.Combined.deepFlavour_cff")
 
-   process.load("MuonAnalysis.MuonAnalyzer.fullAOD_Z_cff")
+   process.load("MuonAnalysis.MuonAnalyzer.fullAOD_Z_SA_cff")
    process.muSequence = cms.Sequence(process.fullAODSequence)
    return process
 
