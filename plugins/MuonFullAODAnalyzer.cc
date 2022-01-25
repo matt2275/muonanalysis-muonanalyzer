@@ -163,6 +163,10 @@ private:
   edm::EDGetTokenT<double> rhoJetsNC_;
   edm::EDGetToken jetsToken_;
   edm::EDGetToken jetCorrectorToken_;
+  std::string jetResType_;
+  std::string jetResSFType_;
+  JME::JetResolution::Token jetResolutionToken_;
+  JME::JetResolutionScaleFactor::Token jetResoultionScaleFactorToken_;
   edm::EDGetToken genJetsToken_;
   edm::EDGetToken deepCSVProbbToken_;
   edm::EDGetToken deepCSVProbbbToken_;
@@ -246,6 +250,10 @@ MuonFullAODAnalyzer::MuonFullAODAnalyzer(const edm::ParameterSet& iConfig)
       rhoJetsNC_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoJetsNC"))),
       jetsToken_(consumes<std::vector<reco::PFJet>>(iConfig.getParameter<edm::InputTag>("jets"))),
       jetCorrectorToken_(consumes<reco::JetCorrector>(iConfig.getParameter<edm::InputTag>("jetCorrector"))),
+      jetResType_(iConfig.getParameter<std::string>("jetResType"),
+      jetResSFType_(iConfig.getParameter<std::string>("jetResSFType"),
+      jetResolutionToken_(esConsumes(edm::ESInputTag("", jetResType_))),
+      jetResoultionScaleFactorToken_(esConsumes(edm::ESInputTag("", jetResPtType_))),
       genJetsToken_(consumes<std::vector<reco::GenJet>>(iConfig.getParameter<edm::InputTag>("genJets"))),
       deepCSVProbbToken_(consumes<reco::JetTagCollection>(iConfig.getParameter<edm::InputTag>("deepCSVProbb"))),
       deepCSVProbbbToken_(consumes<reco::JetTagCollection>(iConfig.getParameter<edm::InputTag>("deepCSVProbbb"))),
@@ -455,8 +463,8 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     //  iEvent.getByToken(deepFlavProbbToken_, deepFlavProbb);
     //  edm::Handle<reco::JetTagCollection> deepFlavProbbb;
     //  iEvent.getByToken(deepFlavProbbbToken_, deepFlavProbbb);
-    resolution = JME::JetResolution::get(iSetup, "AK4PFchs_pt");
-    resolution_sf = JME::JetResolutionScaleFactor::get(iSetup, "AK4PFchs");
+    resolution = JME::JetResolution::get(iSetup, jetResolutionToken_);
+    resolution_sf = JME::JetResolutionScaleFactor::get(iSetup, jetResoultionScaleFactorToken_);
   }
   edm::ESHandle<MagneticField> bField;
   iSetup.get<IdealMagneticFieldRecord>().get(bField);

@@ -139,6 +139,10 @@ private:
   edm::EDGetTokenT<edm::View<reco::GenParticle>> genToken_;
   edm::EDGetTokenT<double> rhoJetsNC_;
   edm::EDGetToken jetsToken_;
+  std::string jetResType_;
+  std::string jetResSFType_;
+  JME::JetResolution::Token jetResolutionToken_;
+  JME::JetResolutionScaleFactor::Token jetResoultionScaleFactorToken_;
   edm::EDGetToken genJetsToken_;
   std::vector<std::string> HLTPaths_;
   std::vector<std::string> tagFilters_;
@@ -211,6 +215,10 @@ MuonMiniAODAnalyzer::MuonMiniAODAnalyzer(const edm::ParameterSet& iConfig)
       genToken_(consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("gen"))),
       rhoJetsNC_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoJetsNC"))),
       jetsToken_(consumes<std::vector<pat::Jet>>(iConfig.getParameter<edm::InputTag>("jets"))),
+      jetResType_(iConfig.getParameter<std::string>("jetResType"),
+      jetResSFType_(iConfig.getParameter<std::string>("jetResSFType"),
+      jetResolutionToken_(esConsumes(edm::ESInputTag("", jetResType_))),
+      jetResoultionScaleFactorToken_(esConsumes(edm::ESInputTag("", jetResPtType_))),
       genJetsToken_(consumes<std::vector<reco::GenJet>>(iConfig.getParameter<edm::InputTag>("genJets"))),
       HLTPaths_(iConfig.getParameter<std::vector<std::string>>("triggerPaths")),
       tagFilters_(iConfig.getParameter<std::vector<std::string>>("tagFilters")),
@@ -371,9 +379,9 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   edm::Handle<std::vector<reco::GenJet>> genJets;
   iEvent.getByToken(genJetsToken_, genJets);
   JME::JetResolution resolution;
-  resolution = JME::JetResolution::get(iSetup, "AK4PFchs_pt");
+  resolution = JME::JetResolution::get(iSetup, jetResolutionToken_);
   JME::JetResolutionScaleFactor resolution_sf;
-  resolution_sf = JME::JetResolutionScaleFactor::get(iSetup, "AK4PFchs");
+  resolution_sf = JME::JetResolutionScaleFactor::get(iSetup, jetResoultionScaleFactorToken_);
 
   edm::Handle<edm::TriggerResults> trigResults;
   iEvent.getByToken(trgresultsToken_, trigResults);

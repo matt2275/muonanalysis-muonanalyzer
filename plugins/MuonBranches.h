@@ -388,7 +388,7 @@ inline void FillPairBranches(const MUO &muon, const TRK &trk, NtupleContent &nt,
 
   if (prop1_M1.isValid() && prop2_M1.isValid()) {
     float dphiM1 = deltaPhi<float>(prop1_M1.globalPosition().phi(), prop2_M1.globalPosition().phi());
-    nt.pair_drM1 = hypot(dphiM1, std::abs<float>(prop1_M1.globalPosition().eta() - prop2_M1.globalPosition().eta()));
+    nt.pair_drM1 = hypot(dphiM1, std::fabs(prop1_M1.globalPosition().eta() - prop2_M1.globalPosition().eta()));
   }
 }
 
