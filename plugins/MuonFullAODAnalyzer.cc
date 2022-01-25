@@ -72,6 +72,8 @@
 #include "DataFormats/JetReco/interface/PFJet.h"
 #include "JetMETCorrections/Modules/interface/JetResolution.h"
 #include "JetMETCorrections/JetCorrector/interface/JetCorrector.h"
+#include "CondFormats/DataRecord/interface/JetResolutionRcd.h"
+#include "CondFormats/DataRecord/interface/JetResolutionScaleFactorRcd.h"
 #include "JetMETCorrections/Objects/interface/JetCorrectionsRecord.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
@@ -250,10 +252,10 @@ MuonFullAODAnalyzer::MuonFullAODAnalyzer(const edm::ParameterSet& iConfig)
       rhoJetsNC_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoJetsNC"))),
       jetsToken_(consumes<std::vector<reco::PFJet>>(iConfig.getParameter<edm::InputTag>("jets"))),
       jetCorrectorToken_(consumes<reco::JetCorrector>(iConfig.getParameter<edm::InputTag>("jetCorrector"))),
-      jetResType_(iConfig.getParameter<std::string>("jetResType"),
-      jetResSFType_(iConfig.getParameter<std::string>("jetResSFType"),
-      jetResolutionToken_(esConsumes(edm::ESInputTag("", jetResType_))),
-      jetResoultionScaleFactorToken_(esConsumes(edm::ESInputTag("", jetResPtType_))),
+      //jetResType_(iConfig.getParameter<std::string>("jetResType"),
+      //jetResSFType_(iConfig.getParameter<std::string>("jetResSFType"),
+      jetResolutionToken_(esConsumes(edm::ESInputTag("", iConfig.getParameter<std::string>("jetResType")))),
+      jetResoultionScaleFactorToken_(esConsumes(edm::ESInputTag("", iConfig.getParameter<std::string>("jetResSFType")))),
       genJetsToken_(consumes<std::vector<reco::GenJet>>(iConfig.getParameter<edm::InputTag>("genJets"))),
       deepCSVProbbToken_(consumes<reco::JetTagCollection>(iConfig.getParameter<edm::InputTag>("deepCSVProbb"))),
       deepCSVProbbbToken_(consumes<reco::JetTagCollection>(iConfig.getParameter<edm::InputTag>("deepCSVProbbb"))),
@@ -285,10 +287,9 @@ MuonFullAODAnalyzer::MuonFullAODAnalyzer(const edm::ParameterSet& iConfig)
       momPdgId_(iConfig.getParameter<unsigned>("momPdgId")),
       genRecoDrMatch_(iConfig.getParameter<double>("genRecoDrMatch")),
       debug_(iConfig.getParameter<int>("debug")),
-      prop1_(iConfig.getParameter<edm::ParameterSet>("propM1")) {
+      prop1_(iConfig.getParameter<edm::ParameterSet>("propM1"),consumesCollector()) {
   //  edm::ParameterSet
   //  runParameters=iConfig.getParameter<edm::ParameterSet>("RunParameters");
-
   if (probeSelectorNames_.size() != probeSelectorBits_.size()) {
     throw cms::Exception("ParameterError")
         << "length of probeSelectorNames and probeSelectorBits should be identical\n";
@@ -463,8 +464,9 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     //  iEvent.getByToken(deepFlavProbbToken_, deepFlavProbb);
     //  edm::Handle<reco::JetTagCollection> deepFlavProbbb;
     //  iEvent.getByToken(deepFlavProbbbToken_, deepFlavProbbb);
-    resolution = JME::JetResolution::get(iSetup, jetResolutionToken_);
-    resolution_sf = JME::JetResolutionScaleFactor::get(iSetup, jetResoultionScaleFactorToken_);
+    
+    resolution    = iSetup.getData(jetResolutionToken_);
+    resolution_sf = iSetup.getData(jetResoultionScaleFactorToken_);
   }
   edm::ESHandle<MagneticField> bField;
   iSetup.get<IdealMagneticFieldRecord>().get(bField);

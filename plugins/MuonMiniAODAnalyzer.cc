@@ -43,6 +43,8 @@
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "JetMETCorrections/Modules/interface/JetResolution.h"
+#include "CondFormats/DataRecord/interface/JetResolutionRcd.h"
+#include "CondFormats/DataRecord/interface/JetResolutionScaleFactorRcd.h"
 #include "DataFormats/JetReco/interface/GenJet.h"
 
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
@@ -139,8 +141,6 @@ private:
   edm::EDGetTokenT<edm::View<reco::GenParticle>> genToken_;
   edm::EDGetTokenT<double> rhoJetsNC_;
   edm::EDGetToken jetsToken_;
-  std::string jetResType_;
-  std::string jetResSFType_;
   JME::JetResolution::Token jetResolutionToken_;
   JME::JetResolutionScaleFactor::Token jetResoultionScaleFactorToken_;
   edm::EDGetToken genJetsToken_;
@@ -215,10 +215,8 @@ MuonMiniAODAnalyzer::MuonMiniAODAnalyzer(const edm::ParameterSet& iConfig)
       genToken_(consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("gen"))),
       rhoJetsNC_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoJetsNC"))),
       jetsToken_(consumes<std::vector<pat::Jet>>(iConfig.getParameter<edm::InputTag>("jets"))),
-      jetResType_(iConfig.getParameter<std::string>("jetResType"),
-      jetResSFType_(iConfig.getParameter<std::string>("jetResSFType"),
-      jetResolutionToken_(esConsumes(edm::ESInputTag("", jetResType_))),
-      jetResoultionScaleFactorToken_(esConsumes(edm::ESInputTag("", jetResPtType_))),
+      jetResolutionToken_(esConsumes(edm::ESInputTag("", iConfig.getParameter<std::string>("jetResType")))),
+      jetResoultionScaleFactorToken_(esConsumes(edm::ESInputTag("", iConfig.getParameter<std::string>("jetResSFType")))),
       genJetsToken_(consumes<std::vector<reco::GenJet>>(iConfig.getParameter<edm::InputTag>("genJets"))),
       HLTPaths_(iConfig.getParameter<std::vector<std::string>>("triggerPaths")),
       tagFilters_(iConfig.getParameter<std::vector<std::string>>("tagFilters")),
@@ -241,7 +239,7 @@ MuonMiniAODAnalyzer::MuonMiniAODAnalyzer(const edm::ParameterSet& iConfig)
       maxdr_trk_mu_(iConfig.getParameter<double>("maxDRProbeTrkMuon")),
       momPdgId_(iConfig.getParameter<unsigned>("momPdgId")),
       genRecoDrMatch_(iConfig.getParameter<double>("genRecoDrMatch")),
-      prop1_(iConfig.getParameter<edm::ParameterSet>("propM1")),
+      prop1_(iConfig.getParameter<edm::ParameterSet>("propM1"),consumesCollector()),
       isMC_(iConfig.getParameter<bool>("isMC")),
       includeJets_(iConfig.getParameter<bool>("includeJets")),
       era_(iConfig.getParameter<std::string>("era")) {
@@ -378,10 +376,9 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   iSetup.get<IdealMagneticFieldRecord>().get(bField);
   edm::Handle<std::vector<reco::GenJet>> genJets;
   iEvent.getByToken(genJetsToken_, genJets);
-  JME::JetResolution resolution;
-  resolution = JME::JetResolution::get(iSetup, jetResolutionToken_);
-  JME::JetResolutionScaleFactor resolution_sf;
-  resolution_sf = JME::JetResolutionScaleFactor::get(iSetup, jetResoultionScaleFactorToken_);
+
+  JME::JetResolution resolution(iSetup.getData(jetResolutionToken_));
+  JME::JetResolutionScaleFactor resolution_sf(iSetup.getData(jetResoultionScaleFactorToken_));
 
   edm::Handle<edm::TriggerResults> trigResults;
   iEvent.getByToken(trgresultsToken_, trigResults);

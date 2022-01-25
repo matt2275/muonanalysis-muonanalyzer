@@ -24,6 +24,7 @@
  <use name="TrackingTools/Records"/>
  <use name="DataFormats/MuonReco" />
  <use name="CondFormats/BTauObjects" />
+ <use name="CondFormats/DataRecord" />
  <use name="CondTools/BTau" />
  <use name="CondFormats/JetMETObjects" />
  <use name="JetMETCorrections/JetCorrector" />
