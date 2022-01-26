@@ -1,3 +1,4 @@
+from __future__ import print_function
 """
 Dictionary for trigger information
 
@@ -790,9 +791,9 @@ def check_size(info, max_size = 100, keys = []):
     else:
       if len(v) > max_size:
         loc = '|'.join(keys)
-        print "WARNING either put less than {} paths/filters in hltInfoAll|{}|{}, or increase the quota from NtupleContent.h/.cc".format(max_size+1, loc, k)
+        print("WARNING either put less than {} paths/filters in hltInfoAll|{}|{}, or increase the quota from NtupleContent.h/.cc".format(max_size+1, loc, k))
         exit()
-    if len(keys) > 0 and k == info.keys()[-1]:
+    if len(keys) > 0 and k == list(info.keys())[-1]:
       keys.pop()
 
 def getShortEraForHLT(era):

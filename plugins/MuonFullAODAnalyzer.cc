@@ -165,8 +165,6 @@ private:
   edm::EDGetTokenT<double> rhoJetsNC_;
   edm::EDGetToken jetsToken_;
   edm::EDGetToken jetCorrectorToken_;
-  std::string jetResType_;
-  std::string jetResSFType_;
   JME::JetResolution::Token jetResolutionToken_;
   JME::JetResolutionScaleFactor::Token jetResoultionScaleFactorToken_;
   edm::EDGetToken genJetsToken_;
@@ -252,8 +250,6 @@ MuonFullAODAnalyzer::MuonFullAODAnalyzer(const edm::ParameterSet& iConfig)
       rhoJetsNC_(consumes<double>(iConfig.getParameter<edm::InputTag>("rhoJetsNC"))),
       jetsToken_(consumes<std::vector<reco::PFJet>>(iConfig.getParameter<edm::InputTag>("jets"))),
       jetCorrectorToken_(consumes<reco::JetCorrector>(iConfig.getParameter<edm::InputTag>("jetCorrector"))),
-      //jetResType_(iConfig.getParameter<std::string>("jetResType"),
-      //jetResSFType_(iConfig.getParameter<std::string>("jetResSFType"),
       jetResolutionToken_(esConsumes(edm::ESInputTag("", iConfig.getParameter<std::string>("jetResType")))),
       jetResoultionScaleFactorToken_(esConsumes(edm::ESInputTag("", iConfig.getParameter<std::string>("jetResSFType")))),
       genJetsToken_(consumes<std::vector<reco::GenJet>>(iConfig.getParameter<edm::InputTag>("genJets"))),

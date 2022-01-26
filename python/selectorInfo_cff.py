@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 # The standard muon selectors in reco::Muon::Selector
 # Current version:
 #    https://github.com/cms-sw/cmssw/blob/CMSSW_10_6_18/DataFormats/MuonReco/interface/Muon.h#L192-L227
@@ -76,7 +76,7 @@ def getSelectorNamesAndBits(era, isFullAOD):
     elif era == 'Run2018_UL':
         pass
     else:
-        print 'getSelectorNamesAndBits: undefined era "{}" -> return empty lists'.format(era)
+        print('getSelectorNamesAndBits: undefined era "{}" -> return empty lists'.format(era))
         return [], []
 
     return list(map(list, zip(*_selectors)))
