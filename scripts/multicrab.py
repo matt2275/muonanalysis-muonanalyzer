@@ -223,10 +223,8 @@ def main():
             config.Site.storageSite = 'T2_CH_CERN'
             config.Data.outLFNDirBase = '/store/group/phys_muon/%s/TnP_ntuples/%s/%s/%s/%s' % (getUsername(), particle, resonance, era, dataTier)
         elif storageSite == 'CERNBOX':
-            # CERNBOX write access from CRAB requires special permission from CERN IT
             # See https://twiki.cern.ch/twiki/bin/view/CMSPublic/CRAB3FAQ#Can_I_send_CRAB_output_to_CERNBO
-            # and to ask permission: https://cern.service-now.com/service-portal?id=sc_cat_item&name=request-map-dn-to-gridmap&se=CERNBox-Service
-            config.Site.storageSite = 'T2_CH_CERNBOX'
+            config.Site.storageSite = 'T3_CH_CERNBOX'
             config.Data.outLFNDirBase = '/store/user/%s/TnP_ntuples/%s/%s/%s/%s' % (getUsername(), particle, resonance, era, dataTier)
 
         #config.Site.ignoreGlobalBlacklist = True
