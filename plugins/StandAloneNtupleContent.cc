@@ -25,7 +25,7 @@ void StandAloneNtupleContent::CreateBranches(const std::vector<std::string> &HLT
   t1->Branch("rho", &Rho);
   t1->Branch("nmuons", &nmuons);
   t1->Branch("ntag", &ntag);
-  t1->Branch("npairs", &npairs);  
+  t1->Branch("npairs", &npairs);
   t1->Branch("genmu1_pt", &genmu1_pt);
   t1->Branch("genmu1_eta", &genmu1_eta);
   t1->Branch("genmu1_phi", &genmu1_phi);
@@ -110,7 +110,7 @@ void StandAloneNtupleContent::CreateBranches(const std::vector<std::string> &HLT
   t1->Branch("probe_ncosmic", &probe_ncosmic);
   t1->Branch("probe_cosmic_minDR", &probe_cosmic_minDR);
   //  t1->Branch("probe_isGood", &probe_isGood);
-//  t1->Branch("probe_isHighPurity", &probe_isHighPurity);
+  //  t1->Branch("probe_isHighPurity", &probe_isHighPurity);
   t1->Branch("probe_validFraction", &probe_validFraction);
   t1->Branch("probe_trkChi2", &probe_trkChi2);
   t1->Branch("probe_positionChi2", &probe_positionChi2);
@@ -142,19 +142,30 @@ void StandAloneNtupleContent::CreateBranches(const std::vector<std::string> &HLT
   t1->Branch("probe_stationMask", &probe_stationMask);
   t1->Branch("probe_nShowers", &probe_nShowers);
   t1->Branch("probe_nsegments", &probe_nsegments);
-  
+
   t1->Branch("probe_isTrkMatch", &probe_isTrkMatch);
   t1->Branch("probe_trkPt", &probe_trkPt);
   t1->Branch("probe_trkEta", &probe_trkEta);
   t1->Branch("probe_trkPhi", &probe_trkPhi);
   t1->Branch("probe_trkCharge", &probe_trkCharge);
-  t1->Branch("probe_trk_SAmu_DeltaR", &probe_trk_SAmu_DeltaR);  
-  t1->Branch("probe_trkDxy", &probe_trkDxy); 
+  t1->Branch("probe_trk_SAmu_DeltaR", &probe_trk_SAmu_DeltaR);
+  t1->Branch("probe_trkDxy", &probe_trkDxy);
   t1->Branch("probe_trkDz", &probe_trkDz);
   t1->Branch("probe_trkHits", &probe_trkHits);
   t1->Branch("probe_trkStripHits", &probe_trkStripHits);
-  t1->Branch("probe_trkPixelHits", &probe_trkPixelHits);   
+  t1->Branch("probe_trkPixelHits", &probe_trkPixelHits);
 
+  t1->Branch("probeSA_isTrkMatch", &probeSA_isTrkMatch);
+  t1->Branch("probeSA_trkPt", &probeSA_trkPt);
+  t1->Branch("probeSA_trkEta", &probeSA_trkEta);
+  t1->Branch("probeSA_trkPhi", &probeSA_trkPhi);
+  t1->Branch("probeSA_trkCharge", &probeSA_trkCharge);
+  t1->Branch("probeSA_trk_SAmu_DeltaR", &probeSA_trk_SAmu_DeltaR);
+  t1->Branch("probeSA_trkDxy", &probeSA_trkDxy);
+  t1->Branch("probeSA_trkDz", &probeSA_trkDz);
+  t1->Branch("probeSA_trkHits", &probeSA_trkHits);
+  t1->Branch("probeSA_trkStripHits", &probeSA_trkStripHits);
+  t1->Branch("probeSA_trkPixelHits", &probeSA_trkPixelHits);
 
   // Pair specific
   t1->Branch("pair_pt", &pair_pt);
@@ -167,7 +178,6 @@ void StandAloneNtupleContent::CreateBranches(const std::vector<std::string> &HLT
   t1->Branch("pair_rank_dz_PV_SV", &pair_rank_dz_PV_SV);
   t1->Branch("pair_rank_dPhi_muons", &pair_rank_dPhi_muons);
   t1->Branch("pair_rank_dM_Z_Mmumu", &pair_rank_dM_Z_Mmumu);
-
 
   t1->Branch("tag_simType", &tag_simType);
   t1->Branch("tag_simExtType", &tag_simExtType);
@@ -194,7 +204,7 @@ void StandAloneNtupleContent::CreateBranches(const std::vector<std::string> &HLT
   t1->Branch("probe_simPt", &probe_simPt);
   t1->Branch("probe_simEta", &probe_simEta);
   t1->Branch("probe_simPhi", &probe_simPhi);
-  
+
   for (unsigned int ihlt = 0; ihlt < HLTs.size(); ihlt++)
     t1->Branch(TString(HLTs[ihlt]), &trigger[ihlt]);
 }
@@ -207,7 +217,7 @@ void StandAloneNtupleContent::CreateExtraTrgBranches(const std::vector<std::stri
       t1->Branch(TString("tag_" + HLTs[ihlt] + "_eta"), &tag_trg_eta[ihlt]);
       t1->Branch(TString("tag_" + HLTs[ihlt] + "_phi"), &tag_trg_phi[ihlt]);
       t1->Branch(TString("tag_" + HLTs[ihlt] + "_dr"), &tag_trg_dr[ihlt]);
-    } 
+    }
   }
 }
 
@@ -251,8 +261,6 @@ void StandAloneNtupleContent::ClearBranches() {
   genmuFSfromHP2_charge = -99;
   genMassFSfromHP = -99;
 
-
-
   tag_pt = 0;
   tag_eta = -99;
   tag_phi = -99;
@@ -286,7 +294,7 @@ void StandAloneNtupleContent::ClearBranches() {
   tag_tuneP_pt = -99;
   tag_tuneP_pterr = -99;
   tag_nsegments = -99;
-  
+
   iprobe = 0;
   probe_pt = 0;
   probe_eta = -99;
@@ -314,7 +322,7 @@ void StandAloneNtupleContent::ClearBranches() {
   probe_ncosmic = -99;
   probe_cosmic_minDR = +99;
   probe_isGood = false;
-//  probe_isHighPurity = false;
+  //  probe_isHighPurity = false;
   probe_validFraction = -99;
   probe_trkChi2 = -99;
   probe_positionChi2 = -99;
@@ -351,16 +359,28 @@ void StandAloneNtupleContent::ClearBranches() {
   probe_nsegments = -99;
 
   probe_isTrkMatch = false;
-  probe_trkPt= 0;
-  probe_trkEta= -99;
-  probe_trkPhi= -99;
-  probe_trkCharge= -99;
+  probe_trkPt = 0;
+  probe_trkEta = -99;
+  probe_trkPhi = -99;
+  probe_trkCharge = -99;
   probe_trk_SAmu_DeltaR = -99;
-  probe_trkDxy= -99; 
-  probe_trkDz= -99;
-  probe_trkHits= -99;
-  probe_trkStripHits= -99;
-  probe_trkPixelHits= -99;  
+  probe_trkDxy = -99;
+  probe_trkDz = -99;
+  probe_trkHits = -99;
+  probe_trkStripHits = -99;
+  probe_trkPixelHits = -99;
+
+  probeSA_isTrkMatch = false;
+  probeSA_trkPt = 0;
+  probeSA_trkEta = -99;
+  probeSA_trkPhi = -99;
+  probeSA_trkCharge = -99;
+  probeSA_trk_SAmu_DeltaR = -99;
+  probeSA_trkDxy = -99;
+  probeSA_trkDz = -99;
+  probeSA_trkHits = -99;
+  probeSA_trkStripHits = -99;
+  probeSA_trkPixelHits = -99;
 
   pair_pt = 0;
   pair_mass = 0;
@@ -398,8 +418,7 @@ void StandAloneNtupleContent::ClearBranches() {
   probe_simPt = -99;
   probe_simEta = -99;
   probe_simPhi = -99;
-  
-  
+
   for (unsigned int itrg = 0; itrg < NTRIGGERMAX; itrg++) {
     trigger[itrg] = false;
     tag_trg[itrg] = false;
@@ -407,8 +426,5 @@ void StandAloneNtupleContent::ClearBranches() {
     tag_trg_eta[itrg] = -99;
     tag_trg_phi[itrg] = -99;
     tag_trg_dr[itrg] = 99;
-
   }
-
-
 }

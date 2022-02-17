@@ -50,7 +50,6 @@ public:
   int iprobe;
   int npairs;
 
-
   // genmu1: mu-, genmu2: mu+
   float genmu1_pt;
   float genmu1_eta;
@@ -72,8 +71,6 @@ public:
   float genmuFSfromHP2_phi;
   float genmuFSfromHP2_charge;
   float genMassFSfromHP;
-
-
 
   // Tag properties
   float tag_pt;
@@ -137,7 +134,7 @@ public:
   int probe_ncosmic;
   float probe_cosmic_minDR;
   bool probe_isGood;
-//  bool probe_isHighPurity;
+  //  bool probe_isHighPurity;
   float probe_relIso04;
   float probe_miniIso;
   float probe_miniIsoCharged;
@@ -174,20 +171,30 @@ public:
   int probe_nShowers;
   int probe_nsegments;
 
+  // probe track information
+  bool probe_isTrkMatch;
+  float probe_trkPt;
+  float probe_trkEta;
+  float probe_trkPhi;
+  int probe_trkCharge;
+  float probe_trkDxy;
+  float probe_trkDz;
+  int probe_trkHits;
+  int probe_trkStripHits;
+  int probe_trkPixelHits;
+  float probe_trk_SAmu_DeltaR;
 
-// probe track information
-     bool probe_isTrkMatch;
-     float probe_trkPt;
-     float probe_trkEta;
-     float probe_trkPhi;
-     int probe_trkCharge;
-     float probe_trkDxy; 
-     float probe_trkDz;
-     int probe_trkHits;
-     int probe_trkStripHits;
-     int probe_trkPixelHits;
-     float probe_trk_SAmu_DeltaR;     
-
+  bool probeSA_isTrkMatch;
+  float probeSA_trkPt;
+  float probeSA_trkEta;
+  float probeSA_trkPhi;
+  int probeSA_trkCharge;
+  float probeSA_trkDxy;
+  float probeSA_trkDz;
+  int probeSA_trkHits;
+  int probeSA_trkStripHits;
+  int probeSA_trkPixelHits;
+  float probeSA_trk_SAmu_DeltaR;
 
   // Pair properties
   float pair_pt;
@@ -200,8 +207,6 @@ public:
   int pair_rank_dz_PV_SV;
   int pair_rank_dPhi_muons;
   int pair_rank_dM_Z_Mmumu;
-
-
 
   // sim matching information
   int tag_simType;
@@ -232,7 +237,6 @@ public:
 
   static const int NTRIGGERMAX = 100;
   bool trigger[NTRIGGERMAX];
-
 
   // Trigger matches
   bool tag_trg[NTRIGGERMAX];

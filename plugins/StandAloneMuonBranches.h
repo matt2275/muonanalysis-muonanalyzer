@@ -21,9 +21,9 @@
 #include "NtupleContent.h"
 #include "helper.h"
 
-inline void StandAloneFillEventInfo(
-                            NtupleContent &nt, StandAloneNtupleContent &SA_nt
-                            , const std::vector<std::string> &HLTs) {
+inline void StandAloneFillEventInfo(NtupleContent &nt,
+                                    StandAloneNtupleContent &SA_nt,
+                                    const std::vector<std::string> &HLTs) {
   SA_nt.run = nt.run;
   SA_nt.event = nt.event;
   SA_nt.ls = nt.ls;
@@ -40,7 +40,6 @@ inline void StandAloneFillEventInfo(
   SA_nt.Rho = nt.Rho;
   SA_nt.nmuons = nt.nmuons;
   SA_nt.ntag = nt.ntag;
-
 
   // Gens
   SA_nt.genmu1_pt = nt.genmu1_pt;
@@ -61,23 +60,23 @@ inline void StandAloneFillEventInfo(
   SA_nt.genmuFSfromHP2_eta = nt.genmuFSfromHP2_eta;
   SA_nt.genmuFSfromHP2_phi = nt.genmuFSfromHP2_phi;
   SA_nt.genmuFSfromHP2_charge = nt.genmuFSfromHP2_charge;
-  SA_nt.genMassFSfromHP = nt.genMassFSfromHP;  
+  SA_nt.genMassFSfromHP = nt.genMassFSfromHP;
 
-  for (unsigned int ihlt = 0; ihlt < HLTs.size(); ihlt++){
-   SA_nt.trigger[ihlt] = nt.trigger[ihlt];  
-   // SA_nt.tag_trg[ihlt] = nt.tag_trg[ihlt];
-   // SA_nt.tag_trg_pt[ihlt] = nt.tag_trg_pt[ihlt];
-   // SA_nt.tag_trg_eta[ihlt] = nt.tag_trg_eta[ihlt];
-   // SA_nt.tag_trg_phi[ihlt] = nt.tag_trg_phi[ihlt];
-   // SA_nt.tag_trg_dr[ihlt] = nt.tag_trg_dr[ihlt];
-  }   
+  for (unsigned int ihlt = 0; ihlt < HLTs.size(); ihlt++) {
+    SA_nt.trigger[ihlt] = nt.trigger[ihlt];
+    // SA_nt.tag_trg[ihlt] = nt.tag_trg[ihlt];
+    // SA_nt.tag_trg_pt[ihlt] = nt.tag_trg_pt[ihlt];
+    // SA_nt.tag_trg_eta[ihlt] = nt.tag_trg_eta[ihlt];
+    // SA_nt.tag_trg_phi[ihlt] = nt.tag_trg_phi[ihlt];
+    // SA_nt.tag_trg_dr[ihlt] = nt.tag_trg_dr[ihlt];
+  }
 }
 
 template <typename MUON, typename TRK>
 inline void StandAloneFillTagBranches(const MUON &muon,
-                            const std::vector<TRK> &tracks,
-                            StandAloneNtupleContent &nt, 
-                             const reco::Vertex &vertex) {
+                                      const std::vector<TRK> &tracks,
+                                      StandAloneNtupleContent &nt,
+                                      const reco::Vertex &vertex) {
   nt.tag_pt = muon.pt();
   nt.tag_eta = muon.eta();
   nt.tag_phi = muon.phi();
@@ -121,8 +120,13 @@ inline void StandAloneFillTagBranches(const MUON &muon,
 }
 
 template <typename MUON, typename MUO, typename TRK>
-inline void StandAloneFillProbeBranches(
-    const MUON &SAmu, const std::vector<MUO> &muons, const std::vector<TRK> &tracks, StandAloneNtupleContent &nt, const int match_muon_idx, const int match_track_idx, const reco::Vertex &vertex) {
+inline void StandAloneFillProbeBranches(const MUON &SAmu,
+                                        const std::vector<MUO> &muons,
+                                        const std::vector<TRK> &tracks,
+                                        StandAloneNtupleContent &nt,
+                                        const int match_muon_idx,
+                                        const reco::Vertex &vertex,
+                                        const std::vector<reco::Track> &match_tracks) {
   nt.probe_pt = SAmu.pt();
   nt.probe_eta = SAmu.eta();
   nt.probe_phi = SAmu.phi();
@@ -130,37 +134,36 @@ inline void StandAloneFillProbeBranches(
   float iso04 = (TrackerEnergy04<TRK>(SAmu.eta(), SAmu.phi(), tracks) - SAmu.pt()) / SAmu.pt();
   nt.probe_relIso04 = (iso04 > 0) ? iso04 : 0;
   // success --> muon obj and track match in dR
-  if (match_track_idx > -1) {
-     reco::Track match_track = tracks.at(match_track_idx);
-     nt.probe_isTrkMatch = true;
-     nt.probe_trkPt = match_track.pt();
-     nt.probe_trkEta = match_track.eta();
-     nt.probe_trkPhi = match_track.phi();
-     nt.probe_trkCharge = match_track.charge();
-     nt.probe_trkDxy = match_track.dxy(); 
-     nt.probe_trkDz = match_track.dz();
-     nt.probe_trkHits = match_track.numberOfValidHits();
-     nt.probe_trkStripHits = match_track.hitPattern().numberOfValidStripHits();
-     nt.probe_trkPixelHits = match_track.hitPattern().numberOfValidPixelHits();  
-     nt.probe_trk_SAmu_DeltaR = deltaR(match_track.eta(), match_track.phi(), SAmu.eta(), SAmu.phi());     
+  if (match_tracks.size() >= 1) {
+    reco::Track match_track = match_tracks.at(0);
+    nt.probe_isTrkMatch = true;
+    nt.probe_trkPt = match_track.pt();
+    nt.probe_trkEta = match_track.eta();
+    nt.probe_trkPhi = match_track.phi();
+    nt.probe_trkCharge = match_track.charge();
+    nt.probe_trkDxy = match_track.dxy();
+    nt.probe_trkDz = match_track.dz();
+    nt.probe_trkHits = match_track.numberOfValidHits();
+    nt.probe_trkStripHits = match_track.hitPattern().numberOfValidStripHits();
+    nt.probe_trkPixelHits = match_track.hitPattern().numberOfValidPixelHits();
+    nt.probe_trk_SAmu_DeltaR = deltaR(match_track.eta(), match_track.phi(), SAmu.eta(), SAmu.phi());
   }
-
-  if (match_track_idx < -1) {
-     nt.probe_isTrkMatch = false;
-     nt.probe_trkPt = -99;
-     nt.probe_trkEta = -99;
-     nt.probe_trkPhi = -99;
-     nt.probe_trkCharge = -99;
-     nt.probe_trkDxy = -99; 
-     nt.probe_trkDz = -99;
-     nt.probe_trkHits = -99;
-     nt.probe_trkStripHits = -99;
-     nt.probe_trkPixelHits = -99;
-     nt.probe_trk_SAmu_DeltaR = -99;     
+  if (match_tracks.size() >= 2) {
+    reco::Track match_track = match_tracks.at(1);
+    nt.probeSA_isTrkMatch = true;
+    nt.probeSA_trkPt = match_track.pt();
+    nt.probeSA_trkEta = match_track.eta();
+    nt.probeSA_trkPhi = match_track.phi();
+    nt.probeSA_trkCharge = match_track.charge();
+    nt.probeSA_trkDxy = match_track.dxy();
+    nt.probeSA_trkDz = match_track.dz();
+    nt.probeSA_trkHits = match_track.numberOfValidHits();
+    nt.probeSA_trkStripHits = match_track.hitPattern().numberOfValidStripHits();
+    nt.probeSA_trkPixelHits = match_track.hitPattern().numberOfValidPixelHits();
+    nt.probeSA_trk_SAmu_DeltaR = deltaR(match_track.eta(), match_track.phi(), SAmu.eta(), SAmu.phi());
   }
-  
   if (match_muon_idx > -1) {
-    reco::Muon mu = muons.at(match_muon_idx);
+    MUO mu = muons.at(match_muon_idx);
     // Use selectors instead of 'mu.passed' method which is only introduced in CMSSW_9_4_X
     nt.probe_mupt = mu.pt();
     nt.probe_mueta = mu.eta();
@@ -228,7 +231,6 @@ inline void StandAloneFillProbeBranches(
     nt.probe_trkKink = mu.combinedQuality().trkKink;
     nt.probe_segmentCompatibility = muon::segmentCompatibility(mu);
     nt.probe_isMuMatched = true;
-
     int nsegments = 0;
     for (auto &chamber : mu.matches()) {
       if (chamber.id.det() != DetId::Muon)
@@ -240,6 +242,7 @@ inline void StandAloneFillProbeBranches(
     nt.probe_nsegments = nsegments;
   }
   // no successs (no match)
+
   else {
     nt.probe_mupt = -99;
     nt.probe_mueta = -99;
@@ -296,6 +299,35 @@ inline void StandAloneFillPairBranches(const MUO &muon, const TRK &trk, StandAlo
   nt.pair_dR = deltaR(muon.eta(), muon.phi(), trk.eta(), trk.phi());
 }
 
+inline void StandAloneFillSimMatchingBranches(const pat::Muon &mu, StandAloneNtupleContent &nt, bool isTag) {
+  if (isTag) {
+    nt.tag_simType = mu.simType();
+    nt.tag_simExtType = mu.simExtType();
+    nt.tag_simFlavour = mu.simFlavour();
+    nt.tag_simHeaviestMotherFlavour = mu.simHeaviestMotherFlavour();
+    nt.tag_simPdgId = mu.simPdgId();
+    nt.tag_simMotherPdgId = mu.simMotherPdgId();
+    nt.tag_simBX = mu.simBX();
+    nt.tag_simProdRho = mu.simProdRho();
+    nt.tag_simProdZ = mu.simProdZ();
+    nt.tag_simPt = mu.simPt();
+    nt.tag_simEta = mu.simEta();
+    nt.tag_simPhi = mu.simPhi();
+  } else {
+    nt.probe_simType = mu.simType();
+    nt.probe_simExtType = mu.simExtType();
+    nt.probe_simFlavour = mu.simFlavour();
+    nt.probe_simHeaviestMotherFlavour = mu.simHeaviestMotherFlavour();
+    nt.probe_simPdgId = mu.simPdgId();
+    nt.probe_simMotherPdgId = mu.simMotherPdgId();
+    nt.probe_simBX = mu.simBX();
+    nt.probe_simProdRho = mu.simProdRho();
+    nt.probe_simProdZ = mu.simProdZ();
+    nt.probe_simPt = mu.simPt();
+    nt.probe_simEta = mu.simEta();
+    nt.probe_simPhi = mu.simPhi();
+  }
+}
 
 inline void StandAloneFillSimMatchingBranchesDummy(StandAloneNtupleContent &nt, bool isTag) {
   if (isTag) {
@@ -327,7 +359,9 @@ inline void StandAloneFillSimMatchingBranchesDummy(StandAloneNtupleContent &nt, 
   }
 }
 
-inline void StandAloneFillSimMatchingBranchesAOD(const reco::MuonSimInfo &msi, StandAloneNtupleContent &nt, bool isTag) {
+inline void StandAloneFillSimMatchingBranchesAOD(const reco::MuonSimInfo &msi,
+                                                 StandAloneNtupleContent &nt,
+                                                 bool isTag) {
   if (isTag) {
     nt.tag_simType = msi.primaryClass;
     nt.tag_simExtType = msi.extendedClass;
@@ -356,6 +390,5 @@ inline void StandAloneFillSimMatchingBranchesAOD(const reco::MuonSimInfo &msi, S
     nt.probe_simPhi = msi.p4.phi();
   }
 }
-
 
 #endif
