@@ -64,6 +64,11 @@ options.register('fromCRAB', False,
     "Is config run from CRAB"
 )
 
+options.register('isStandAlone', False,
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.bool,
+    "run StandAlone Muon Analyzers"
+)
 options.parseArguments()
 
 # defaults
@@ -149,19 +154,36 @@ process.options = cms.untracked.PSet(
 )
 
 from MuonAnalysis.MuonAnalyzer.tools.ntuple_tools import *
-if options.isFullAOD:
-    if options.resonance == 'Z':
-        process = muonAnalysis_customizeFullAOD_Z(process)
+if options.isStandAlone:
+    if options.isFullAOD:
+        if options.resonance == 'Z':
+            process = muonAnalysis_customizeStandAloneFullAOD_Z(process)
+        else:
+            process = muonAnalysis_customizeFullAOD_JPsi(process) # No JPsi Standalone config set yet
+        if not options.isMC:
+            process.muon.jetCorrector = cms.InputTag(
+                "ak4PFCHSL1FastL2L3ResidualCorrector")
     else:
-        process = muonAnalysis_customizeFullAOD_JPsi(process)
-    if not options.isMC:
-        process.muon.jetCorrector = cms.InputTag(
-            "ak4PFCHSL1FastL2L3ResidualCorrector")
+        if options.resonance == 'Z':
+            process = muonAnalysis_customizeStandAloneMiniAOD_Z(process)
+        else:
+            process = muonAnalysis_customizeMiniAOD(process)  # No JPsi Standalone config set yet
+
 else:
-    if options.resonance == 'Z':
-        process = muonAnalysis_customizeMiniAOD_Z(process)
+    if options.isFullAOD:
+        if options.resonance == 'Z':
+            process = muonAnalysis_customizeFullAOD_Z(process)
+        else:
+            process = muonAnalysis_customizeFullAOD_JPsi(process)
+        if not options.isMC:
+            process.muon.jetCorrector = cms.InputTag(
+                "ak4PFCHSL1FastL2L3ResidualCorrector")
     else:
-        process = muonAnalysis_customizeMiniAOD(process)
+        if options.resonance == 'Z':
+            process = muonAnalysis_customizeMiniAOD_Z(process)
+        else:
+            process = muonAnalysis_customizeMiniAOD(process)
+
 
 process.muon.isMC = options.isMC
 process.muon.includeJets = options.includeJets
