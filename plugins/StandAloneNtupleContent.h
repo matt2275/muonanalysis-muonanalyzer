@@ -235,6 +235,9 @@ public:
   float probe_simEta;
   float probe_simPhi;
 
+  float probe_numofassoctrks;
+  
+  
   static const int NTRIGGERMAX = 100;
   bool trigger[NTRIGGERMAX];
 

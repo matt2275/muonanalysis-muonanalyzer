@@ -1370,15 +1370,19 @@ void StandAloneMuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm:
         reco::Muon fakeMuon;
         fakeMuon.setP4(mu2);
         fakeMuon.setCharge(probe.charge());
-        vector<reco::Track> match_tracks;
+        std::pair<std::vector<bool>, std::vector<reco::Track>> match_tracks;
         int match_trk_idx = -99;
         int match_muon_idx = &tmp_probe - &muons->at(0);
         if (it != SA_trk_muon_map.second.end()) {
           unsigned idx = std::distance(SA_trk_muon_map.second.begin(), it);
           match_trk_idx = SA_trk_muon_map.first[idx];
-          match_tracks.push_back(tracks->at(match_trk_idx));
+          match_tracks.first.push_back(true);
+          match_tracks.second.push_back(tracks->at(match_trk_idx));
         }
-
+        if (it == SA_trk_muon_map.second.end()) {
+          match_tracks.first.push_back(false);
+          match_tracks.second.push_back(tracks->at(0));
+        }
         // filling probe standalone ntuple info
         StandAloneFillProbeBranches<reco::Muon, reco::Muon, reco::Track>(
             fakeMuon, *muons, *tracks, StandAlone_nt, match_muon_idx, *pv, match_tracks);

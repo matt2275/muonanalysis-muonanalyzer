@@ -205,6 +205,8 @@ void StandAloneNtupleContent::CreateBranches(const std::vector<std::string> &HLT
   t1->Branch("probe_simEta", &probe_simEta);
   t1->Branch("probe_simPhi", &probe_simPhi);
 
+
+  t1->Branch("probe_numofassoctrks", &probe_numofassoctrks);
   for (unsigned int ihlt = 0; ihlt < HLTs.size(); ihlt++)
     t1->Branch(TString(HLTs[ihlt]), &trigger[ihlt]);
 }
@@ -359,7 +361,7 @@ void StandAloneNtupleContent::ClearBranches() {
   probe_nsegments = -99;
 
   probe_isTrkMatch = false;
-  probe_trkPt = 0;
+  probe_trkPt = -99;
   probe_trkEta = -99;
   probe_trkPhi = -99;
   probe_trkCharge = -99;
@@ -371,7 +373,7 @@ void StandAloneNtupleContent::ClearBranches() {
   probe_trkPixelHits = -99;
 
   probeSA_isTrkMatch = false;
-  probeSA_trkPt = 0;
+  probeSA_trkPt = -99;
   probeSA_trkEta = -99;
   probeSA_trkPhi = -99;
   probeSA_trkCharge = -99;
@@ -418,6 +420,8 @@ void StandAloneNtupleContent::ClearBranches() {
   probe_simPt = -99;
   probe_simEta = -99;
   probe_simPhi = -99;
+  
+  probe_numofassoctrks = -99;
 
   for (unsigned int itrg = 0; itrg < NTRIGGERMAX; itrg++) {
     trigger[itrg] = false;

@@ -698,6 +698,7 @@ void StandAloneMuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm:
   std::pair<std::vector<unsigned>, std::vector<unsigned>> trk_SAmuon_map;
   std::pair<std::vector<unsigned>, std::vector<unsigned>> associatedtrk_muon_map;
 
+  // cout << " muon size " << muons->size() << endl;
   for (const auto& mu : *muons) {
     if (!mu.isStandAloneMuon())
       continue;
@@ -711,12 +712,31 @@ void StandAloneMuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm:
     float eps = 1e-2;  // for associated trk to be matched DR and pt diff less than eps
     bool hasAssociatedTrkMatch = false;
     reco::CandidatePtr trk_mu = mu.originalObjectRef();
+
     for (const auto& trk : nocut_tracks) {
       if (N_muontracks > 0) {
+     // float charge_diff = trk_mu->charge() - trk.charge();
+     // float pt_diff = trk_mu->pt() - trk.pt();
+     // float eta_diff = trk_mu->eta() - trk.eta(); 
+     // float phi_diff = trk_mu->phi() - trk.phi();
         bool charge_match = trk_mu->charge() == trk.charge();
         bool pt_match = fabs(trk_mu->pt() - trk.pt()) < eps;
         bool DeltaR_match = deltaR(trk_mu->eta(), trk_mu->phi(), trk.eta(), trk.phi()) < eps;
+        // if(charge_match && DeltaR_match && !pt_match){
+     // cout << " Failed pt Event " << nt.event << " diff charge " <<  charge_diff << 
+     // " pt " <<  pt_diff <<  " eta " <<  eta_diff << " phi " <<  phi_diff << endl; 
+        // }
+        // if(charge_match && !DeltaR_match && pt_match){
+     // cout << " Failed deltaR Event " << nt.event << "  Check diff charge " <<  charge_diff << 
+     // " pt " <<  pt_diff <<  " eta " <<  eta_diff << " phi " <<  phi_diff << endl; 
+        // }
+        // if(!charge_match && DeltaR_match && pt_match){
+     // cout << " Failed charge Event " << nt.event << "  Check diff charge " <<  charge_diff << 
+     // " pt " <<  pt_diff <<  " eta " <<  eta_diff << " phi " <<  phi_diff << endl; 
+        // }
         if (charge_match && pt_match && DeltaR_match) {
+     // cout << " Passed Check Event " << nt.event << " diff charge " <<  charge_diff << 
+     // " pt " <<  pt_diff <<  " eta " <<  eta_diff << " phi " <<  phi_diff << endl;  
           idx_associatedtrk = &trk - &nocut_tracks[0];
           hasAssociatedTrkMatch = true;
         }
@@ -744,6 +764,9 @@ void StandAloneMuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm:
     trk_SAmuon_map.first.push_back(idx_trk);
     trk_SAmuon_map.second.push_back(&mu - &muons->at(0));
   }
+  
+  // cout << " Check Assoc Vec Size " << associatedtrk_muon_map.first.size() << " Track Match Size" 
+ // << trk_SAmuon_map.first.size()  << endl;
 
   std::vector<pat::Jet> corrJets;
   if (includeJets_) {
@@ -955,23 +978,34 @@ void StandAloneMuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm:
         int match_trk_idx = -99;
         int assoc_trk_idx = -99;
         int match_muon_idx = &tmp_probe - &muons->at(0);
-        std::vector<reco::Track> match_tracks;
+        std::pair<std::vector<bool>, std::vector<reco::Track>> match_tracks;
         if (it != trk_SAmuon_map.second.end()) {
           unsigned idx = std::distance(trk_SAmuon_map.second.begin(), it);
           match_trk_idx = trk_SAmuon_map.first[idx];
-          match_tracks.push_back(nocut_tracks.at(match_trk_idx).pseudoTrack());
+          match_tracks.first.push_back(true);
+          match_tracks.second.push_back(nocut_tracks.at(match_trk_idx).pseudoTrack());
+        }
+        if (it == trk_SAmuon_map.second.end()) {
+          match_tracks.first.push_back(false);
+          match_tracks.second.push_back(nocut_tracks.at(0).pseudoTrack());
         }
 
         if (assoc_it != associatedtrk_muon_map.second.end()) {
           unsigned assoc_idx = std::distance(associatedtrk_muon_map.second.begin(), assoc_it);
           assoc_trk_idx = associatedtrk_muon_map.first[assoc_idx];
-          match_tracks.push_back(nocut_tracks.at(assoc_trk_idx).pseudoTrack());
+          match_tracks.first.push_back(true);         
+          match_tracks.second.push_back(nocut_tracks.at(assoc_trk_idx).pseudoTrack());
         }
+        if (assoc_it == associatedtrk_muon_map.second.end()) {
+          match_tracks.first.push_back(false);         
+          match_tracks.second.push_back(nocut_tracks.at(0).pseudoTrack());
+        }
+        
 
         //filling standalone probe ntuple info
         StandAloneFillProbeBranches<reco::Muon, pat::Muon, pat::PackedCandidate>(
             fakeMuon, *muons, tracks, StandAlone_nt, match_muon_idx, *pv, match_tracks);
-
+        StandAlone_nt.probe_numofassoctrks = tmp_probe.numberOfSourceCandidatePtrs();
         if (iEvent.isRealData())
           FillSimMatchingBranchesDummy(nt, true);
         else

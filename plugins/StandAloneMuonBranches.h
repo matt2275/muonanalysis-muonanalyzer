@@ -126,7 +126,7 @@ inline void StandAloneFillProbeBranches(const MUON &SAmu,
                                         StandAloneNtupleContent &nt,
                                         const int match_muon_idx,
                                         const reco::Vertex &vertex,
-                                        const std::vector<reco::Track> &match_tracks) {
+                                        const std::pair<std::vector<bool>, std::vector<reco::Track>> &match_tracks) {
   nt.probe_pt = SAmu.pt();
   nt.probe_eta = SAmu.eta();
   nt.probe_phi = SAmu.phi();
@@ -134,8 +134,9 @@ inline void StandAloneFillProbeBranches(const MUON &SAmu,
   float iso04 = (TrackerEnergy04<TRK>(SAmu.eta(), SAmu.phi(), tracks) - SAmu.pt()) / SAmu.pt();
   nt.probe_relIso04 = (iso04 > 0) ? iso04 : 0;
   // success --> muon obj and track match in dR
-  if (match_tracks.size() >= 1) {
-    reco::Track match_track = match_tracks.at(0);
+  if (match_tracks.first.size() >= 1) {
+    if(match_tracks.first.at(0)){
+    reco::Track match_track = match_tracks.second.at(0);
     nt.probe_isTrkMatch = true;
     nt.probe_trkPt = match_track.pt();
     nt.probe_trkEta = match_track.eta();
@@ -147,9 +148,11 @@ inline void StandAloneFillProbeBranches(const MUON &SAmu,
     nt.probe_trkStripHits = match_track.hitPattern().numberOfValidStripHits();
     nt.probe_trkPixelHits = match_track.hitPattern().numberOfValidPixelHits();
     nt.probe_trk_SAmu_DeltaR = deltaR(match_track.eta(), match_track.phi(), SAmu.eta(), SAmu.phi());
+    }
   }
-  if (match_tracks.size() >= 2) {
-    reco::Track match_track = match_tracks.at(1);
+  if (match_tracks.first.size() >= 2) {
+    if(match_tracks.first.at(1)){
+    reco::Track match_track = match_tracks.second.at(1);
     nt.probeSA_isTrkMatch = true;
     nt.probeSA_trkPt = match_track.pt();
     nt.probeSA_trkEta = match_track.eta();
@@ -161,6 +164,7 @@ inline void StandAloneFillProbeBranches(const MUON &SAmu,
     nt.probeSA_trkStripHits = match_track.hitPattern().numberOfValidStripHits();
     nt.probeSA_trkPixelHits = match_track.hitPattern().numberOfValidPixelHits();
     nt.probeSA_trk_SAmu_DeltaR = deltaR(match_track.eta(), match_track.phi(), SAmu.eta(), SAmu.phi());
+    }
   }
   if (match_muon_idx > -1) {
     MUO mu = muons.at(match_muon_idx);
