@@ -102,7 +102,9 @@ using namespace std;
 // This will improve performance in multithreaded jobs.
 class MuonMiniAODAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
-  typedef std::vector<std::pair<pat::Muon, reco::TransientTrack>> RecoTrkAndTransientTrkCollection;
+  typedef std::vector<std::pair<pat::Muon, reco::TransientTrack>> PatMuonAndTransientTrkCollection;
+  typedef std::pair<pat::Muon, reco::TransientTrack> PatMuonAndTransientTrk;
+  typedef std::pair<pat::PackedCandidate, reco::TransientTrack> PatPackedCandAndTransientTrk;
   explicit MuonMiniAODAnalyzer(const edm::ParameterSet&);
   ~MuonMiniAODAnalyzer() override;
 
@@ -472,7 +474,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   // Find triggering muon
   std::vector<unsigned> tag_muon_map;  // idx of tag muon in muons
-  RecoTrkAndTransientTrkCollection tag_muon_ttrack;
+  PatMuonAndTransientTrkCollection tag_muon_ttrack;
   std::vector<bool> genmatched_tag;
   for (const pat::Muon& mu : *muons) {
     if (mu.selectors() != 0) {  // Only 9_4_X and later have selector bits
@@ -839,7 +841,10 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         FillTunePPairBranchesDummy(nt);
       }
 
-      FillPairBranches<pat::Muon, pat::PackedCandidate>(tag.first, probe, nt, prop1_);
+      PatPackedCandAndTransientTrk probe_pair = std::make_pair(probe, reco::TransientTrack(probe.pseudoTrack(), &(*bField)));
+      
+      FillPairBranches<PatMuonAndTransientTrk, PatPackedCandAndTransientTrk>(tag, probe_pair, nt, prop1_);
+
       vtx.fillNtuple(nt);
 
       auto it_match = std::find(matched_track_idx.begin(), matched_track_idx.end(), &probe - &tracks[0]);

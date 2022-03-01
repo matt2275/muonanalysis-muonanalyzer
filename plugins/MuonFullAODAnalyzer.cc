@@ -111,7 +111,9 @@ using namespace std;
 // This will improve performance in multithreaded jobs.
 class MuonFullAODAnalyzer : public edm::one::EDAnalyzer<> {
 public:
-  typedef std::vector<std::pair<reco::Muon, reco::TransientTrack>> RecoTrkAndTransientTrkCollection;
+  typedef std::vector<std::pair<reco::Muon, reco::TransientTrack>> RecoMuonAndTransientTrkCollection;
+  typedef std::pair<reco::Muon, reco::TransientTrack> RecoMuonAndTransientTrk;
+  typedef std::pair<reco::Track, reco::TransientTrack> RecoTrkAndTransientTrk;
   explicit MuonFullAODAnalyzer(const edm::ParameterSet&);
   ~MuonFullAODAnalyzer() override;
 
@@ -602,7 +604,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   // select tags
   std::vector<unsigned> tag_muon_map;  // idx of tag muon in muons
-  RecoTrkAndTransientTrkCollection tag_trkttrk;
+  RecoMuonAndTransientTrkCollection tag_trkttrk;
   std::vector<bool> genmatched_tag;
   for (const auto& mu : *muons) {
     if (mu.selectors() != 0) {  // Only 9_4_X and later have selector bits
@@ -1345,7 +1347,9 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         FillProbeBranchesCosmic<reco::Track>(staCosmic->at(probe_cosmic_map.second[idx]), nt, true);
       }
 
-      FillPairBranches<reco::Muon, reco::Track>(tag.first, probe, nt, prop1_);
+      RecoTrkAndTransientTrk probe_pair = std::make_pair(probe,reco::TransientTrack(probe, &(*bField)));
+      FillPairBranches<RecoMuonAndTransientTrk, RecoTrkAndTransientTrk>(tag, probe_pair, nt, prop1_);
+
       vtx.fillNtuple(nt);
 
       auto it_genmatch = std::find(matched_track_idx.begin(), matched_track_idx.end(), &probe - &tracks->at(0));

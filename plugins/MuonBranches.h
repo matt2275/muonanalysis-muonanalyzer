@@ -46,6 +46,10 @@ inline void FillTagBranches(const MUON &muon,
   float iso04 = (TrackerEnergy04<TRK>(muon.eta(), muon.phi(), tracks) - muon.pt()) / muon.pt();
   nt.tag_relIso04 = (iso04 > 0) ? iso04 : 0;
   nt.tag_iso03_sumPt = muon.isolationR03().sumPt;
+  nt.tag_pfIso03_charged = muon.pfIsolationR03().sumChargedHadronPt;
+  nt.tag_pfIso03_neutral = muon.pfIsolationR03().sumNeutralHadronEt;
+  nt.tag_pfIso03_photon = muon.pfIsolationR03().sumPhotonEt;
+  nt.tag_pfIso03_sumPU = muon.pfIsolationR03().sumPUPt;
   nt.tag_pfIso04_charged = muon.pfIsolationR04().sumChargedHadronPt;
   nt.tag_pfIso04_neutral = muon.pfIsolationR04().sumNeutralHadronEt;
   nt.tag_pfIso04_photon = muon.pfIsolationR04().sumPhotonEt;
@@ -91,6 +95,10 @@ inline void FillProbeBranches(
     nt.probe_isTracker = mu.isTrackerMuon();
     nt.probe_isGlobal = mu.isGlobalMuon();
     nt.probe_iso03_sumPt = mu.isolationR03().sumPt;
+    nt.probe_pfIso03_charged = mu.pfIsolationR03().sumChargedHadronPt;
+    nt.probe_pfIso03_neutral = mu.pfIsolationR03().sumNeutralHadronEt;
+    nt.probe_pfIso03_photon = mu.pfIsolationR03().sumPhotonEt;
+    nt.probe_pfIso03_sumPU = mu.pfIsolationR03().sumPUPt;
     nt.probe_pfIso04_charged = mu.pfIsolationR04().sumChargedHadronPt;
     nt.probe_pfIso04_neutral = mu.pfIsolationR04().sumNeutralHadronEt;
     nt.probe_pfIso04_photon = mu.pfIsolationR04().sumPhotonEt;
@@ -187,6 +195,10 @@ inline void FillProbeBranches(
     nt.probe_CSCHits = -99;
     nt.probe_pterr = -99;
     nt.probe_iso03_sumPt = -99;
+    nt.probe_pfIso03_charged = -99;
+    nt.probe_pfIso03_neutral = -99;
+    nt.probe_pfIso03_photon = -99;
+    nt.probe_pfIso03_sumPU = -99;
     nt.probe_pfIso04_charged = -99;
     nt.probe_pfIso04_neutral = -99;
     nt.probe_pfIso04_photon = -99;
@@ -371,20 +383,22 @@ template <typename TRK>
 inline void FillProbeBranchesCosmic(const TRK &trk, NtupleContent &nt, bool passcosmic) {
   nt.probe_isCosmic = passcosmic;
 }
-
-template <typename MUO, typename TRK>
-inline void FillPairBranches(const MUO &muon, const TRK &trk, NtupleContent &nt, PropagateToMuon &prop1_) {
-  math::PtEtaPhiMLorentzVector mu1(muon.pt(), muon.eta(), muon.phi(), MU_MASS);
-  math::PtEtaPhiMLorentzVector mu2(trk.pt(), trk.eta(), trk.phi(), MU_MASS);
+template <typename MUOTT, typename TRKTT>
+inline void FillPairBranches(const MUOTT &muon, const TRKTT &trk, NtupleContent &nt, PropagateToMuon &prop1_) {
+  math::PtEtaPhiMLorentzVector mu1(muon.first.pt(), muon.first.eta(), muon.first.phi(), MU_MASS);
+  math::PtEtaPhiMLorentzVector mu2(trk.first.pt(), trk.first.eta(), trk.first.phi(), MU_MASS);
   nt.pair_pt = (mu1 + mu2).pt();
   nt.pair_mass = (mu1 + mu2).mass();
   nt.pair_eta = (mu1 + mu2).eta();
   nt.pair_phi = (mu1 + mu2).phi();
-  nt.pair_dz = muon.vz() - trk.vz();
-  nt.pair_dR = deltaR(muon.eta(), muon.phi(), trk.eta(), trk.phi());
+  nt.pair_dz = muon.first.vz() - trk.first.vz();
+  nt.pair_dR = deltaR(muon.first.eta(), muon.first.phi(), trk.first.eta(), trk.first.phi());
 
-  TrajectoryStateOnSurface prop1_M1 = prop1_.extrapolate(muon);
-  TrajectoryStateOnSurface prop2_M1 = prop1_.extrapolate(trk);
+  FreeTrajectoryState trajectory_state_muon = muon.second.impactPointTSCP().theState();
+  FreeTrajectoryState trajectory_state_trk = trk.second.impactPointTSCP().theState();
+
+  TrajectoryStateOnSurface prop1_M1 = prop1_.extrapolate(trajectory_state_muon);
+  TrajectoryStateOnSurface prop2_M1 = prop1_.extrapolate(trajectory_state_trk);
 
   if (prop1_M1.isValid() && prop2_M1.isValid()) {
     float dphiM1 = deltaPhi<float>(prop1_M1.globalPosition().phi(), prop2_M1.globalPosition().phi());
