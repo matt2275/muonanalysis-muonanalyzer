@@ -176,17 +176,26 @@ if len(options.inputFiles) == 0:
                 options.inputFiles.append('/store/data/Run2018A/Charmonium/AOD/17Sep2018-v1/100001/07679496-4DEF-1B44-BA04-768765A80599.root')
 
 
-if options.outputFile=="":
-    options.outputFile="output"
+options.outputFile=""
+
+if options.outputFile == ".root":
     if options.isMC:
-        options.outputFile+="_mc"
+        options.outputFile="_mc" + options.outputFile
     else:
-        options.outputFile+="_data" 
+        options.outputFile="_data"+ options.outputFile
+
+    if options.resonance == 'Z':
+        options.outputFile="_Z"+ options.outputFile
+    else:
+        options.outputFile="_JPsi"+ options.outputFile
+
     if options.isFullAOD:
-        options.outputFile+="_full"
+        options.outputFile="output_full"+ options.outputFile
     else:
-        options.outputFile+="_mini"
-    options.outputFile+=".root"
+        options.outputFile+="output_mini"+ options.outputFile
+
+print ('Output Root file:')
+print (options.outputFile)
 
 
 process = cms.Process("MuonAnalysis")
@@ -284,7 +293,7 @@ process.muonL1InfoByQ = process.muonL1Info.clone(
     sortByPt       = cms.bool(False)
 )
 
-from MuonAnalysis.MuonAnalyzer.hltInfo_SATest_cff import getHLTInfo, selectTriggers
+from MuonAnalysis.MuonAnalyzer.hltInfo_cff import getHLTInfo, selectTriggers
 hltInfo = getHLTInfo(options.resonance, options.era)
 excludeDSA = (not options.isFullAOD)
 process.muon.triggerPaths = cms.vstring(selectTriggers(hltInfo['triggerPaths'], True, False, excludeDSA))
