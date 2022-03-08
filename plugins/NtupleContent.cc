@@ -27,6 +27,7 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
   t1->Branch("nmuons", &nmuons);
   t1->Branch("ntag", &ntag);
   t1->Branch("npairs", &npairs);
+  t1->Branch("TnP_pairs", &TnP_pairs);
   t1->Branch("genmu1_pt", &genmu1_pt);
   t1->Branch("genmu1_eta", &genmu1_eta);
   t1->Branch("genmu1_phi", &genmu1_phi);
@@ -328,6 +329,7 @@ void NtupleContent::ClearBranches() {
   nmuons = 0;
   ntag = 0;
   npairs = 0;
+  TnP_pairs = 0;
 
   for (unsigned int itrg = 0; itrg < NTRIGGERMAX; itrg++) {
     trigger[itrg] = false;

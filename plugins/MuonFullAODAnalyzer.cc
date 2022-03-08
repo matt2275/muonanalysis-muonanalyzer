@@ -1083,7 +1083,14 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       pair_dz_PV_SV.push(std::make_pair(vtx.dz_PV_SV(nt.pv_z), pair_idx));
       pair_dPhi_muons.push(std::make_pair(dPhi_muons, pair_idx));
       pair_dM_Z_Mmumu.push(std::make_pair(dM_Z_Mmumu, pair_idx));
+
+      auto it = std::find(trk_muon_map.first.begin(), trk_muon_map.first.end(), &probe - &tracks->at(0));
+      if (muonOnly_ && it == trk_muon_map.first.end())
+        continue;
+
+      nt.iprobe++;
     }
+    if(nt.iprobe == 1){nt.TnP_pairs++;}
   }
   nt.npairs = pair_vtx_probs.size();
 
@@ -1355,7 +1362,6 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       auto it_genmatch = std::find(matched_track_idx.begin(), matched_track_idx.end(), &probe - &tracks->at(0));
       nt.probe_isMatchedGen = (it_genmatch != matched_track_idx.end());
 
-      nt.iprobe++;
       nt.pair_rank_vtx_prob = pair_rank_vtx_prob[{&tag - &tag_trkttrk[0], &probe - &tracks->at(0)}];
       nt.pair_rank_dz_PV_SV = pair_rank_dz_PV_SV[{&tag - &tag_trkttrk[0], &probe - &tracks->at(0)}];
       nt.pair_rank_dPhi_muons = pair_rank_dPhi_muons[{&tag - &tag_trkttrk[0], &probe - &tracks->at(0)}];
