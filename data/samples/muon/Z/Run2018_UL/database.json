@@ -9,7 +9,7 @@
                 "globalTag": "106X_upgrade2018_realistic_v15_L1v1"
             },
             "Run2018A": {
-                "dataset": "/SingleMuon/Run2018A-12Nov2019_UL2018_rsb-v1/AOD",
+                "dataset": "/SingleMuon/Run2018A-12Nov2019_UL2018-v5/AOD",
                 "globalTag": "106X_dataRun2_v32"
             },
             "Run2018B": {
@@ -31,7 +31,7 @@
                 "globalTag": "106X_upgrade2018_realistic_v15_L1v1"
             },
             "Run2018A": {
-                "dataset": "/SingleMuon/Run2018A-12Nov2019_UL2018_rsb-v1/MINIAOD",
+                "dataset": "/SingleMuon/Run2018A-12Nov2019_UL2018-v5/MINIAOD",
                 "globalTag": "106X_dataRun2_v32"
             },
             "Run2018B": {

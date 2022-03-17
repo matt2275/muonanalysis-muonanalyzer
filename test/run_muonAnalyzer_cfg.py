@@ -64,7 +64,7 @@ options.register('fromCRAB', False,
     "Is config run from CRAB"
 )
 
-options.register('isStandAlone', False,
+options.register('isStandAlone', True,
     VarParsing.multiplicity.singleton,
     VarParsing.varType.bool,
     "run StandAlone Muon Analyzers"
@@ -99,16 +99,16 @@ if len(options.inputFiles) == 0:
             else:
                 # options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/60004/FB123080-071C-F64D-BAFD-F2F292F7FC64.root')
                 options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/00000/001498AA-6457-0B42-BEFA-9C72A6A91D2E.root')
-                options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/00000/001D1DB9-405A-D14D-B915-55F071A76BF3.root')
-                options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/00000/0087BDD1-CE79-084C-8A72-CE64EE3B2B3C.root')
-                options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/00000/0089CA7E-648B-CF4C-A59A-4906AD3F26D8.root')
-                options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/00000/008C5121-EC97-BD4C-8461-A0FA43E28DD7.root')
-                options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/00000/008D63AC-B709-704C-A058-1AE819034C56.root')
-                options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/00000/00B09A1D-4AC0-3943-AB47-A81AC75D158F.root')
-                options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/00000/00E49621-DF30-F34E-B84C-332A2AE0B781.root')
-                options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/00000/015821DF-68E2-BB4E-9B8E-D4E129C265AE.root')
-                options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/00000/015A3917-A98F-4D47-9FA0-AA14F8AB6BC8.root')
-                options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/00000/016D3250-5DA8-2145-A862-862ED8F24CFA.root')
+                # options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/00000/001D1DB9-405A-D14D-B915-55F071A76BF3.root')
+                # options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/00000/0087BDD1-CE79-084C-8A72-CE64EE3B2B3C.root')
+                # options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/00000/0089CA7E-648B-CF4C-A59A-4906AD3F26D8.root')
+                # options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/00000/008C5121-EC97-BD4C-8461-A0FA43E28DD7.root')
+                # options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/00000/008D63AC-B709-704C-A058-1AE819034C56.root')
+                # options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/00000/00B09A1D-4AC0-3943-AB47-A81AC75D158F.root')
+                # options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/00000/00E49621-DF30-F34E-B84C-332A2AE0B781.root')
+                # options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/00000/015821DF-68E2-BB4E-9B8E-D4E129C265AE.root')
+                # options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/00000/015A3917-A98F-4D47-9FA0-AA14F8AB6BC8.root')
+                # options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/00000/016D3250-5DA8-2145-A862-862ED8F24CFA.root')
                 # options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/00000/0195DE92-8133-0249-8A1D-676A8931EA1F.root')
                 # options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/00000/0199FEB3-0DFB-A04C-BC05-4C1A7E3DBC2A.root')
                 # options.inputFiles.append('/store/data/Run2018C/SingleMuon/AOD/17Sep2018-v1/00000/01BE8D26-F46A-9F40-969E-8D68602D0A5F.root')

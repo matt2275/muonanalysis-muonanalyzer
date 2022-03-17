@@ -761,6 +761,9 @@ void StandAloneMuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm:
   for (const auto& tmp_mu : *muons) {
     if (!tmp_mu.isStandAloneMuon())
       continue;
+   
+   if (muonOnly_ && !probeMuonSelection_(tmp_mu))
+      continue;
     const reco::Track mu = *tmp_mu.standAloneMuon();
     float minDR = 1000;
     unsigned int idx_trk;
@@ -1335,7 +1338,8 @@ void StandAloneMuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm:
         // apply cuts on probe
         if (!probeSelectionSA_(probe))
           continue;
-
+        if (muonOnly_ && !probeMuonSelection_(tmp_probe))
+           continue;
         // apply cuts on pairs; selected will be saved
         if (tag.first.charge() == probe.charge())
           continue;
