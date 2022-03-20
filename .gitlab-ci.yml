@@ -34,6 +34,8 @@ test-code:
     only:
         - merge_requests
     script:
+        - set +e && source /cvmfs/cms.cern.ch/cmsset_default.sh; set -e
+        - shopt -s extglob
         - source ci/untar_cmssw.sh
         - printf $USER_PASS | base64 -d | kinit $USER_NAME
         - xrdcp -r root://eosuser.cern.ch//eos/user/s/sesanche/MuonPOG_CI/04D2156E-EFB0-A54B-BA65-B9A39B30F0DB.root .
