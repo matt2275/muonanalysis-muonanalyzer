@@ -28,3 +28,24 @@ $ find . -regex '.*\.\(cpp\|hpp\|cc\|cxx\|h\)' | xargs clang-format -i
 ```
 
 Run this from the base directory. It should go through all source code files in the repository and format them according to CMSSW's style (the `Google` style).
+
+
+### Gitlab CI setup for Developers (required to submit merge requests!!!)
+
+1. Make sure you are subscribed to the cms-tracker-phase2-DAQ e-group
+
+2. Add predefined variables
+
+    i. from your fork go to `Muonanalysis-Muonanalyzer > settings > CI/CD`
+
+    ii. expand the `Variables` section
+
+    iii. click the `Add variable` button
+
+        - add key: USER_NAME and value: <your CERN user name>
+
+    iv. click the `Add variable` button
+
+        - select the flag `Mask variable`
+        - add key: USER_PASS and value: <your CERN password encoded to base64>
+          e.g encode "thisword": printf "thisword" | base64
