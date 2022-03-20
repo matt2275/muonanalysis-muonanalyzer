@@ -1042,9 +1042,12 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   std::priority_queue<t_pair_prob> pair_dPhi_muons;
   std::priority_queue<t_pair_prob, vector<t_pair_prob>, std::greater<t_pair_prob>> pair_dz_PV_SV;    // inverse sort
   std::priority_queue<t_pair_prob, vector<t_pair_prob>, std::greater<t_pair_prob>> pair_dM_Z_Mmumu;  // inverse sort
+  std::map<int,int> map_tagIdx_nprobes;
+  int nprobes;
   // loop over tags
   for (auto& tag : tag_trkttrk) {
     auto tag_idx = &tag - &tag_trkttrk[0];
+    nprobes=0;
     // loop over probes
     for (const reco::Track& probe : *tracks) {
       auto probe_idx = &probe - &tracks->at(0);
@@ -1079,6 +1082,8 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       if (muonOnly_ && it == trk_muon_map.first.end())
         continue;
 
+      nprobes++;
+
       float dPhi_muons = reco::deltaPhi(tag.first.phi(), probe.phi());
       math::PtEtaPhiMLorentzVector mu1(tag.first.pt(), tag.first.eta(), tag.first.phi(), MU_MASS);
       math::PtEtaPhiMLorentzVector mu2(probe.pt(), probe.eta(), probe.phi(), MU_MASS);
@@ -1097,6 +1102,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       pair_dPhi_muons.push(std::make_pair(dPhi_muons, pair_idx));
       pair_dM_Z_Mmumu.push(std::make_pair(dM_Z_Mmumu, pair_idx));
     }
+    map_tagIdx_nprobes.insert(std::pair<int,int>(tag_idx,nprobes));
   }
   nt.npairs = pair_vtx_probs.size();
 
@@ -1125,6 +1131,7 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   // now run again to select probes
   // loop over tags
   for (auto& tag : tag_trkttrk) {
+    auto tag_idx = &tag - &tag_trkttrk[0];
     if (debug_ > 0)
       std::cout << "New tag pt " << tag.first.pt() << " eta " << tag.first.eta() << " phi " << tag.first.phi()
                 << std::endl;
@@ -1376,6 +1383,10 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       nt.pair_rank_dPhi_muons = pair_rank_dPhi_muons[{&tag - &tag_trkttrk[0], &probe - &tracks->at(0)}];
       nt.pair_rank_dM_Z_Mmumu = pair_rank_dM_Z_Mmumu[{&tag - &tag_trkttrk[0], &probe - &tracks->at(0)}];
       nt.probe_isHighPurity = probe.quality(Track::highPurity);
+
+      for(auto it=map_tagIdx_nprobes.begin(); it!=map_tagIdx_nprobes.end(); ++it){
+	if(it->first == tag_idx){nt.pair_probeMultiplicity = it->second;}
+      }
 
       t1->Fill();
     }
