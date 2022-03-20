@@ -13,7 +13,7 @@ build-master:
         - set +e && source /cvmfs/cms.cern.ch/cmsset_default.sh; set -e
         - shopt -s extglob
         - scramv1 project CMSSW $CMSSW_RELEASE
-    	- mkdir -p $CMSSW_RELEASE/src/MuonAnalysis/MuonAnalyzer/
+        - mkdir -p $CMSSW_RELEASE/src/MuonAnalysis/MuonAnalyzer/
         - mv !($CMSSW_RELEASE) $CMSSW_RELEASE/src/MuonAnalysis/MuonAnalyzer/
         - eval `scramv1 runtime -sh`
         - ci/tar_cmssw.sh
