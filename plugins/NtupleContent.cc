@@ -11,7 +11,7 @@ void NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
   // General
   t1->Branch("run", &run);
   t1->Branch("event", &event);
-  t1->Branch("ls", &ls);
+  t1->Branch("lumi", &ls);
   t1->Branch("fromFullAOD", &fromFullAOD);
   t1->Branch("genWeight", &genWeight);
   t1->Branch("BSpot_x", &BSpot_x);
