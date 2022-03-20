@@ -57,7 +57,7 @@ compare-aod:
         expire_in: 20 days
         paths: 
             - residuals.pdf
-	
+
 stages:
   - build
   - run
