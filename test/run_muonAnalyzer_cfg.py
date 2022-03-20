@@ -224,8 +224,7 @@ else:
         process.muonL1InfoByQ +
         process.muSequence
     )
-print options.outputFile
-print(kk)
+
 process.TFileService = cms.Service("TFileService",
         fileName = cms.string(options.outputFile)
 )
