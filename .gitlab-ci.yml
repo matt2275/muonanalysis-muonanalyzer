@@ -19,7 +19,7 @@ build:
         - cd $CMSSW_RELEASE/src/
         - eval `scramv1 runtime -sh`
         - scramv1 b -j5
-        - MuonAnalysis/MuonAnalyzer/ci/tar_cmssw.sh
+        - bash MuonAnalysis/MuonAnalyzer/ci/tar_cmssw.sh
     artifacts:
         when: on_success
         expire_in: 1 days
