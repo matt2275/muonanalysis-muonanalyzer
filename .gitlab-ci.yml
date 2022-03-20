@@ -16,7 +16,7 @@ build:
         - scramv1 project CMSSW $CMSSW_RELEASE
         - mkdir -p $CMSSW_RELEASE/src/MuonAnalysis/MuonAnalyzer/
         - mv !($CMSSW_RELEASE) $CMSSW_RELEASE/src/MuonAnalysis/MuonAnalyzer/
-        - $CMSSW_RELEASE/src/
+        - cd $CMSSW_RELEASE/src/
         - eval `scramv1 runtime -sh`
         - scramv1 b -j5
         - MuonAnalysis/MuonAnalyzer/ci/tar_cmssw.sh
