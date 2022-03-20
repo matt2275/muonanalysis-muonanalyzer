@@ -7,9 +7,6 @@ image: gitlab-registry.cern.ch/ci-tools/ci-worker:cc7
 build:
     tags: [cvmfs]
     stage: build
-    only:
-        - master
-        - merge_requests
     script:
         - set +e && source /cvmfs/cms.cern.ch/cmsset_default.sh; set -e
         - shopt -s extglob
@@ -31,8 +28,6 @@ build:
 test-code:
     tags: [ cvmfs ] 
     stage: test-simple
-    only:
-        - merge_requests
     script:
         - set +e && source /cvmfs/cms.cern.ch/cmsset_default.sh; set -e
         - shopt -s extglob
