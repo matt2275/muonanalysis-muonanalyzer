@@ -1069,8 +1069,11 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       KlFitter vtx(trk_pair);
       if (RequireVtxCreation_ && !vtx.status())
         continue;
-      if (minSVtxProb_ > 0 && vtx.prob() < minSVtxProb_)
-        continue;
+      if (minSVtxProb_ > 0){
+	if (vtx.prob() < minSVtxProb_){
+	  continue;
+	}
+      }
 
       float dPhi_muons = reco::deltaPhi(tag.first.phi(), probe.phi());
       math::PtEtaPhiMLorentzVector mu1(tag.first.pt(), tag.first.eta(), tag.first.phi(), MU_MASS);
@@ -1079,8 +1082,14 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
       // save quantities to ordered heap
       auto pair_idx = std::make_pair(tag_idx, probe_idx);
-      pair_vtx_probs.push(std::make_pair(vtx.prob(), pair_idx));
-      pair_dz_PV_SV.push(std::make_pair(vtx.dz_PV_SV(nt.pv_z), pair_idx));
+      if (RequireVtxCreation_){
+	pair_vtx_probs.push(std::make_pair(vtx.prob(), pair_idx));
+	pair_dz_PV_SV.push(std::make_pair(vtx.dz_PV_SV(nt.pv_z), pair_idx));
+      }
+      else{
+	pair_vtx_probs.push(std::make_pair(0., std::make_pair(-1,-1)));
+	pair_dz_PV_SV.push(std::make_pair(0., std::make_pair(-1,-1)));
+      }
       pair_dPhi_muons.push(std::make_pair(dPhi_muons, pair_idx));
       pair_dM_Z_Mmumu.push(std::make_pair(dM_Z_Mmumu, pair_idx));
     }
@@ -1141,8 +1150,10 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       KlFitter vtx(trk_pair);
       if (RequireVtxCreation_ && !vtx.status())
         continue;
-      if (minSVtxProb_ > 0 && vtx.prob() < minSVtxProb_)
-        continue;
+      if (minSVtxProb_ > 0){
+	if (vtx.prob() < minSVtxProb_)
+	  continue;
+      }
 
       auto it = std::find(trk_muon_map.first.begin(), trk_muon_map.first.end(), &probe - &tracks->at(0));
       if (muonOnly_ && it == trk_muon_map.first.end())
