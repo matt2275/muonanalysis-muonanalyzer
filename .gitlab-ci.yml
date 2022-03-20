@@ -27,7 +27,7 @@ build:
 
 run-aod:
     tags: [ cvmfs ] 
-    stage: run-aod
+    stage: run
     script:
         - set +e && source /cvmfs/cms.cern.ch/cmsset_default.sh; set -e
         - shopt -s extglob
@@ -44,7 +44,7 @@ run-aod:
 
 compare-aod:
     tags: [ cvmfs ] 
-    stage: run-aod
+    stage: compare
     script:
         - set +e && source /cvmfs/cms.cern.ch/cmsset_default.sh; set -e
         - shopt -s extglob
@@ -60,5 +60,5 @@ compare-aod:
 	
 stages:
   - build
-  - run-aod
-  - compare-aod
+  - run
+  - compare
