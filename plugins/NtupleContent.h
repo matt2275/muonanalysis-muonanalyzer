@@ -48,6 +48,7 @@ public:
   int ntag;
   int iprobe;
   int npairs;
+  int pair_probeMultiplicity;
 
   // Triggers
   static const int NTRIGGERMAX = 100;
