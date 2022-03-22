@@ -69,7 +69,6 @@ compare-aod:
         - python ../../ci/compare_with_reference.py reference.root ../../output_aod.root
         - mv residuals.pdf ../../.
     artifacts:
-        when: on_success
         expire_in: 20 days
         paths: 
             - residuals.pdf
