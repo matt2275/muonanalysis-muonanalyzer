@@ -41,11 +41,7 @@ run-aod:
         - printf $USER_PASS | base64 -d | kinit $USER_NAME
         - xrdcp  root://eosuser.cern.ch//eos/user/c/cmsmupog/www/MuonPOG_CI/04D2156E-EFB0-A54B-BA65-B9A39B30F0DB.root $PWD/
         - cmsRun MuonAnalysis/MuonAnalyzer/test/run_muonAnalyzer_cfg.py inputFiles=file:04D2156E-EFB0-A54B-BA65-B9A39B30F0DB.root globalTag=106X_upgrade2018_realistic_v11_L1v1   isFullAOD=True isMC=True outputFile=output_aod.root
-        - mv output_aod.root $CI_PROJECT_PATH/
-        - echo $PWD
-        - ls
-        - find . -name "output.root"
-        - find . -name "output_aod.root"
+        - mv output_aod.root ../../
 
 
     artifacts:
@@ -67,7 +63,6 @@ compare-aod:
         - printf $USER_PASS | base64 -d | kinit $USER_NAME
         - xrdcp  root://eosuser.cern.ch//eos/user/c/cmsmupog/www/MuonPOG_CI/reference.root $PWD/
         - python ../../ci/compare_with_reference.py reference.root ../../output_aod.root
-        - mv residuals.pdf $CI_PROJECT_PATH/.
     artifacts:
         expire_in: 20 days
         when: always
