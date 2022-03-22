@@ -116,11 +116,11 @@ for i,var in enumerate(residuals):
     h.Draw()
     c.SetLogy(True)
     if not i: 
-        c.Print("residuals.pdf(")
+        c.Print("../../residuals.pdf(")
     if i==len(residuals)-1:
-        c.Print("residuals.pdf)")
+        c.Print("../../residuals.pdf)")
     else:
-        c.Print("residuals.pdf")
+        c.Print("../../residuals.pdf")
 
 for var in differentVariables:
     print(bcolors.WARNING, "[FAIL]: Variable %s has significant differences between reference and target"%var, bcolors.ENDC)
