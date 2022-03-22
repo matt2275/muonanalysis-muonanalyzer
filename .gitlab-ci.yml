@@ -63,6 +63,8 @@ compare-aod:
         - printf $USER_PASS | base64 -d | kinit $USER_NAME
         - xrdcp  root://eosuser.cern.ch//eos/user/c/cmsmupog/www/MuonPOG_CI/reference.root $PWD/
         - python ../../ci/compare_with_reference.py reference.root ../../output_aod.root
+        - echo $PWD
+        - find . -name "residuals.pdf"
     artifacts:
         expire_in: 20 days
         when: always
