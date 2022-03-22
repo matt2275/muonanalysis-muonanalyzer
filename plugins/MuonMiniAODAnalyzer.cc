@@ -678,15 +678,22 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       KlFitter vtx(trk_pair);
       if (RequireVtxCreation_ && !vtx.status())
         continue;
-      if (minSVtxProb_ > 0 && vtx.prob() < minSVtxProb_)
-        continue;
+      if (minSVtxProb_ > 0){
+	if (vtx.prob() < minSVtxProb_){
+	  continue;
+	}
+      }
 
       auto it = std::find(trk_muon_map.first.begin(), trk_muon_map.first.end(), &probe - &tracks[0]);
       if (muonOnly_ && it == trk_muon_map.first.end())
         continue;
 
       // save vtx prob to sort later
-      pair_vtx_probs.emplace_back(std::make_pair(std::make_pair(tag_idx, probe_idx), vtx.prob()));
+      if (RequireVtxCreation_){
+	pair_vtx_probs.emplace_back(std::make_pair(std::make_pair(tag_idx, probe_idx), vtx.prob()));
+      }else{
+	pair_vtx_probs.emplace_back(std::make_pair(std::make_pair(-1, -1), 0.));
+      }
       nprobes++;
     }
     map_tagIdx_nprobes.insert(std::pair<int,int>(tag_idx,nprobes));
@@ -721,8 +728,10 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       KlFitter vtx(trk_pair);
       if (RequireVtxCreation_ && !vtx.status())
         continue;
-      if (minSVtxProb_ > 0 && vtx.prob() < minSVtxProb_)
-        continue;
+      if (minSVtxProb_ > 0){
+	if (vtx.prob() < minSVtxProb_)
+	  continue;
+      }
 
       auto it = std::find(trk_muon_map.first.begin(), trk_muon_map.first.end(), &probe - &tracks[0]);
       if (muonOnly_ && it == trk_muon_map.first.end())
@@ -867,7 +876,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       for(auto it=map_tagIdx_nprobes.begin(); it!=map_tagIdx_nprobes.end(); ++it){
 	if(it->first == tag_idx){nt.pair_probeMultiplicity = it->second;}
       }
-      
+
       t1->Fill();
     }
   }
