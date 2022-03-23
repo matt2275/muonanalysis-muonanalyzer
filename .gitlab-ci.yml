@@ -1,67 +1,75 @@
 variables:
-  CMSSW_RELEASE: CMSSW_10_6_4_patch1
+  CMSSW_RELEASE: CMSSW_10_6_18
   CMSSW_SCRAM_ARCH: slc7_amd64_gcc820
-  SSH_SERVER_HOSTKEYS: lxplus ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDTA/5AzXgbkSapknIPDoEePTM1PzIBSiyDnpZihdDXKzm8UdXxCDJLUVjBwc1JfBjnaXPEeBKZDuozDss/m98m5qQu+s2Dks000V8cUFTU+BFotzRWX0jWSBpmzse0477b40X2XCPqX0Cqfx9yHdkuMlyF0kJRxXgsGTcwzwbmvqNHJdHHYJJz93hGpBhYMREcDN5VOxXz6Ack3X7xfF29xaC91oOAqq75O11LXF5Y4kAeN9kDG8o6Zsqk4c5at5aqWqzZfnnVtGjhkgU2Mt5aKwptaFMe0Z3ys/zZM4SnsE9NfompnnWsiKk2y09UvrbzuYPWLt43Fp3+IFqRJvBX
 
 image: gitlab-registry.cern.ch/ci-tools/ci-worker:cc7
-
-before_script:
-  - "yum install -y openssl"
-  - source /cvmfs/grid.cern.ch/etc/profile.d/setup-cvmfs-ui.sh
-  - source /cvmfs/cms.cern.ch/cmsset_default.sh
-  - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.cern.ch/cms-muonPOG/muonpog-integration.git ~/muonpog-integration
-  - export PATH=${PATH}:~/muonpog-integration/scripts
-
-
-build-master:
-    tags: [ cvmfs,docker ]
+  
+build:
+    tags: [cvmfs]
     stage: build
     only:
+        - merge_requests
         - master
     script:
-        - cd ..
-        - source ci_setup_cmssw.sh
-        - mkdir -p MuonAnalysis/MuonAnalyzer
-        - cp -a $CI_PROJECT_DIR/* MuonAnalysis/MuonAnalyzer/
-        - scram b -j 5
-        - ci_tar_cmssw.sh
+        - set +e && source /cvmfs/cms.cern.ch/cmsset_default.sh; set -e
+        - shopt -s extglob
+        - scramv1 project CMSSW $CMSSW_RELEASE
+        - mkdir -p $CMSSW_RELEASE/src/MuonAnalysis/MuonAnalyzer/
+        - mv !($CMSSW_RELEASE) $CMSSW_RELEASE/src/MuonAnalysis/MuonAnalyzer/
+        - cd $CMSSW_RELEASE/src/
+        - eval `scramv1 runtime -sh`
+        - scramv1 b -j5
+        - bash MuonAnalysis/MuonAnalyzer/ci/tar_cmssw.sh
     artifacts:
         when: on_success
         expire_in: 1 days
         paths: 
             - build.tar.gz
 
-build-mr:
-    tags: [ cvmfs,docker ]
-    stage: build
-    only:
-        - merge_requests
-    script:
-        - cd ..
-        - source ci_setup_cmssw.sh
-        - mkdir -p MuonAnalysis/MuonAnalyzer
-        - cp -a $CI_PROJECT_DIR/* MuonAnalysis/MuonAnalyzer/
-        - scram b -j 5
-        - ci_tar_cmssw.sh
-    artifacts:
-        when: on_success
-        expire_in: 1 days
-        paths: 
-            - build.tar.gz
 
-test-code:
+
+run-aod:
     tags: [ cvmfs ] 
-    stage: test-simple
+    stage: run
     only:
         - merge_requests
+        - master
     script:
-        - if [ -z "$CMS_SERVICE_USER" ]; then echo "No user defined, skipping tests"; exit 0; fi
-        - source ci_untar_cmssw.sh
-        - ci_kinit.sh
-        - scp ${CMS_SERVICE_USER}@lxplus:/eos/cms/store/group/phys_muon/MuonPOGIntegration/rootfiles/UL18/events_MINIAOD_SingleMuon_numEvent100.root .
-        - cmsRun MuonAnalysis/MuonAnalyzer/test/run_muonAnalyzer_cfg.py inputFiles=file:events_MINIAOD_SingleMuon_numEvent100.root globalTag=106X_dataRun2_v28 maxEvents=-1 isMC=0 isFullAOD=0 outputFile=output.root
+        - set +e && source /cvmfs/cms.cern.ch/cmsset_default.sh; set -e
+        - shopt -s extglob
+        - source ci/untar_cmssw.sh
+        - printf $USER_PASS | base64 -d | kinit $USER_NAME
+        - xrdcp  root://eosuser.cern.ch//eos/user/c/cmsmupog/www/MuonPOG_CI/04D2156E-EFB0-A54B-BA65-B9A39B30F0DB.root $PWD/
+        - cmsRun MuonAnalysis/MuonAnalyzer/test/run_muonAnalyzer_cfg.py inputFiles=file:04D2156E-EFB0-A54B-BA65-B9A39B30F0DB.root globalTag=106X_upgrade2018_realistic_v11_L1v1   isFullAOD=True isMC=True outputFile=output_aod.root
+        - mv output_aod.root ../../
 
+
+    artifacts:
+        when: on_success
+        expire_in: 5 days
+        paths: 
+            - output_aod.root
+
+compare-aod:
+    tags: [ cvmfs ] 
+    stage: compare
+    only:
+        - merge_requests
+        - master
+    script:
+        - set +e && source /cvmfs/cms.cern.ch/cmsset_default.sh; set -e
+        - shopt -s extglob
+        - source ci/untar_cmssw.sh
+        - printf $USER_PASS | base64 -d | kinit $USER_NAME
+        - xrdcp  root://eosuser.cern.ch//eos/user/c/cmsmupog/www/MuonPOG_CI/reference.root $PWD/
+        - python ../../ci/compare_with_reference.py reference.root ../../output_aod.root
+    artifacts:
+        expire_in: 20 days
+        when: always
+        paths: 
+            - residuals.pdf
 
 stages:
   - build
-  - test-simple
+  - run
+  - compare
