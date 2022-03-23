@@ -32,9 +32,7 @@ Run this from the base directory. It should go through all source code files in 
 
 ### Gitlab CI setup for Developers (required to submit merge requests!!!)
 
-1. Make sure you are subscribed to the cms-tracker-phase2-DAQ e-group
-
-2. Add predefined variables
+1. Add predefined variables
 
     i. from your fork go to `Muonanalysis-Muonanalyzer > settings > CI/CD`
 
