@@ -64,10 +64,16 @@ options.register('fromCRAB', False,
     "Is config run from CRAB"
 )
 
-options.register('isStandAlone', True,
+options.register('isStandAlone', False,
     VarParsing.multiplicity.singleton,
     VarParsing.varType.bool,
     "run StandAlone Muon Analyzers"
+)
+
+options.register('isHIUPC', False,
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.bool,
+    "run HIUPC Muon Analyzers"
 )
 options.parseArguments()
 
@@ -169,9 +175,19 @@ if len(options.inputFiles) == 0:
                 # options.inputFiles.append('/store/data/Run2018D/SingleMuon/MINIAOD/PromptReco-v2/000/320/673/00000/BE36A9F3-F097-E811-92FA-FA163E830D14.root')
                 # options.inputFiles.append('/store/data/Run2018D/SingleMuon/MINIAOD/PromptReco-v2/000/320/673/00000/BEA7BAB4-E997-E811-AA66-FA163E104BF4.root')
     elif options.resonance == 'JPsi':
+      if options.isHIUPC:
         if options.isFullAOD:
             if options.isMC:
-                options.inputFiles.append('/store/mc/RunIIAutumn18DRPremix/JpsiToMuMu_JpsiPt8_TuneCP5_13TeV-pythia8/AODSIM/102X_upgrade2018_realistic_v15-v1/270001/FFF2FC1D-18CB-7244-9663-4E36963494B7.root')
+                #options.inputFiles.append('/store/mc/RunIIAutumn18DRPremix/JpsiToMuMu_JpsiPt8_TuneCP5_13TeV-pythia8/AODSIM/102X_upgrade2018_realistic_v15-v1/270001/FFF2FC1D-18CB-7244-9663-4E36963494B7.root')
+                options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/GammaGammatoMuMu_5p02TeV_STARlight/AODSIM/NoPU_103X_upgrade2018_realistic_HI_v11-v2/280000/02762AC2-E426-CA46-A9BE-3B67E3ABC372.root')                
+            else:
+                options.inputFiles.append('/store/hidata/HIRun2018A/HIForward/AOD/04Apr2019-v1/00000/36696797-7247-4F47-843D-A2D3630801C5.root')
+                #options.inputFiles.append('/store/hidata/HIRun2018A/HIForward/AOD/04Apr2019-v1/00000/19CFC2EF-7F8F-194C-92D9-01E0F59802AD.root')
+                #options.inputFiles.append('/store/data/Run2018A/Charmonium/AOD/17Sep2018-v1/100001/07679496-4DEF-1B44-BA04-768765A80599.root')    
+      else:
+        if options.isFullAOD:
+            if options.isMC:
+                options.inputFiles.append('/store/mc/RunIIAutumn18DRPremix/JpsiToMuMu_JpsiPt8_TuneCP5_13TeV-pythia8/AODSIM/102X_upgrade2018_realistic_v15-v1/270001/FFF2FC1D-18CB-7244-9663-4E36963494B7.root')              
             else:
                 options.inputFiles.append('/store/data/Run2018A/Charmonium/AOD/17Sep2018-v1/100001/07679496-4DEF-1B44-BA04-768765A80599.root')
 
@@ -241,19 +257,34 @@ process.options = cms.untracked.PSet(
 
 from MuonAnalysis.MuonAnalyzer.tools.ntuple_tools import *
 if options.isStandAlone:
-    if options.isFullAOD:
-        if options.resonance == 'Z':
-            process = muonAnalysis_customizeStandAloneFullAOD_Z(process)
+    if options.isHIUPC:
+        if options.isFullAOD:
+            if options.resonance == 'Z':
+                process = muonAnalysis_customizeHIUPCStandAloneFullAOD_Z(process)
+            else:
+                process = muonAnalysis_customizeHIUPCStandAloneFullAOD_JPsi(process)  
+            if not options.isMC:
+                process.muon.jetCorrector = cms.InputTag(
+                    "ak4PFCHSL1FastL2L3ResidualCorrector")
         else:
-            process = muonAnalysis_customizeFullAOD_JPsi(process) # No JPsi Standalone config set yet
-        if not options.isMC:
-            process.muon.jetCorrector = cms.InputTag(
-                "ak4PFCHSL1FastL2L3ResidualCorrector")
+            if options.resonance == 'Z':
+                process = muonAnalysis_customizeStandAloneMiniAOD_Z(process)  # No HIUPC miniAOD 
+            else:
+                process = muonAnalysis_customizeMiniAOD(process)  # No HIUPC miniAOD 
     else:
-        if options.resonance == 'Z':
-            process = muonAnalysis_customizeStandAloneMiniAOD_Z(process)
+        if options.isFullAOD:
+            if options.resonance == 'Z':
+                process = muonAnalysis_customizeStandAloneFullAOD_Z(process)
+            else:
+                process = muonAnalysis_customizeStandAloneFullAOD_JPsi(process) # No JPsi Standalone config set yet
+            if not options.isMC:
+                process.muon.jetCorrector = cms.InputTag(
+                    "ak4PFCHSL1FastL2L3ResidualCorrector")
         else:
-            process = muonAnalysis_customizeMiniAOD(process)  # No JPsi Standalone config set yet
+            if options.resonance == 'Z':
+                process = muonAnalysis_customizeStandAloneMiniAOD_Z(process)
+            else:
+                process = muonAnalysis_customizeMiniAOD(process)  # No JPsi Standalone config set yet
 
 else:
     if options.isFullAOD:
@@ -275,6 +306,11 @@ process.muon.isMC = options.isMC
 process.muon.includeJets = options.includeJets
 process.muon.era = options.era
 
+if options.isHIUPC:
+   process.load('RecoHI.ZDCRecHit.QWZDC2018Producer_cfi')
+   process.load('RecoHI.ZDCRecHit.QWZDC2018RecHit_cfi')
+
+
 # Trigger matching
 muonSrc = "muons" if options.isFullAOD else "slimmedMuons"
 from MuonAnalysis.MuonAssociators.muonL1Match_cfi import muonL1Match as _muonL1Match
@@ -293,7 +329,7 @@ process.muonL1InfoByQ = process.muonL1Info.clone(
     sortByPt       = cms.bool(False)
 )
 
-from MuonAnalysis.MuonAnalyzer.hltInfo_cff import getHLTInfo, selectTriggers
+from MuonAnalysis.MuonAnalyzer.hltInfo_HI_cff import getHLTInfo, selectTriggers
 hltInfo = getHLTInfo(options.resonance, options.era)
 excludeDSA = (not options.isFullAOD)
 process.muon.triggerPaths = cms.vstring(selectTriggers(hltInfo['triggerPaths'], True, False, excludeDSA))
@@ -322,11 +358,21 @@ if options.includeJets:
             process.muSequence
         )
 else:
+  if not options.isMC and options.isHIUPC:
+    process.analysis_step = cms.Path(
+        process.muonL1Info +
+        process.muonL1InfoByQ +
+        process.zdcdigi +
+        process.QWzdcreco +
+        process.muSequence
+    )
+  else:
     process.analysis_step = cms.Path(
         process.muonL1Info +
         process.muonL1InfoByQ +
         process.muSequence
     )
+  
 
 process.TFileService = cms.Service("TFileService",
         fileName = cms.string(options.outputFile)

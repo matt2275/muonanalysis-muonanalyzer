@@ -30,3 +30,8 @@
  <use name="JetMETCorrections/Objects" />
  <use name="JetMETCorrections/Modules" />
  <use name="MuonAnalysis/MuonAssociators"/>
+ <use name="root"/>
+ <use name="rootrflx"/>
+ <use name="DataFormats/CMS.HcalRecHit"/>
+ <use name="DataFormats/HeavyIonEvent"/>
+ <use name="CondFormats/HIObjects"/>

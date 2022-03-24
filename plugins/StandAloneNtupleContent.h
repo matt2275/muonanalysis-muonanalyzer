@@ -234,7 +234,39 @@ public:
   float probe_simPt;
   float probe_simEta;
   float probe_simPhi;
+  
+//commented out to save space, added useful details for HIUPC collisions
 
+  // int nPFCands;
+  // // static const int maxsize = 500;
+  // std::vector<int> pfcand_pdgId;
+  // std::vector<int> pfcand_charge;
+  // std::vector<float> pfcand_pt;
+  // std::vector<float> pfcand_eta;
+  // std::vector<float> pfcand_phi; 
+  
+   // int nTower;
+   // std::vector<float> CaloTower_hadE;
+   // std::vector<float> CaloTower_emE;
+   // std::vector<float> CaloTower_e;
+   // std::vector<float> CaloTower_et;
+   // std::vector<float> CaloTower_eta;
+   // std::vector<float> CaloTower_phi;
+  
+  // int ZDC_n;
+  // float  ZDC_e[18];
+  // int    ZDC_zside[18];
+  // int    ZDC_section [18];
+  // int    ZDC_channel[18];
+  // int    ZDC_saturation[18];
+  // float  ZDC_PM_Total_Energy;  
+  // float  ZDC_P_Total_Energy;
+  // float  ZDC_P_ECal_Energy;
+  // float  ZDC_P_HCal_Energy;          
+  // float  ZDC_M_Total_Energy;
+  // float  ZDC_M_ECal_Energy;
+  // float  ZDC_M_HCal_Energy; 
+  
   float probe_numofassoctrks;
   
   

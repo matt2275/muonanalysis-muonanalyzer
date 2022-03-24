@@ -205,6 +205,36 @@ void StandAloneNtupleContent::CreateBranches(const std::vector<std::string> &HLT
   t1->Branch("probe_simEta", &probe_simEta);
   t1->Branch("probe_simPhi", &probe_simPhi);
 
+//commented out to save space, added useful details for HIUPC collisions
+
+  // t1->Branch("nPFCands", &nPFCands);
+  // t1->Branch("pfcand_pdgId", &pfcand_pdgId);
+  // t1->Branch("pfcand_charge", &pfcand_charge);  
+  // t1->Branch("pfcand_pt", &pfcand_pt);  
+  // t1->Branch("pfcand_eta", &pfcand_eta);  
+  // t1->Branch("pfcand_phi", &pfcand_phi);    
+  
+  
+  // t1->Branch("nTower", &nTower);
+  // t1->Branch("CaloTower_hadE", &CaloTower_hadE);
+  // t1->Branch("CaloTower_emE", &CaloTower_emE);
+  // t1->Branch("CaloTower_e", &CaloTower_e);
+  // t1->Branch("CaloTower_et", &CaloTower_et);
+  // t1->Branch("CaloTower_eta", &CaloTower_eta);
+  // t1->Branch("CaloTower_phi", &CaloTower_phi);
+
+  // t1->Branch("ZDC_n",&ZDC_n);
+  // t1->Branch("ZDC_e",ZDC_e,"ZDC_e[ZDC_n]/F");
+  // t1->Branch("ZDC_zside",ZDC_zside,"ZDC_zside[ZDC_n]/I");
+  // t1->Branch("ZDC_section",ZDC_section,"ZDC_section[ZDC_n]/I");
+  // t1->Branch("ZDC_channel",ZDC_channel,"ZDC_channel[ZDC_n]/I");
+  // t1->Branch("ZDC_PM_Total_Energy",&ZDC_PM_Total_Energy );  
+  // t1->Branch("ZDC_P_Total_Energy",&ZDC_P_Total_Energy );
+  // t1->Branch("ZDC_P_ECal_Energy",&ZDC_P_ECal_Energy );
+  // t1->Branch("ZDC_P_HCal_Energy",&ZDC_P_HCal_Energy );          
+  // t1->Branch("ZDC_M_Total_Energy",&ZDC_M_Total_Energy );
+  // t1->Branch("ZDC_M_ECal_Energy",&ZDC_M_ECal_Energy );
+  // t1->Branch("ZDC_M_HCal_Energy",&ZDC_M_HCal_Energy); 
 
   t1->Branch("probe_numofassoctrks", &probe_numofassoctrks);
   for (unsigned int ihlt = 0; ihlt < HLTs.size(); ihlt++)
@@ -420,6 +450,40 @@ void StandAloneNtupleContent::ClearBranches() {
   probe_simPt = -99;
   probe_simEta = -99;
   probe_simPhi = -99;
+ 
+
+//commented out to save space, added useful details for HIUPC collisions
+ 
+  // nPFCands = 0;
+  // pfcand_pdgId.clear();
+  // pfcand_charge.clear(); 
+  // pfcand_pt.clear();
+  // pfcand_eta.clear();
+  // pfcand_phi.clear(); 
+  
+  // nTower= 0;
+  // CaloTower_hadE.clear();
+  // CaloTower_emE.clear();
+  // CaloTower_e.clear();
+  // CaloTower_et.clear();
+  // CaloTower_eta.clear();
+  // CaloTower_phi.clear();
+  
+  // ZDC_n = 0;
+  // for (unsigned int i = 0; i < 18; i++) {
+  // ZDC_e[i] = 0;
+  // ZDC_zside[i] = -99;
+  // ZDC_section [i]= -99;
+  // ZDC_channel[i] = -99;
+  // ZDC_saturation[i] = -99;
+  // }
+  // ZDC_PM_Total_Energy = 0;  
+  // ZDC_P_Total_Energy = 0;
+  // ZDC_P_ECal_Energy = 0;
+  // ZDC_P_HCal_Energy = 0;          
+  // ZDC_M_Total_Energy = 0;
+  // ZDC_M_ECal_Energy = 0;
+  // ZDC_M_HCal_Energy = 0; 
   
   probe_numofassoctrks = -99;
 
