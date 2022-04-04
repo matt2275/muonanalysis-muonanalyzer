@@ -87,6 +87,7 @@
 #include "helper.h"
 #include "MuonMiniIsolation.h"
 #include "JetsBranches.h"
+//#include "DataFormats/TrackReco/interface/TrackBase.h"
 
 using namespace std;
 // using namespace edm;
@@ -104,7 +105,7 @@ class MuonMiniAODAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResource
 public:
   typedef std::vector<std::pair<pat::Muon, reco::TransientTrack>> PatMuonAndTransientTrkCollection;
   typedef std::pair<pat::Muon, reco::TransientTrack> PatMuonAndTransientTrk;
-  typedef std::pair<pat::PackedCandidate, reco::TransientTrack> PatPackedCandAndTransientTrk;
+  typedef std::pair<reco::Track, reco::TransientTrack> TrackAndTransientTrk;
   explicit MuonMiniAODAnalyzer(const edm::ParameterSet&);
   ~MuonMiniAODAnalyzer() override;
 
@@ -510,24 +511,24 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   nt.ntag = tag_muon_ttrack.size();
 
   // Add Lost Tracks to Packed cands
-  std::vector<pat::PackedCandidate> tracks;
+  std::vector<reco::Track> tracks;
   for (const auto container : {pfcands, lostTracks}) {
     for (const pat::PackedCandidate& trk : *container) {
-      if (!probeSelection_(trk))
-        continue;
       if (!trk.hasTrackDetails())
+        continue;
+      if (!probeSelection_(trk))
         continue;
       if (HighPurity_ && !trk.trackHighPurity())
         continue;
-      tracks.emplace_back(trk);
+      tracks.emplace_back(*trk.bestTrack());
     }
   }
   std::vector<unsigned> matched_track_idx;
   if (!iEvent.isRealData()) {
     auto reco_match_genmu1 =
-        MatchReco<pat::PackedCandidate>(tracks, nt.genmu1_eta, nt.genmu1_phi, nt.genmu1_charge, genRecoDrMatch_);
+        MatchReco<reco::Track>(tracks, nt.genmu1_eta, nt.genmu1_phi, nt.genmu1_charge, genRecoDrMatch_);
     auto reco_match_genmu2 =
-        MatchReco<pat::PackedCandidate>(tracks, nt.genmu2_eta, nt.genmu2_phi, nt.genmu2_charge, genRecoDrMatch_);
+        MatchReco<reco::Track>(tracks, nt.genmu2_eta, nt.genmu2_phi, nt.genmu2_charge, genRecoDrMatch_);
     if (reco_match_genmu1.first)
       matched_track_idx.push_back(reco_match_genmu1.second);
     if (reco_match_genmu2.first)
@@ -674,7 +675,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       if (mass < pairMassMin_ || mass > pairMassMax_)
         continue;
 
-      std::vector<reco::TransientTrack> trk_pair = {tag.second, reco::TransientTrack(probe.pseudoTrack(), &(*bField))};
+      std::vector<reco::TransientTrack> trk_pair = {tag.second, reco::TransientTrack(probe, &(*bField))};
       KlFitter vtx(trk_pair);
       if (RequireVtxCreation_ && !vtx.status())
         continue;
@@ -714,6 +715,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     auto tag_idx = &tag - &tag_muon_ttrack[0];
     // loop over probe tracks
     for (const auto& probe : tracks) {
+      
       // apply cuts on pairs
       if (tag.first.charge() == probe.charge())
         continue;
@@ -724,7 +726,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       if (mass < pairMassMin_ || mass > pairMassMax_)
         continue;
 
-      std::vector<reco::TransientTrack> trk_pair = {tag.second, reco::TransientTrack(probe.pseudoTrack(), &(*bField))};
+      std::vector<reco::TransientTrack> trk_pair = {tag.second, reco::TransientTrack(probe, &(*bField))};
       KlFitter vtx(trk_pair);
       if (RequireVtxCreation_ && !vtx.status())
         continue;
@@ -737,7 +739,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       if (muonOnly_ && it == trk_muon_map.first.end())
         continue;
 
-      FillTagBranches<pat::Muon, pat::PackedCandidate>(tag.first, tracks, nt, *pv);
+      FillTagBranches<pat::Muon, reco::Track>(tag.first, tracks, nt, *pv);
       nt.tag_isMatchedGen = genmatched_tag[&tag - &tag_muon_ttrack[0]];
       FillMiniIso<pat::Muon, pat::PackedCandidate>(*pfcands, tag.first, *rhoJetsNC, nt, true);
 
@@ -777,7 +779,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
       if (it != trk_muon_map.first.end()) {
         unsigned idx = std::distance(trk_muon_map.first.begin(), it);
-        FillProbeBranches<pat::Muon, pat::PackedCandidate>(muons->at(trk_muon_map.second[idx]), tracks, nt, true, *pv);
+        FillProbeBranches<pat::Muon, reco::Track>(muons->at(trk_muon_map.second[idx]), tracks, nt, true, *pv);
         FillProbeBranchesSelector<pat::Muon>(muons->at(trk_muon_map.second[idx]), nt, probeSelectorBits_, true);
         FillMiniIso<pat::Muon, pat::PackedCandidate>(
             *pfcands, muons->at(trk_muon_map.second[idx]), *rhoJetsNC, nt, false);
@@ -834,7 +836,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         reco::Muon fakeMuon;
         fakeMuon.setP4(mu2);
         fakeMuon.setCharge(probe.charge());
-        FillProbeBranches<reco::Muon, pat::PackedCandidate>(fakeMuon, tracks, nt, false, *pv);
+        FillProbeBranches<reco::Muon, reco::Track>(fakeMuon, tracks, nt, false, *pv);
         FillProbeBranchesSelector<reco::Muon>(fakeMuon, nt, probeSelectorBits_, false);
         FillMiniIso<pat::Muon, pat::PackedCandidate>(*pfcands, fakeMuon, *rhoJetsNC, nt, false);
         if (includeJets_)
@@ -860,9 +862,9 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         FillTunePPairBranchesDummy(nt);
       }
 
-      PatPackedCandAndTransientTrk probe_pair = std::make_pair(probe, reco::TransientTrack(probe.pseudoTrack(), &(*bField)));
+      TrackAndTransientTrk probe_pair = std::make_pair(probe, reco::TransientTrack(probe, &(*bField)));
       
-      FillPairBranches<PatMuonAndTransientTrk, PatPackedCandAndTransientTrk>(tag, probe_pair, nt, prop1_);
+      FillPairBranches<PatMuonAndTransientTrk, TrackAndTransientTrk>(tag, probe_pair, nt, prop1_);
 
       vtx.fillNtuple(nt);
 
@@ -871,7 +873,7 @@ void MuonMiniAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
       nt.iprobe++;
       nt.pair_rank_vtx_prob = pair_rank_vtx_prob[{&tag - &tag_muon_ttrack[0], &probe - &tracks[0]}];
-      nt.probe_isHighPurity = probe.trackHighPurity();
+      nt.probe_isHighPurity = probe.quality(reco::TrackBase::highPurity);
       
       for(auto it=map_tagIdx_nprobes.begin(); it!=map_tagIdx_nprobes.end(); ++it){
 	if(it->first == tag_idx){nt.pair_probeMultiplicity = it->second;}
