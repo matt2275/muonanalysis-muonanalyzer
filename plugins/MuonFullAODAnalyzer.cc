@@ -1137,7 +1137,6 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
                 << std::endl;
     // loop over probe tracks
     for (const reco::Track& probe : *tracks) {
-      if (probe.pt() < 25) continue; // just to debug
       if (debug_ > 1)
         std::cout << "    Probe pt " << probe.pt() << " eta " << probe.eta() << " phi " << probe.phi() << "  charge "
                   << probe.charge() << std::endl;
