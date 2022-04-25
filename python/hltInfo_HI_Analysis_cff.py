@@ -15,97 +15,49 @@ hltInfoAll[resonance][era][type]:
 """
 
 hltInfoAll = {
-  'Z': {
-    'Run2016': {
-      'triggerPaths': [
+'Run2016': {
+  'triggerPaths': [
 
-        "HLT_HIUPCSingleMuNotHF2Pixel_SingleTrack_v",
-      ],
-      'tagFilters': [
- 
-        'hltL1MuOpenNotHF2L1Filtered0',
+    "HLT_HIUPCSingleMuNotHF2Pixel_SingleTrack_v",
+  ],
+  'tagFilters': [
 
-      ],
-      'probeFilters': [
-        'hltL1MuOpenNotHF2L1Filtered0',
-      ]
-    },
-    'Run2017': {
-      'triggerPaths': [
+    'hltL1MuOpenNotHF2L1Filtered0',
 
-        "HLT_HIUPCSingleMuNotHF2Pixel_SingleTrack_v",
-      ],
-      'tagFilters': [
- 
-        'hltL1MuOpenNotHF2L1Filtered0',
+  ],
+  'probeFilters': [
+    'hltL1MuOpenNotHF2L1Filtered0',
+  ]
+},
+'Run2017': {
+  'triggerPaths': [
 
-      ],
-      'probeFilters': [
-        'hltL1MuOpenNotHF2L1Filtered0',
-      ]
-    },
-    'Run2018': {
-      'triggerPaths': [
-        "HLT_HIUPC_SingleMuOpen_NotMBHF2AND_v",
-        "HLT_HIUPC_SingleMu0_NotMBHF2AND_v1",
-      ],
-      'tagFilters': [
-        'hltL1sSingleMuOpenNotMBHF2AND',
-        'hltL1sSingleMu0NotMBHF2AND',
-        
-      ],
-      'probeFilters': [
-        'hltL1sSingleMuOpenNotMBHF2AND',
-        'hltL1sSingleMu0NotMBHF2AND',
+    "HLT_HIUPCSingleMuNotHF2Pixel_SingleTrack_v",
+  ],
+  'tagFilters': [
 
-      ]
-    }
-  },
-  'JPsi': {
-    'Run2016': {
-      'triggerPaths': [
+    'hltL1MuOpenNotHF2L1Filtered0',
 
-        "HLT_HIUPCSingleMuNotHF2Pixel_SingleTrack_v",
-      ],
-      'tagFilters': [
- 
-        'hltL1MuOpenNotHF2L1Filtered0',
+  ],
+  'probeFilters': [
+    'hltL1MuOpenNotHF2L1Filtered0',
+  ]
+},
+'Run2018': {
+  'triggerPaths': [
+    "HLT_HIUPC_SingleMuOpen_NotMBHF2AND_v",
+    "HLT_HIUPC_SingleMu0_NotMBHF2AND_v1",
+  ],
+  'tagFilters': [
+    'hltL1sSingleMuOpenNotMBHF2AND',
+    'hltL1sSingleMu0NotMBHF2AND',
+  ],
+  'probeFilters': [
+    'hltL1sSingleMuOpenNotMBHF2AND',
+    'hltL1sSingleMu0NotMBHF2AND',
 
-      ],
-      'probeFilters': [
-        'hltL1MuOpenNotHF2L1Filtered0',
-      ]
-    },
-    'Run2017': {
-      'triggerPaths': [
-
-        "HLT_HIUPCSingleMuNotHF2Pixel_SingleTrack_v",
-      ],
-      'tagFilters': [
- 
-        'hltL1MuOpenNotHF2L1Filtered0',
-
-      ],
-      'probeFilters': [
-        'hltL1MuOpenNotHF2L1Filtered0',
-      ]
-    },
-    'Run2018': {
-      'triggerPaths': [
-        "HLT_HIUPC_SingleMuOpen_NotMBHF2AND_v",
-        "HLT_HIUPC_SingleMu0_NotMBHF2AND_v1",
-      ],
-      'tagFilters': [
-        'hltL1sSingleMuOpenNotMBHF2AND',
-        'hltL1sSingleMu0NotMBHF2AND',
-      ],
-      'probeFilters': [
-        'hltL1sSingleMuOpenNotMBHF2AND',
-        'hltL1sSingleMu0NotMBHF2AND',
-
-      ]
-    }
-  }
+  ]
+}
 }
 
 def check_size(info, max_size = 100, keys = []):
@@ -147,7 +99,7 @@ def selectTriggers(trgList, keepPaths = True, keepFilters = True, excludeDSA = F
       out.append(trg)
   return out
 
-def getHLTInfo(resonance, era):
+def getHLTInfo( era):
   check_size(hltInfoAll)
-  return hltInfoAll[resonance][getShortEraForHLT(era)]
+  return hltInfoAll[getShortEraForHLT(era)]
 

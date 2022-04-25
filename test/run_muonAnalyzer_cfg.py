@@ -64,7 +64,7 @@ options.register('fromCRAB', False,
     "Is config run from CRAB"
 )
 
-options.register('isStandAlone', False,
+options.register('isStandAlone', True,
     VarParsing.multiplicity.singleton,
     VarParsing.varType.bool,
     "run StandAlone Muon Analyzers"
@@ -179,7 +179,21 @@ if len(options.inputFiles) == 0:
         if options.isFullAOD:
             if options.isMC:
                 #options.inputFiles.append('/store/mc/RunIIAutumn18DRPremix/JpsiToMuMu_JpsiPt8_TuneCP5_13TeV-pythia8/AODSIM/102X_upgrade2018_realistic_v15-v1/270001/FFF2FC1D-18CB-7244-9663-4E36963494B7.root')
-                options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/GammaGammatoMuMu_5p02TeV_STARlight/AODSIM/NoPU_103X_upgrade2018_realistic_HI_v11-v2/280000/02762AC2-E426-CA46-A9BE-3B67E3ABC372.root')                
+                options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/GammaGammatoMuMu_5p02TeV_STARlight/AODSIM/NoPU_103X_upgrade2018_realistic_HI_v11-v2/280000/02762AC2-E426-CA46-A9BE-3B67E3ABC372.root')
+               # options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/GammaGammatoMuMu_5p02TeV_STARlight/AODSIM/NoPU_103X_upgrade2018_realistic_HI_v11-v2/280000/02762AC2-E426-CA46-A9BE-3B67E3ABC372.root')
+               # options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/GammaGammatoMuMu_5p02TeV_STARlight/AODSIM/NoPU_103X_upgrade2018_realistic_HI_v11-v2/280000/02D64F67-B2B4-494E-B9B1-5D7B0DD22244.root')
+               # options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/GammaGammatoMuMu_5p02TeV_STARlight/AODSIM/NoPU_103X_upgrade2018_realistic_HI_v11-v2/280000/04B4C8C5-DE0D-6146-AC1C-F27DAD4EE6C0.root')
+               # options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/GammaGammatoMuMu_5p02TeV_STARlight/AODSIM/NoPU_103X_upgrade2018_realistic_HI_v11-v2/280000/04CD57C1-5BBA-A94A-848D-8B036B7786BE.root')
+                #options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/GammaGammatoMuMu_5p02TeV_STARlight/AODSIM/NoPU_103X_upgrade2018_realistic_HI_v11-v2/280000/0659B805-B026-6444-B784-989A8663E582.root')
+               # options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/ggBBbar_4f_TuneCP5_5p02TeV_MG5_aMCatNLO_pythia8/AODSIM/NoPUlowPtPhotonReg_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2_ext1-v2/230000/03E94DC0-FE38-4E49-9445-CA999E866E6C.root')
+                #options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/GammaGammatoMuMu_5p02TeV_STARlight/AODSIM/NoPU_103X_upgrade2018_realistic_HI_v11-v2/280000/06A5A5A1-FCAD-FE4B-A154-CAAD5CDDFF2D.root')
+               #options.inputFiles.append('/store/user/shuaiy/RiceHIN/STARlight/STARlight_GammaGamma2MuMu_Reco_woPtCut_PbPb5TeV_v1/GammaGamma2MuMu_GENSIM_woPtCut_PbPb5TeV_v1/STARlight_GammaGamma2MuMu_Reco_woPtCut_PbPb5TeV_v1/191111_221615/0000/step3_RECO_1.root')
+               #options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/ggTauTau_TuneCP5_5p02TeV_amcatnlo_pythia8/AODSIM/NoPUlowPtPhotonReg_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v2/280000/0578D671-11C5-8843-88C5-67E784ACB9E0.root')
+               # options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/ggTauTau_TuneCP5_5p02TeV_SuperChic_pythia8/AODSIM/NoPUlowPtPhotonReg_LbyL_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v2/10000/32AD5A11-4F91-E24A-BE84-0C6B07455E05.root')
+               # options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/ggTauTau_TuneCP5_5p02TeV_SuperChic_pythia8/AODSIM/NoPUlowPtPhotonReg_LbyL_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v2/10000/42076A67-5F1A-CA43-BEB7-038D1EC71E69.root')
+               # options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/ggTauTau_TuneCP5_5p02TeV_SuperChic_pythia8/AODSIM/NoPUlowPtPhotonReg_LbyL_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v2/10000/A40236B3-F858-BF45-8FA1-51878A8955FB.root')
+               # options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/ggTauTau_TuneCP5_5p02TeV_SuperChic_pythia8/AODSIM/NoPUlowPtPhotonReg_LbyL_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v2/10000/B53B304D-0905-3145-8E18-B5A9A374A2FB.root')
+               # options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/ggTauTau_TuneCP5_5p02TeV_SuperChic_pythia8/AODSIM/NoPUlowPtPhotonReg_LbyL_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v2/10000/E17D3970-920C-EE45-8718-27D43F97882A.root')               
             else:
                 options.inputFiles.append('/store/hidata/HIRun2018A/HIForward/AOD/04Apr2019-v1/00000/36696797-7247-4F47-843D-A2D3630801C5.root')
                 #options.inputFiles.append('/store/hidata/HIRun2018A/HIForward/AOD/04Apr2019-v1/00000/19CFC2EF-7F8F-194C-92D9-01E0F59802AD.root')
@@ -336,6 +350,14 @@ process.muon.triggerPaths = cms.vstring(selectTriggers(hltInfo['triggerPaths'], 
 process.muon.tagFilters = cms.vstring(selectTriggers(hltInfo['tagFilters'], not options.isFullAOD, True, excludeDSA))
 process.muon.probeFilters = cms.vstring(selectTriggers(hltInfo['probeFilters'], not options.isFullAOD, True, excludeDSA))
 
+process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")
+process.printTree = cms.EDAnalyzer("ParticleListDrawer",
+  maxEventsToPrint = cms.untracked.int32(1000),
+  printVertex = cms.untracked.bool(False),
+  printOnlyHardInteraction = cms.untracked.bool(False), # Print only status=3 particles. This will not work for Pythia8, which does not have any such particles.
+  src = cms.InputTag("genParticles")
+)
+
 # Standard selectors
 from MuonAnalysis.MuonAnalyzer.selectorInfo_cff import getSelectorNamesAndBits
 selectorNames, selectorBits = getSelectorNamesAndBits(options.era, options.isFullAOD)
@@ -368,6 +390,7 @@ else:
     )
   else:
     process.analysis_step = cms.Path(
+
         process.muonL1Info +
         process.muonL1InfoByQ +
         process.muSequence

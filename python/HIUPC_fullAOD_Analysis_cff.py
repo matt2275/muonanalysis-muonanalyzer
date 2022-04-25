@@ -3,7 +3,7 @@ option for AOD run'''
 
 import FWCore.ParameterSet.Config as cms
 
-muon = cms.EDAnalyzer('HIUPC_StandAloneMuonFullAODAnalyzer',
+muon = cms.EDAnalyzer('HIUPC_Analysis_FullAODAnalyzer',
         isMC=cms.bool(False),
         includeJets=cms.bool(False),
         era = cms.string('dummy'), # updated in run_muonAnalyzer_cfg.py
@@ -81,6 +81,7 @@ muon = cms.EDAnalyzer('HIUPC_StandAloneMuonFullAODAnalyzer',
         saveStandAloneTree = cms.bool(False),
         saveTnPTree = cms.bool(True),
         debug = cms.int32(0),
+        MCType = cms.string(""), # filled in test_run file
         propM1 = cms.PSet(
             useStation2 = cms.bool(False),
             useTrack = cms.string("tracker"),
