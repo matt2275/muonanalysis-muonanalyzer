@@ -53,8 +53,8 @@ for (edm::SortedCollection<CaloTower>::const_iterator calo = calotowercollection
 
 void Analysis_CaloAnalyzer::FillZDC(Analysis_NtupleContent& nt,const edm::Event& iEvent, const edm::EDGetTokenT<edm::SortedCollection<ZDCRecHit>>& RecHitsToken_) {
   iEvent.getByToken(RecHitsToken_, zdcrechits);
-   
-   
+
+    nt.ZDC_n = zdcrechits->size();   
     int nhits = 0;
     for (auto const& rh : *zdcrechits) {
       HcalZDCDetId zdcid = rh.id();
@@ -79,6 +79,7 @@ void Analysis_CaloAnalyzer::FillZDC(Analysis_NtupleContent& nt,const edm::Event&
 
       nhits++;
     } // end loop zdc rechits 
+
 }
 
 

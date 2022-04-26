@@ -283,6 +283,7 @@ inline void FillPFCandBranches(
 
        nt.nPFCands = pfcands.size();
     for (const auto &pfc : pfcands) {
+      if(pfc.charge() == 0) continue;
       nt.pfcand_pdgId.push_back(pfc.pdgId());
       nt.pfcand_charge.push_back(pfc.charge()); 
       nt.pfcand_pt.push_back(pfc.pt());
