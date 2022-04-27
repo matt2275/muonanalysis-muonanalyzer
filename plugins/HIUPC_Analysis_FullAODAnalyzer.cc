@@ -1462,9 +1462,11 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
           // continue;
         // if (minSVtxProb_ > 0 && vtx.prob() < minSVtxProb_)
           // continue;
-        auto it = std::find(trk_muon_map.first.begin(), trk_muon_map.first.end(), &probe - &tracks->at(0));
-        auto it_pfc = std::find(trk_pfc_map.first.begin(), trk_pfc_map.first.end(), &probe - &tracks->at(0));
-        auto it_electron = std::find(trk_electron_map.first.begin(), trk_electron_map.first.end(), &probe - &tracks->at(0));
+        int probe_trk_idx = &probe - &tracks->at(0);
+        auto it = std::find(trk_muon_map.first.begin(), trk_muon_map.first.end(), probe_trk_idx);
+        auto it_pfc = std::find(trk_pfc_map.first.begin(), trk_pfc_map.first.end(), probe_trk_idx);
+        auto it_electron = std::find(trk_electron_map.first.begin(), trk_electron_map.first.end(), probe_trk_idx);
+
         if (muonOnly_ && it == trk_muon_map.first.end()){
           t2->Fill();
           continue;
@@ -1512,13 +1514,26 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
                 nt.gentrk2_isTag = true;
            }
         }
+
         int probe_muon_idx = -99 ;
+        int tag_trk_idx = -99;
         int tag_muon_idx = tag_muon_map.at(tag_idx);
+        auto it_tag_trk = std::find(trk_muon_map.second.begin(), trk_muon_map.second.end(), tag_muon_idx);
+        nt.probe_vtx_x =probe.vx();
+        nt.probe_vtx_y =probe.vy();
+        nt.probe_vtx_z =probe.vz();
+
         if (it != trk_muon_map.first.end()){
            unsigned tmp_idx = std::distance(trk_muon_map.first.begin(), it);
            probe_muon_idx = trk_muon_map.second[tmp_idx];
            nt.probe_hasMuonMatch = true;
            nt.probe_MuonMatchDR = deltaR(probe.eta(), probe.phi(), muons->at(probe_muon_idx).eta(), muons->at(probe_muon_idx).phi());
+        }
+        if (it_tag_trk != trk_muon_map.second.end()){
+           unsigned tmp_idx = std::distance(trk_muon_map.second.begin(), it_tag_trk);
+           tag_trk_idx = trk_muon_map.first[tmp_idx];
+           nt.tag_hasTrackMatch = true;
+           nt.tag_TrackMatchDR = deltaR(tag.first.eta(), tag.first.phi(), tracks->at(tag_trk_idx).eta(), tracks->at(tag_trk_idx).phi());
         }
         int probe_pfc_idx = -99;
         if (it_pfc != trk_pfc_map.first.end()){
@@ -1539,7 +1554,7 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
         FillMuonBranches<reco::Muon>(*muons, nt,tag_muon_idx, probe_muon_idx, *pv);
         FillElectronBranches<reco::GsfElectron>(*electrons, nt, probe_electron_idx, *pv);
         FillPFCandBranches<reco::PFCandidate>(*pfcands, nt, probe_pfc_idx);
-        FillTrackBranches<reco::Track>(*tracks, nt);
+        FillTrackBranches<reco::Track>(*tracks, nt, tag_trk_idx,probe_trk_idx);
      
         
         

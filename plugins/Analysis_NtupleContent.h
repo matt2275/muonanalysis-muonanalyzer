@@ -238,6 +238,9 @@ public:
   float tag_pterr;
   float tag_dxy;
   float tag_dz;
+  float tag_vtx_x;
+  float tag_vtx_y;
+  float tag_vtx_z;
   bool tag_isPF;
   bool tag_isSA;
   bool tag_isdSA;
@@ -264,12 +267,17 @@ public:
   float tag_tuneP_pt;
   float tag_tuneP_pterr;
   int tag_nsegments;
+  bool tag_hasTrackMatch;
+  float tag_TrackMatchDR;
 
   // Probe properties
   float probe_pt;
   float probe_eta;
   float probe_phi;
   int probe_charge;
+  float probe_vtx_x;
+  float probe_vtx_y;
+  float probe_vtx_z;
   // bool probe_isLoose;
   // bool probe_isMedium;
   // bool probe_isTight;
@@ -430,6 +438,8 @@ public:
 
 
    int nTrk;
+   std::vector<bool> trkisTag;
+   std::vector<bool> trkisProbe;   
    std::vector<float> trkPt;            
    std::vector<float> trkP;            
    std::vector<float> trkEta;           
@@ -450,8 +460,7 @@ public:
    std::vector<int>   trkValidHits;           
    std::vector<int>   trkMissHits;   
    std::vector<int>   trkPurity; 
-   
-   
+
    int nEle;
    std::vector<bool>   ele_isProbe;
    std::vector<int>    eleCharge;

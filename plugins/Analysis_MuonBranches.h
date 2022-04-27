@@ -35,6 +35,9 @@ inline void FillTagBranches(const MUON &muon,
   nt.tag_pterr = muon.innerTrack()->ptError() / muon.innerTrack()->pt();
   nt.tag_dxy = muon.innerTrack()->dxy(reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
   nt.tag_dz = muon.innerTrack()->dz(reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
+  nt.tag_vtx_x = muon.vx();
+  nt.tag_vtx_y = muon.vy();
+  nt.tag_vtx_z = muon.vz();
   nt.tag_isPF = muon.isPFMuon();
   nt.tag_isSA = muon.isStandAloneMuon();
   nt.tag_isTracker = muon.isTrackerMuon();
@@ -187,7 +190,7 @@ inline void FillMuonBranches(
     
 template <typename TRK>
 inline void FillTrackBranches(
-    const std::vector<TRK> &tracks, Analysis_NtupleContent &nt){
+    const std::vector<TRK> &tracks, Analysis_NtupleContent &nt, int &tag_idx, int &probe_idx){
        nt.nTrk = tracks.size();
        for (const auto& trk : tracks) { 
           nt.trkPt.push_back(trk.pt());            
@@ -209,7 +212,19 @@ inline void FillTrackBranches(
           nt.trkdzError.push_back(trk.dzError());   
           nt.trkValidHits.push_back(trk.numberOfValidHits());                     
           nt.trkMissHits.push_back(trk.numberOfLostHits());  
-          nt.trkPurity.push_back(trk.reco::TrackBase::qualityByName("highPurity"));                   
+          nt.trkPurity.push_back(trk.reco::TrackBase::qualityByName("highPurity")); 
+          if((&trk - &tracks.at(0)) == probe_idx){
+          nt.trkisProbe.push_back(true);
+          nt.trkisTag.push_back(false);
+          }
+          if((&trk - &tracks.at(0)) == tag_idx){
+          nt.trkisProbe.push_back(false);
+          nt.trkisTag.push_back(true);
+          }
+          else{
+          nt.trkisProbe.push_back(false);
+          nt.trkisTag.push_back(false);
+          }           
        }
 
     }

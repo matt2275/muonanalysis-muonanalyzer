@@ -125,6 +125,9 @@ void Analysis_NtupleContent::CreateBranches(const std::vector<std::string> &HLTs
   t1->Branch("tag_pterr", &tag_pterr);
   t1->Branch("tag_dxy", &tag_dxy);
   t1->Branch("tag_dz", &tag_dz);
+  t1->Branch("tag_vtx_x", &tag_vtx_x);
+  t1->Branch("tag_vtx_y", &tag_vtx_y);
+  t1->Branch("tag_vtx_z", &tag_vtx_z);
   t1->Branch("tag_isPF", &tag_isPF);
   t1->Branch("tag_isSA", &tag_isSA);
   t1->Branch("tag_isdSA", &tag_isdSA);
@@ -151,12 +154,18 @@ void Analysis_NtupleContent::CreateBranches(const std::vector<std::string> &HLTs
   t1->Branch("tag_tuneP_pt", &tag_tuneP_pt);
   t1->Branch("tag_tuneP_pterr", &tag_tuneP_pterr);
   t1->Branch("tag_nsegments", &tag_nsegments);
+  t1->Branch("tag_hasTrackMatch", &tag_hasTrackMatch);
+  t1->Branch("tag_TrackMatchDR", &tag_TrackMatchDR);
+  
   // Probe specific
   t1->Branch("iprobe", &iprobe);
   t1->Branch("probe_pt", &probe_pt);
   t1->Branch("probe_eta", &probe_eta);
   t1->Branch("probe_phi", &probe_phi);
   t1->Branch("probe_charge", &probe_charge);
+  t1->Branch("probe_vtx_x", &probe_vtx_x);
+  t1->Branch("probe_vtx_y", &probe_vtx_y);
+  t1->Branch("probe_vtx_z", &probe_vtx_z);
   // t1->Branch("probe_pterr", &probe_pterr);
   // t1->Branch("probe_dxy", &probe_dxy);
   // t1->Branch("probe_dz", &probe_dz);
@@ -339,6 +348,8 @@ void Analysis_NtupleContent::CreateBranches(const std::vector<std::string> &HLTs
     t1->Branch("muIDInTime", &muIDInTime);
 
     t1->Branch("nTrk", &nTrk);
+    t1->Branch("trkisTag", &trkisTag);
+    t1->Branch("trkisProbe", &trkisProbe);
     t1->Branch("trkPt", &trkPt);
     t1->Branch("trkP", &trkP);
     t1->Branch("trkEta", &trkEta);
@@ -783,6 +794,9 @@ void Analysis_NtupleContent::ClearBranches() {
   tag_pterr = 0;
   tag_dxy = -99;
   tag_dz = -99;
+  tag_vtx_x = -99;
+  tag_vtx_y = -99;
+  tag_vtx_z = -99;
   tag_isPF = false;
   tag_isSA = false;
   tag_isdSA = false;
@@ -809,12 +823,17 @@ void Analysis_NtupleContent::ClearBranches() {
   tag_tuneP_pt = -99;
   tag_tuneP_pterr = -99;
   tag_nsegments = -99;
+  tag_hasTrackMatch = false;
+  tag_TrackMatchDR = 99;
 
   iprobe = 0;
   probe_pt = 0;
   probe_eta = -99;
   probe_phi = -99;
   probe_charge = -99;
+  probe_vtx_x = -99;
+  probe_vtx_y = -99;
+  probe_vtx_z = -99;
   // probe_isLoose = false;
   // probe_isMedium = false;
   // probe_isTight = false;
@@ -991,6 +1010,8 @@ void Analysis_NtupleContent::ClearBranches() {
     muIDInTime.clear();
 
     nTrk =0;
+    trkisProbe.clear();
+    trkisTag.clear();
     trkPt.clear();
     trkP.clear();
     trkEta.clear();
@@ -1010,6 +1031,7 @@ void Analysis_NtupleContent::ClearBranches() {
     trkdzError.clear();
     trkValidHits.clear();                     
     trkMissHits.clear();
+
   
     nEle = 0;
     eleCharge.clear();
