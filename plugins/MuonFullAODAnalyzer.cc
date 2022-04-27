@@ -1144,31 +1144,41 @@ void MuonFullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       // apply cuts on probe
       if (HighPurity_ && !probe.quality(Track::highPurity))
         continue;
+      if (debug_ > 2) std::cout << "Passes high purity" << std::endl;
       if (!probeSelection_(probe))
         continue;
+      if (debug_ > 2) std::cout << "Passes selection" << std::endl;
+
 
       // apply cuts on pairs; selected will be saved
       if (tag.first.charge() == probe.charge())
         continue;
+      if (debug_ > 2) std::cout << "Passes charge requirement" << std::endl;
       if (fabs(tag.first.vz() - probe.vz()) > pairDz_ && pairDz_ > 0)
         continue;
+      if (debug_ > 2) std::cout << "Passes dz cut" << std::endl;
 
       float mass = DimuonMass(tag.first.pt(), tag.first.eta(), tag.first.phi(), probe.pt(), probe.eta(), probe.phi());
       if (mass < pairMassMin_ || mass > pairMassMax_)
         continue;
+      if (debug_ > 2) std::cout << "Passes mass cut" << std::endl;
 
       std::vector<reco::TransientTrack> trk_pair = {tag.second, reco::TransientTrack(probe, &(*bField))};
       KlFitter vtx(trk_pair);
       if (RequireVtxCreation_ && !vtx.status())
         continue;
+      if (debug_ > 2) std::cout << "Passes vertex status" << std::endl;
+
       if (minSVtxProb_ > 0){
 	if (vtx.prob() < minSVtxProb_)
 	  continue;
       }
+      if (debug_ > 2) std::cout << "Passes vertex probability cut" << std::endl;
 
       auto it = std::find(trk_muon_map.first.begin(), trk_muon_map.first.end(), &probe - &tracks->at(0));
       if (muonOnly_ && it == trk_muon_map.first.end())
         continue;
+      if (debug_ > 2) std::cout << "Passes muon/track selection" << std::endl;
 
       math::PtEtaPhiMLorentzVector mu1(tag.first.pt(), tag.first.eta(), tag.first.phi(), MU_MASS);
       math::PtEtaPhiMLorentzVector mu2(probe.pt(), probe.eta(), probe.phi(), MU_MASS);

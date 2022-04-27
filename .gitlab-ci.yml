@@ -50,6 +50,28 @@ run-aod:
         paths: 
             - output_aod.root
 
+run-miniaod:
+    tags: [ cvmfs ] 
+    stage: run
+    only:
+        - merge_requests
+        - master
+    script:
+        - set +e && source /cvmfs/cms.cern.ch/cmsset_default.sh; set -e
+        - shopt -s extglob
+        - source ci/untar_cmssw.sh
+        - printf $USER_PASS | base64 -d | kinit $USER_NAME
+        - xrdcp  root://eosuser.cern.ch//eos/user/c/cmsmupog/www/MuonPOG_CI/DD0D06EF-5C77-8147-84F2-779DEB3E0F52.root $PWD/
+        - cmsRun MuonAnalysis/MuonAnalyzer/test/run_muonAnalyzer_cfg.py inputFiles=file:DD0D06EF-5C77-8147-84F2-779DEB3E0F52.root globalTag=106X_upgrade2018_realistic_v11_L1v1   isFullAOD=False isMC=True outputFile=output_miniaod.root
+        - mv output_miniaod.root ../../
+
+
+    artifacts:
+        when: on_success
+        expire_in: 5 days
+        paths: 
+            - output_miniaod.root
+
 compare-aod:
     tags: [ cvmfs ] 
     stage: compare
@@ -62,12 +84,31 @@ compare-aod:
         - source ci/untar_cmssw.sh
         - printf $USER_PASS | base64 -d | kinit $USER_NAME
         - xrdcp  root://eosuser.cern.ch//eos/user/c/cmsmupog/www/MuonPOG_CI/reference.root $PWD/
-        - python ../../ci/compare_with_reference.py reference.root ../../output_aod.root
+        - python ../../ci/compare_with_reference.py reference.root ../../output_aod.root _aod
     artifacts:
         expire_in: 20 days
         when: always
         paths: 
-            - residuals.pdf
+            - residuals_aod.pdf
+
+compare-miniaod:
+    tags: [ cvmfs ] 
+    stage: compare
+    only:
+        - merge_requests
+        - master
+    script:
+        - set +e && source /cvmfs/cms.cern.ch/cmsset_default.sh; set -e
+        - shopt -s extglob
+        - source ci/untar_cmssw.sh
+        - printf $USER_PASS | base64 -d | kinit $USER_NAME
+        - xrdcp  root://eosuser.cern.ch//eos/user/c/cmsmupog/www/MuonPOG_CI/reference_miniaod.root $PWD/
+        - python ../../ci/compare_with_reference.py reference_miniaod.root ../../output_miniaod.root _miniaod
+    artifacts:
+        expire_in: 20 days
+        when: always
+        paths: 
+            - residuals_miniaod.pdf
 
 stages:
   - build

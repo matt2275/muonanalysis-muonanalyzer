@@ -20,6 +20,7 @@ print(bcolors.OKCYAN, "========== Comparing", bcolors.ENDC, sys.argv[1], bcolors
 
 reference = r.TFile.Open(sys.argv[1])
 target   =  r.TFile.Open(sys.argv[2])
+suffix   = sys.argv[3]
 
 ref_tree=reference.Get("muon/Events")
 tar_tree=target   .Get("muon/Events")
@@ -116,11 +117,11 @@ for i,var in enumerate(residuals):
     h.Draw()
     c.SetLogy(True)
     if not i: 
-        c.Print("../../residuals.pdf(")
+        c.Print("../../residuals%s.pdf("%suffix)
     if i==len(residuals)-1:
-        c.Print("../../residuals.pdf)")
+        c.Print("../../residuals%s.pdf)"%suffix)
     else:
-        c.Print("../../residuals.pdf")
+        c.Print("../../residuals%s.pdf"%suffix)
 
 for var in differentVariables:
     print(bcolors.WARNING, "[FAIL]: Variable %s has significant differences between reference and target"%var, bcolors.ENDC)
