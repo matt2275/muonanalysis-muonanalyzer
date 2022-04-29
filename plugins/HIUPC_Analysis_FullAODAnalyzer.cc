@@ -266,8 +266,7 @@ private:
   const double maxTrkNum_;
   const unsigned momPdgId_;
   const double genRecoDrMatch_;
-  const bool saveStandAloneTree_;
-  const bool saveTnPTree_;
+  const bool saveCutTree_;
   const int debug_;
   const string MCType_;
   PropagateToMuon prop1_;
@@ -278,8 +277,6 @@ private:
   TTree* t3;
   Analysis_NtupleContent nt;
 
-  // TTree* StandAlone_t1;
-  // StandAloneNtupleContent StandAlone_nt;
 };
 
 //
@@ -372,8 +369,7 @@ HIUPC_Analysis_FullAODAnalyzer::HIUPC_Analysis_FullAODAnalyzer(const edm::Parame
       maxTrkNum_(iConfig.getParameter<int>("maxTrkNum")),      
       momPdgId_(iConfig.getParameter<unsigned>("momPdgId")),
       genRecoDrMatch_(iConfig.getParameter<double>("genRecoDrMatch")),
-      saveStandAloneTree_(iConfig.getParameter<bool>("saveStandAloneTree")),
-      saveTnPTree_(iConfig.getParameter<bool>("saveTnPTree")),
+      saveCutTree_(iConfig.getParameter<bool>("saveCutTree")),
       debug_(iConfig.getParameter<int>("debug")),
       MCType_(iConfig.getParameter<std::string>("MCType")),
       prop1_(iConfig.getParameter<edm::ParameterSet>("propM1")) {
@@ -529,7 +525,7 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
   if (vertices->empty()){
    cout << " no vertex" << endl;
    // hasVertex = false;
-   t2->Fill();
+   if(saveCutTree_) t2->Fill();
 
    return;   
   }
@@ -608,6 +604,7 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
   
   
   Analysis_MuonGenAnalyzer genmu;
+  if(saveCutTree_){
   if (!iEvent.isRealData()) {
     if(MCType_ == "TauTau") genmu.SetInputsandFillNtuple_TauTau(nt, iEvent, genToken_);
     else if(MCType_ == "MuMu") genmu.SetInputsandFillNtuple_MuMu(nt, iEvent, genToken_);
@@ -623,6 +620,7 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
 
   if( MCType_ == "TauTau")genstudy_vtx.genDiTau_genFinal_vertex(nt); 
   
+  }
   }
   // Gen weights, sim info
   // bool simInfoIsAvailalbe = false;
@@ -660,9 +658,16 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
 
   nt.trueNumInteractions = trueNumInteractions;
   nt.puNumInteractions = puNumInteractions;
-
+  // if(nt.event == 453817906) cout << " bad event " << endl;
+  // if(nt.event == 453817906){
+  // Analysis_CaloAnalyzer CaloAnalyzer;
+  // if(iEvent.isRealData()){
+  // CaloAnalyzer.FillZDC(nt, iEvent,RecHitsToken_);
+  // }     
+     
+  // }
   if (debug_ > 0)
-    std::cout << "New Evt " << nt.run << std::endl;
+    std::cout << "New Evt " << nt.run << " event " << nt.event <<  std::endl;
 
   reco::TrackBase::Point vertex_point;
   bool goodVtx = false;
@@ -696,13 +701,13 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
   vertex_point.SetCoordinates(nt.pv_x, nt.pv_y, nt.pv_z);
   // check if path fired, if so save hlt muons
   if (!HLTaccept(iEvent, nt, HLTPaths_)){
-     t2->Fill();
+     if(saveCutTree_) t2->Fill();
      return;
   } 
   nt.CutThrough_Num++; // 2
   
    if(tracks->size() < 2){
-     t2->Fill();
+     if(saveCutTree_) t2->Fill();
      return;
   }  
   nt.CutThrough_Num++; // 3
@@ -714,7 +719,7 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
   }
  
   if(nTrk > maxTrkNum_){
-     t2->Fill();
+     if(saveCutTree_) t2->Fill();
      return;
   } 
   nt.CutThrough_Num++; // 4
@@ -739,13 +744,12 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
   std::vector<unsigned> matched_muon_idx;
   std::vector<unsigned> matched_track_idx;
   if (!iEvent.isRealData()) {
-    // if(MCType_ == "TauTau") genmu.SetInputsandFillNtuple_TauTau(nt, iEvent, genToken_);
-    // else if(MCType_ == "MuMu") genmu.SetInputsandFillNtuple_MuMu(nt, iEvent, genToken_);
-    // else if(MCType_ == "EE") genmu.SetInputsandFillNtuple_EE(nt, iEvent, genToken_);
-    // else genmu.SetInputsandFillNtuple_Other(nt, iEvent, genToken_, 2);
-    
-  // edm::Handle<edm::View<reco::GenParticle>> gens;
-  // iEvent.getByToken(genToken_, gens);
+     if(!saveCutTree_){
+    if(MCType_ == "TauTau") genmu.SetInputsandFillNtuple_TauTau(nt, iEvent, genToken_);
+    else if(MCType_ == "MuMu") genmu.SetInputsandFillNtuple_MuMu(nt, iEvent, genToken_);
+    else if(MCType_ == "EE") genmu.SetInputsandFillNtuple_EE(nt, iEvent, genToken_);
+    else genmu.SetInputsandFillNtuple_Other(nt, iEvent, genToken_, 1); // mininum pt of final state particle is 1 GeV
+     }
   
     auto reco_match_gentrk1 =
         MatchReco<reco::Muon>(*muons, nt.gentrk1_eta, nt.gentrk1_phi, nt.gentrk1_charge, genRecoDrMatch_);
@@ -822,7 +826,7 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
   nt.ntag = tag_trkttrk.size();
   
   if(nt.ntag == 0){
-     t2->Fill();
+     if(saveCutTree_) t2->Fill();
      return;
   } 
   nt.CutThrough_Num++; // 5
@@ -1429,30 +1433,30 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
 
         // apply cuts on probe
         if (HighPurity_ && !probe.quality(Track::highPurity)){
-          t2->Fill();
+          if(saveCutTree_) t2->Fill();
           continue;
           }
         nt.CutThrough_Num++;  //7
         if (!probeSelection_(probe)){
-          t2->Fill();
+          if(saveCutTree_) t2->Fill();
           continue;
           }
         nt.CutThrough_Num++; //8
         // apply cuts on pairs; selected will be saved
         if (tag.first.charge() == probe.charge()){
-          t2->Fill();
+          if(saveCutTree_) t2->Fill();
           continue;
           }
         nt.CutThrough_Num++; //9
         if (fabs(tag.first.vz() - probe.vz()) > pairDz_ && pairDz_ > 0){
-          t2->Fill();
+          if(saveCutTree_) t2->Fill();
           continue;
           }
         nt.CutThrough_Num++; //10
 
         float mass = DimuonMass(tag.first.pt(), tag.first.eta(), tag.first.phi(), probe.pt(), probe.eta(), probe.phi());
         if (mass < pairMassMin_ || mass > pairMassMax_){
-          t2->Fill();
+          if(saveCutTree_) t2->Fill();
           continue;
           }
         nt.CutThrough_Num++; // 11
@@ -1468,7 +1472,7 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
         auto it_electron = std::find(trk_electron_map.first.begin(), trk_electron_map.first.end(), probe_trk_idx);
 
         if (muonOnly_ && it == trk_muon_map.first.end()){
-          t2->Fill();
+          if(saveCutTree_) t2->Fill();
           continue;
           }
         nt.CutThrough_Num++; // 12
@@ -1773,7 +1777,7 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
         nt.probe_isHighPurity = probe.quality(Track::highPurity);
 
         t1->Fill();
-        t2->Fill();
+        if(saveCutTree_) t2->Fill();
       }
     
   
@@ -1786,10 +1790,10 @@ void HIUPC_Analysis_FullAODAnalyzer::beginJob() {
   t2 = fs->make<TTree>("GenVtxStudy","GenVtxStudy");
   t3 = fs->make<TTree>("test","test");
   nt.SetTree(t1);
-  nt.SetTree_GenVtxStudy(t2);
+  if(saveCutTree_) nt.SetTree_GenVtxStudy(t2);
   nt.SetTree_Test(t3); 
   nt.CreateBranches(HLTPaths_, probeSelectorNames_);
-  nt.CreateBranches_GenVtxStudy();
+  if(saveCutTree_) nt.CreateBranches_GenVtxStudy();
   if (!tagFilters_.empty()) {
     nt.CreateExtraTrgBranches(tagFilters_, true);
     // StandAlone_nt.CreateExtraTrgBranches(tagFilters_, true);

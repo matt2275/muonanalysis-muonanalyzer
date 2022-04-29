@@ -461,10 +461,13 @@ void Analysis_NtupleContent::CreateBranches(const std::vector<std::string> &HLTs
 
 void Analysis_NtupleContent::SetTree_GenVtxStudy(TTree *mytree) { t2 = mytree; }
 
-void Analysis_NtupleContent::SetTree_Test(TTree *mytree) { t3 = mytree; }
+void Analysis_NtupleContent::SetTree_Test(TTree *mytree) {
+   t3 = mytree; 
+   t3->Branch("run", &run);
+   }
 void Analysis_NtupleContent::CreateBranches_GenVtxStudy() {
  
-  t3->Branch("run", &run); 
+ 
   t2->Branch("CutThrough_Num", &CutThrough_Num);
   
   t2->Branch("run", &run);
@@ -1031,6 +1034,7 @@ void Analysis_NtupleContent::ClearBranches() {
     trkdzError.clear();
     trkValidHits.clear();                     
     trkMissHits.clear();
+    trkPurity.clear();
 
   
     nEle = 0;

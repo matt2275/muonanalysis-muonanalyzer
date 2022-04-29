@@ -459,7 +459,7 @@ public:
    std::vector<float> trkdzError;   
    std::vector<int>   trkValidHits;           
    std::vector<int>   trkMissHits;   
-   std::vector<int>   trkPurity; 
+   std::vector<bool>   trkPurity; 
 
    int nEle;
    std::vector<bool>   ele_isProbe;

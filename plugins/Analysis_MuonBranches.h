@@ -212,7 +212,7 @@ inline void FillTrackBranches(
           nt.trkdzError.push_back(trk.dzError());   
           nt.trkValidHits.push_back(trk.numberOfValidHits());                     
           nt.trkMissHits.push_back(trk.numberOfLostHits());  
-          nt.trkPurity.push_back(trk.reco::TrackBase::qualityByName("highPurity")); 
+          nt.trkPurity.push_back(trk.quality(reco::Track::highPurity));         
           if((&trk - &tracks.at(0)) == probe_idx){
           nt.trkisProbe.push_back(true);
           nt.trkisTag.push_back(false);

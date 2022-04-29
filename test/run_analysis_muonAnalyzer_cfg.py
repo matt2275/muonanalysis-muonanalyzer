@@ -90,7 +90,8 @@ options.parseArguments()
 if options._beenSet['globalTag'] and options.globalTag != '':
     globaltag = options.globalTag
 else:
-    globaltag = '102X_dataRun2_v11' if not options.isMC else '102X_upgrade2018_realistic_v15'
+    # globaltag = '102X_dataRun2_v11' if not options.isMC else '102X_upgrade2018_realistic_v15'
+    globaltag = '103X_dataRun2_Prompt_LowPtPhotonReg_v1' if not options.isMC else '102X_upgrade2018_realistic_v15'
 
 # Run local test if no input files provided
 if len(options.inputFiles) == 0:
@@ -109,7 +110,8 @@ if len(options.inputFiles) == 0:
        if options.mcType == "Other":
           options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/ggBBbar_4f_TuneCP5_5p02TeV_MG5_aMCatNLO_pythia8/AODSIM/NoPUlowPtPhotonReg_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2_ext1-v2/230000/03E94DC0-FE38-4E49-9445-CA999E866E6C.root')              
     else:
-        options.inputFiles.append('/store/hidata/HIRun2018A/HIForward/AOD/04Apr2019-v1/00000/36696797-7247-4F47-843D-A2D3630801C5.root')   
+        # options.inputFiles.append('/store/hidata/HIRun2018A/HIForward/AOD/04Apr2019-v1/00000/36696797-7247-4F47-843D-A2D3630801C5.root')   
+        options.inputFiles.append('/store/hidata/HIRun2018A/HIForward/AOD/ForLByL-v2/240000/AF5F01C7-6411-A442-96B0-D9672D8830E8.root')   
 
 
 options.outputFile=""
