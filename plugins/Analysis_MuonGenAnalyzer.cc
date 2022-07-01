@@ -17,6 +17,14 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_MuMu(Analysis_NtupleConten
   for (unsigned int i = 0; i < gens->size() ; i++) {
 
     auto gen = gens->at(i);
+    
+    if(gen.pdgId() == 93){
+       nt.indep_pt = gen.pt();
+       nt.indep_eta = gen.eta();
+       nt.indep_phi = gen.phi();
+       nt.indep_mass = gen.mass();       
+    }
+
     nt.gen_pdgId.push_back(gen.pdgId());
     nt.gen_pT.push_back(gen.pt());
     nt.gen_eta.push_back(gen.eta());
@@ -87,6 +95,13 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_MuMu(Analysis_NtupleConten
     nt.gentrk2_charge = gen2.charge();
     nt.gentrk2_pdgId = gen2.pdgId();
     nt.genFinalMass = (gmuon1 + gmuon2).M();
+    nt.genFinalPt = (gmuon1 + gmuon2).Pt();
+    nt.genFinalEta = (gmuon1 + gmuon2).Eta();
+    nt.genFinalPhi = (gmuon1 + gmuon2).Phi();
+    nt.genFinalE = (gmuon1 + gmuon2).E();
+    nt.genFinalPx = (gmuon1 + gmuon2).Px();
+    nt.genFinalPy= (gmuon1 + gmuon2).Py();
+    nt.genFinalPz = (gmuon1 + gmuon2).Pz(); 
   } else {
     nt.gentrk1_pt = -99;
     nt.gentrk1_eta = -99;
@@ -111,6 +126,13 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_MuMu(Analysis_NtupleConten
     nt.gentrk2_pz = -99;
     nt.gentrk2_pdgId = -99;
     nt.genFinalMass = -99;
+    nt.genFinalPt = -99;
+    nt.genFinalEta = -99;
+    nt.genFinalPhi = -99;
+    nt.genFinalE = -99;
+    nt.genFinalPx = -99;
+    nt.genFinalPy= -99;
+    nt.genFinalPz = -99;
   } 
   
 }
@@ -128,6 +150,14 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_EE(Analysis_NtupleContent&
   for (unsigned int i = 0; i < gens->size() ; i++) {
 
     auto gen = gens->at(i);
+    
+    if(gen.pdgId() == 93){
+       nt.indep_pt = gen.pt();
+       nt.indep_eta = gen.eta();
+       nt.indep_phi = gen.phi();
+       nt.indep_mass = gen.mass();       
+    }
+    
     nt.gen_pdgId.push_back(gen.pdgId());
     nt.gen_pT.push_back(gen.pt());
     nt.gen_eta.push_back(gen.eta());
@@ -198,6 +228,13 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_EE(Analysis_NtupleContent&
     nt.gentrk2_charge = gen2.charge();
     nt.gentrk2_pdgId = gen2.pdgId();
     nt.genFinalMass = (gmuon1 + gmuon2).M();
+    nt.genFinalPt = (gmuon1 + gmuon2).Pt();
+    nt.genFinalEta = (gmuon1 + gmuon2).Eta();
+    nt.genFinalPhi = (gmuon1 + gmuon2).Phi();
+    nt.genFinalE = (gmuon1 + gmuon2).E();
+    nt.genFinalPx = (gmuon1 + gmuon2).Px();
+    nt.genFinalPy= (gmuon1 + gmuon2).Py();
+    nt.genFinalPz = (gmuon1 + gmuon2).Pz();    
   } else {
     nt.gentrk1_pt = -99;
     nt.gentrk1_eta = -99;
@@ -222,6 +259,13 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_EE(Analysis_NtupleContent&
     nt.gentrk2_pz = -99;
     nt.gentrk2_pdgId = -99;
     nt.genFinalMass = -99;
+    nt.genFinalPt = -99;
+    nt.genFinalEta = -99;
+    nt.genFinalPhi = -99;
+    nt.genFinalE = -99;
+    nt.genFinalPx = -99;
+    nt.genFinalPy= -99;
+    nt.genFinalPz = -99; 
   } 
   
 }
@@ -262,9 +306,31 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_TauTau(Analysis_NtupleCont
   for (unsigned int i = 0; i < gens->size() ; i++) {
     auto gen = gens->at(i);
     int genID= gen.pdgId();
-    // if(fabs(genID ==15)) std::cout << " status " << gen.status() << " p " << gen.p() << " vx " << gen.vx() <<std::endl;
-    if(genID==15 && gen.status()==23) tau_index1 = i;
-    if(genID==-15 && gen.status()==23) tau_index2 = i;
+    int status  = gen.status();
+    if(genID == 93){
+       nt.indep_pt = gen.pt();
+       nt.indep_eta = gen.eta();
+       nt.indep_phi = gen.phi();
+       nt.indep_mass = gen.mass();       
+    }
+    if(genID == 22 && status == 21){
+       float gamma_pz = gen.pz();
+       if(gamma_pz > 0) nt.gentau1_gamma_pz = gamma_pz;
+       else nt.gentau2_gamma_pz = gamma_pz;
+    }
+       // std::cout << " pdgID " << genID << " status " << gen.status() << " charge " << gen.charge() << " pt " << gen.pt() << " eta " 
+       // << gen.eta()<< "phi " << gen.phi() << " vx " <<  gen.vx() << " vy " <<  gen.vy() << " vz " <<  gen.vz() <<std::endl;
+    if(abs(genID) ==15){
+       const reco::Candidate* mother_tmp = gen.mother();
+       if (abs(mother_tmp->pdgId()) != 15){
+       
+       // std::cout << " status " << gen.status() << "charge " << gen.charge() << " pt " << gen.pt() << " eta " << gen.eta()<< "phi " << gen.phi() << " vx " <<  gen.vx() << " vy " <<  gen.vy() << " vz " <<  gen.vz() <<std::endl;
+       if(genID==15) tau_index1 = i;
+       if(genID==-15) tau_index2 = i;
+       }
+    }
+    // if(genID==15 && gen.status()==2) tau_index1 = i;
+    // if(genID==-15 && gen.status()==2) tau_index2 = i;
     if(gen.status() != 1 ) continue;
     if(gen.pt() > other_index1_pt && gen.charge() < 0){
        other_index1 = i;
@@ -399,6 +465,13 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_TauTau(Analysis_NtupleCont
     nt.gentrk2_charge = gen2.charge();
     nt.gentrk2_pdgId = gen2.pdgId();
     nt.genFinalMass = (gmuon1 + gmuon2).M();
+    nt.genFinalPt = (gmuon1 + gmuon2).Pt();
+    nt.genFinalEta = (gmuon1 + gmuon2).Eta();
+    nt.genFinalPhi = (gmuon1 + gmuon2).Phi();
+    nt.genFinalE = (gmuon1 + gmuon2).E();
+    nt.genFinalPx = (gmuon1 + gmuon2).Px();
+    nt.genFinalPy= (gmuon1 + gmuon2).Py();
+    nt.genFinalPz = (gmuon1 + gmuon2).Pz(); 
   } else {
     nt.gentrk1_pt = -99;
     nt.gentrk1_eta = -99;
@@ -423,6 +496,13 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_TauTau(Analysis_NtupleCont
     nt.gentrk2_pz = -99;
     nt.gentrk2_pdgId = -99;
     nt.genFinalMass = -99;
+    nt.genFinalPt = -99;
+    nt.genFinalEta = -99;
+    nt.genFinalPhi = -99;
+    nt.genFinalE = -99;
+    nt.genFinalPx = -99;
+    nt.genFinalPy= -99;
+    nt.genFinalPz = -99; 
   } 
   
   if (tau_index1 >= 0 && tau_index2 >= 0 ) {
@@ -453,6 +533,13 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_TauTau(Analysis_NtupleCont
     nt.gentau2_charge = gen2.charge();
     nt.gentau2_pdgId = gen2.pdgId();
     nt.genDiTauMass = (gmuon1 + gmuon2).M();
+    nt.genDiTauPt = (gmuon1 + gmuon2).Pt();
+    nt.genDiTauEta = (gmuon1 + gmuon2).Eta();
+    nt.genDiTauPhi = (gmuon1 + gmuon2).Phi();
+    nt.genDiTauE = (gmuon1 + gmuon2).E();
+    nt.genDiTauPx = (gmuon1 + gmuon2).Px();
+    nt.genDiTauPy= (gmuon1 + gmuon2).Py();
+    nt.genDiTauPz = (gmuon1 + gmuon2).Pz(); 
   } else {
     nt.gentau1_pt = -99;
     nt.gentau1_eta = -99;
@@ -477,6 +564,13 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_TauTau(Analysis_NtupleCont
     nt.gentau2_pz = -99;
     nt.gentau2_pdgId = -99;
     nt.genDiTauMass = -99;
+    nt.genDiTauPt = -99;
+    nt.genDiTauEta = -99;
+    nt.genDiTauPhi = -99;
+    nt.genDiTauE = -99;
+    nt.genDiTauPx = -99;
+    nt.genDiTauPy= -99;
+    nt.genDiTauPz = -99; 
   } 
   
 }
@@ -557,6 +651,13 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_Other(Analysis_NtupleConte
     nt.gentrk2_charge = gen2.charge();
     nt.gentrk2_pdgId = gen2.pdgId();
     nt.genFinalMass = (gmuon1 + gmuon2).M();
+    nt.genFinalPt = (gmuon1 + gmuon2).Pt();
+    nt.genFinalEta = (gmuon1 + gmuon2).Eta();
+    nt.genFinalPhi = (gmuon1 + gmuon2).Phi();
+    nt.genFinalE = (gmuon1 + gmuon2).E();
+    nt.genFinalPx = (gmuon1 + gmuon2).Px();
+    nt.genFinalPy= (gmuon1 + gmuon2).Py();
+    nt.genFinalPz = (gmuon1 + gmuon2).Pz(); 
   } else {
     nt.gentrk1_pt = -99;
     nt.gentrk1_eta = -99;
@@ -581,6 +682,13 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_Other(Analysis_NtupleConte
     nt.gentrk2_pz = -99;
     nt.gentrk2_pdgId = -99;
     nt.genFinalMass = -99;
+    nt.genFinalPt = -99;
+    nt.genFinalEta = -99;
+    nt.genFinalPhi = -99;
+    nt.genFinalE = -99;
+    nt.genFinalPx = -99;
+    nt.genFinalPy= -99;
+    nt.genFinalPz = -99; 
   } 
   
 }

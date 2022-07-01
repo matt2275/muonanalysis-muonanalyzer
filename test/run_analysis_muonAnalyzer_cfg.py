@@ -78,7 +78,7 @@ options.register('fromCRAB', False,
     # "run StandAlone Muon Analyzers"
 # )
 
-options.register('isHIUPC', False,
+options.register('isHIUPC', True,
     VarParsing.multiplicity.singleton,
     VarParsing.varType.bool,
     "run HIUPC Muon Analyzers"
@@ -97,16 +97,25 @@ else:
 if len(options.inputFiles) == 0:
     if options.isMC:
        if options.mcType == "TauTau":
-          options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/ggTauTau_TuneCP5_5p02TeV_amcatnlo_pythia8/AODSIM/NoPUlowPtPhotonReg_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v2/280000/0578D671-11C5-8843-88C5-67E784ACB9E0.root')
+          # options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/ggTauTau_TuneCP5_5p02TeV_amcatnlo_pythia8/AODSIM/NoPUlowPtPhotonReg_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v2/280000/0578D671-11C5-8843-88C5-67E784ACB9E0.root')
+          # options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/ggTauTau_TuneCP5_5p02TeV_SuperChic_pythia8/AODSIM/NoPUlowPtPhotonReg_LbyL_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v2/10000/05D69AFE-D2D0-6647-803A-E2F4FA2D87F1.root')
+          
+          options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/ggTauTau_TuneCP5_5p02TeV_SuperChic_pythia8/AODSIM/NoPUlowPtPhotonReg_LbyL_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v2/10000/05D69AFE-D2D0-6647-803A-E2F4FA2D87F1.root')
+          options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/ggTauTau_TuneCP5_5p02TeV_SuperChic_pythia8/AODSIM/NoPUlowPtPhotonReg_LbyL_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v2/10000/32AD5A11-4F91-E24A-BE84-0C6B07455E05.root')
+          options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/ggTauTau_TuneCP5_5p02TeV_SuperChic_pythia8/AODSIM/NoPUlowPtPhotonReg_LbyL_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v2/10000/42076A67-5F1A-CA43-BEB7-038D1EC71E69.root')
+          options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/ggTauTau_TuneCP5_5p02TeV_SuperChic_pythia8/AODSIM/NoPUlowPtPhotonReg_LbyL_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v2/10000/A40236B3-F858-BF45-8FA1-51878A8955FB.root')
+          options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/ggTauTau_TuneCP5_5p02TeV_SuperChic_pythia8/AODSIM/NoPUlowPtPhotonReg_LbyL_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v2/10000/B53B304D-0905-3145-8E18-B5A9A374A2FB.root')
+          options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/ggTauTau_TuneCP5_5p02TeV_SuperChic_pythia8/AODSIM/NoPUlowPtPhotonReg_LbyL_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v2/10000/E17D3970-920C-EE45-8718-27D43F97882A.root')
        if options.mcType == "MuMu":
            options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/GammaGammatoMuMu_5p02TeV_STARlight/AODSIM/NoPU_103X_upgrade2018_realistic_HI_v11-v2/280000/02762AC2-E426-CA46-A9BE-3B67E3ABC372.root')
-           options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/GammaGammatoMuMu_5p02TeV_STARlight/AODSIM/NoPU_103X_upgrade2018_realistic_HI_v11-v2/280000/02762AC2-E426-CA46-A9BE-3B67E3ABC372.root')
-           options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/GammaGammatoMuMu_5p02TeV_STARlight/AODSIM/NoPU_103X_upgrade2018_realistic_HI_v11-v2/280000/02D64F67-B2B4-494E-B9B1-5D7B0DD22244.root')
-           options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/GammaGammatoMuMu_5p02TeV_STARlight/AODSIM/NoPU_103X_upgrade2018_realistic_HI_v11-v2/280000/04B4C8C5-DE0D-6146-AC1C-F27DAD4EE6C0.root')
-           options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/GammaGammatoMuMu_5p02TeV_STARlight/AODSIM/NoPU_103X_upgrade2018_realistic_HI_v11-v2/280000/04CD57C1-5BBA-A94A-848D-8B036B7786BE.root')
-           options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/GammaGammatoMuMu_5p02TeV_STARlight/AODSIM/NoPU_103X_upgrade2018_realistic_HI_v11-v2/280000/0659B805-B026-6444-B784-989A8663E582.root')
+           # options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/GammaGammatoMuMu_5p02TeV_STARlight/AODSIM/NoPU_103X_upgrade2018_realistic_HI_v11-v2/280000/02762AC2-E426-CA46-A9BE-3B67E3ABC372.root')
+           # options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/GammaGammatoMuMu_5p02TeV_STARlight/AODSIM/NoPU_103X_upgrade2018_realistic_HI_v11-v2/280000/02D64F67-B2B4-494E-B9B1-5D7B0DD22244.root')
+           # options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/GammaGammatoMuMu_5p02TeV_STARlight/AODSIM/NoPU_103X_upgrade2018_realistic_HI_v11-v2/280000/04B4C8C5-DE0D-6146-AC1C-F27DAD4EE6C0.root')
+           # options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/GammaGammatoMuMu_5p02TeV_STARlight/AODSIM/NoPU_103X_upgrade2018_realistic_HI_v11-v2/280000/04CD57C1-5BBA-A94A-848D-8B036B7786BE.root')
+           # options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/GammaGammatoMuMu_5p02TeV_STARlight/AODSIM/NoPU_103X_upgrade2018_realistic_HI_v11-v2/280000/0659B805-B026-6444-B784-989A8663E582.root')
        if options.mcType == "EE":
-          options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/QEDGammaGamma_5p02TeV_STARlight/AODSIM/NoPUlowPtPhotonReg_LbyL_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v5/270000/00F70C94-633E-EB45-807C-2FA338E5401F.root')
+          # options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/QEDGammaGamma_5p02TeV_STARlight/AODSIM/NoPUlowPtPhotonReg_LbyL_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v5/270000/00F70C94-633E-EB45-807C-2FA338E5401F.root') 
+          options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/QEDGammaGamma_5p02TeV_SuperChic/AODSIM/NoPUlowPtPhotonReg_LbyL_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v4/110000/0059A52B-5A4C-AF40-8CFF-9C7442A4343E.root')
        if options.mcType == "Other":
           options.inputFiles.append('/store/himc/HINPbPbAutumn18DR/ggBBbar_4f_TuneCP5_5p02TeV_MG5_aMCatNLO_pythia8/AODSIM/NoPUlowPtPhotonReg_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2_ext1-v2/230000/03E94DC0-FE38-4E49-9445-CA999E866E6C.root')              
     else:
@@ -133,6 +142,14 @@ print (options.outputFile)
 
 process = cms.Process("MuonAnalysis")
 
+
+
+# process.SimpleMemoryCheck = cms.Service("SimpleMemoryCheck",
+    # ignoreTotal = cms.untracked.int32(1),
+    # showMallocInfo = cms.untracked.bool(True),
+    # monitorPssAndPrivate = cms.untracked.bool(True)
+# )
+
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
@@ -147,6 +164,7 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag,globaltag, '')
 
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(options.maxEvents))
+# process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100));
 
 process.source = cms.Source("PoolSource",
         fileNames = cms.untracked.vstring(options.inputFiles),
@@ -187,6 +205,12 @@ if options.isHIUPC:
    process.load('RecoHI.ZDCRecHit.QWZDC2018Producer_cfi')
    process.load('RecoHI.ZDCRecHit.QWZDC2018RecHit_cfi')
 
+###############################################################################
+#Recover peripheral primary vertices
+#https://twiki.cern.ch/twiki/bin/view/CMS/HITracking2018PbPb#Peripheral%20Vertex%20Recovery
+process.load("RecoVertex.PrimaryVertexProducer.OfflinePrimaryVerticesRecovery_cfi")
+process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
+
 
 # Trigger matching
 muonSrc = "muons" if options.isFullAOD else "slimmedMuons"
@@ -215,8 +239,8 @@ process.muon.probeFilters = cms.vstring(selectTriggers(hltInfo['probeFilters'], 
 
 process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")
 process.printTree = cms.EDAnalyzer("ParticleListDrawer",
-  maxEventsToPrint = cms.untracked.int32(1000),
-  printVertex = cms.untracked.bool(False),
+  maxEventsToPrint = cms.untracked.int32(100),
+  printVertex = cms.untracked.bool(True),
   printOnlyHardInteraction = cms.untracked.bool(False), # Print only status=3 particles. This will not work for Pythia8, which does not have any such particles.
   src = cms.InputTag("genParticles")
 )
@@ -227,38 +251,61 @@ selectorNames, selectorBits = getSelectorNamesAndBits(options.era, options.isFul
 process.muon.probeSelectorNames = cms.vstring(selectorNames)
 process.muon.probeSelectorBits = cms.vuint32(selectorBits)
 
-if options.includeJets:
-    if not options.isMC:
+# if options.includeJets:
+    # if not options.isMC:
+        # process.analysis_step = cms.Path(
+            # process.offlinePrimaryVerticesRecovery +
+            # process.muonL1Info +
+            # process.muonL1InfoByQ +
+            # process.ak4PFCHSL1FastL2L3ResidualCorrectorChain +
+            # process.muSequence
+        # )
+    # else:
+        # process.analysis_step = cms.Path(
+            # process.muonL1Info +
+            # process.muonL1InfoByQ +
+            # process.ak4PFCHSL1FastL2L3CorrectorChain +
+            # process.muSequence
+        # )
+# else:
+if not options.isMC and options.isHIUPC:
+    if options.includeJets:
         process.analysis_step = cms.Path(
+            process.offlinePrimaryVerticesRecovery +
             process.muonL1Info +
             process.muonL1InfoByQ +
+            process.zdcdigi +
+            process.QWzdcreco +
             process.ak4PFCHSL1FastL2L3ResidualCorrectorChain +
             process.muSequence
         )
     else:
         process.analysis_step = cms.Path(
+            process.offlinePrimaryVerticesRecovery +
+            process.muonL1Info +
+            process.muonL1InfoByQ +
+            process.zdcdigi +
+            process.QWzdcreco +
+            process.muSequence
+        )
+else:
+    if options.includeJets:
+        process.analysis_step = cms.Path(
+            process.offlinePrimaryVerticesRecovery +
             process.muonL1Info +
             process.muonL1InfoByQ +
             process.ak4PFCHSL1FastL2L3CorrectorChain +
             process.muSequence
         )
-else:
-  if not options.isMC and options.isHIUPC:
-    process.analysis_step = cms.Path(
-        process.muonL1Info +
-        process.muonL1InfoByQ +
-        process.zdcdigi +
-        process.QWzdcreco +
-        process.muSequence
-    )
-  else:
-    process.analysis_step = cms.Path(
+    else:
+        process.analysis_step = cms.Path(
+            # process.printTree+
+            process.offlinePrimaryVerticesRecovery +
+            process.muonL1Info +
+            process.muonL1InfoByQ +
+            process.muSequence
+        )
 
-        process.muonL1Info +
-        process.muonL1InfoByQ +
-        process.muSequence
-    )
-  
 
 process.TFileService = cms.Service("TFileService",
         fileName = cms.string(options.outputFile)

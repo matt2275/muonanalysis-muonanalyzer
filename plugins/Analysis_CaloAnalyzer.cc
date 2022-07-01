@@ -59,20 +59,23 @@ void Analysis_CaloAnalyzer::FillZDC(Analysis_NtupleContent& nt,const edm::Event&
     for (auto const& rh : *zdcrechits) {
       HcalZDCDetId zdcid = rh.id();
       if (nhits  < 18) {
-       nt.ZDC_e[nhits] = rh.energy();
-       nt.ZDC_zside[nhits] = zdcid.zside();
-       nt.ZDC_section[nhits] = zdcid.section();
+       float zdc_energy = rh.energy();
+       int zdc_side = zdcid.zside();
+       int zdc_section = zdcid.section();
+       nt.ZDC_e[nhits] = zdc_energy;
+       nt.ZDC_zside[nhits] = zdc_side;
+       nt.ZDC_section[nhits] = zdc_section;
        nt.ZDC_channel[nhits] = zdcid.channel();
-       nt.ZDC_PM_Total_Energy+= rh.energy()  ;
-       if(zdcid.zside() >0 ){
-       nt.ZDC_P_Total_Energy += rh.energy();
-       if(zdcid.section() == 1) nt.ZDC_P_ECal_Energy += rh.energy();
-       if(zdcid.section() == 2) nt.ZDC_P_HCal_Energy += rh.energy()  ;        
+       nt.ZDC_PM_Total_Energy+= zdc_energy;
+       if(zdc_side >0 ){
+       nt.ZDC_P_Total_Energy += zdc_energy;
+       if(zdc_section == 1) nt.ZDC_P_ECal_Energy += zdc_energy;
+       if(zdc_section == 2) nt.ZDC_P_HCal_Energy += zdc_energy;        
        }
-       if(zdcid.zside() <0 ){
-       nt.ZDC_M_Total_Energy += rh.energy();
-       if(zdcid.section() == 1) nt.ZDC_M_ECal_Energy += rh.energy();
-       if(zdcid.section() == 2) nt.ZDC_M_HCal_Energy += rh.energy() ;         
+       if(zdc_side <0 ){
+       nt.ZDC_M_Total_Energy += zdc_energy;
+       if(zdc_section == 1) nt.ZDC_M_ECal_Energy += zdc_energy;
+       if(zdc_section == 2) nt.ZDC_M_HCal_Energy += zdc_energy;         
        }
        // StandAlone_nt.ZDC_saturation[nhits] = static_cast<int>( rh.flagField(HcalCaloFlagLabels::ADCSaturationBit) );
       }

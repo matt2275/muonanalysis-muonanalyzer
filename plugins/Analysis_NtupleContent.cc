@@ -22,10 +22,12 @@ void Analysis_NtupleContent::CreateBranches(const std::vector<std::string> &HLTs
   t1->Branch("pv_z", &pv_z);
   t1->Branch("nVertices", &nvertices);
   t1->Branch("hasValidVertex", &hasValidVertex);
+  t1->Branch("hasFakeVertex", &hasFakeVertex);
   t1->Branch("nTrueInteractions", &trueNumInteractions);
   t1->Branch("nPUInteractions", &puNumInteractions);
   t1->Branch("rho", &Rho);
   t1->Branch("ntag", &ntag);
+  t1->Branch("ntag_electron", &ntag_electron);
   t1->Branch("npairs", &npairs);
   
   
@@ -46,7 +48,13 @@ void Analysis_NtupleContent::CreateBranches(const std::vector<std::string> &HLTs
   t1->Branch("gentrk2_vtx_z", &gentrk2_vtx_z);
   t1->Branch("gentrk2_pdgId", &gentrk2_pdgId); 
   t1->Branch("genFinalMass", &genFinalMass);
-  
+  t1->Branch("genFinalPt", &genFinalPt);
+  t1->Branch("genFinalEta", &genFinalEta);
+  t1->Branch("genFinalPhi", &genFinalPhi);
+  t1->Branch("genFinalE", &genFinalE);
+  t1->Branch("genFinalPx", &genFinalPx);
+  t1->Branch("genFinalPy", &genFinalPy);
+  t1->Branch("genFinalPz", &genFinalPz);  
   
 
   t1->Branch("gentau1_pt", &gentau1_pt);
@@ -80,6 +88,13 @@ void Analysis_NtupleContent::CreateBranches(const std::vector<std::string> &HLTs
   t1->Branch("gentau2_decay", &gentau2_decay);  
   t1->Branch("gentau2_N_pi0", &gentau2_N_pi0);   
   t1->Branch("genDiTauMass", &genDiTauMass);
+  t1->Branch("genDiTauPt", &genDiTauPt);
+  t1->Branch("genDiTauEta", &genDiTauEta);
+  t1->Branch("genDiTauPhi", &genDiTauPhi);
+  t1->Branch("genDiTauE", &genDiTauE);
+  t1->Branch("genDiTauPx", &genDiTauPx);
+  t1->Branch("genDiTauPy", &genDiTauPy);
+  t1->Branch("genDiTauPz", &genDiTauPz);
   
   t1->Branch("nGen", &nGen );
   t1->Branch("gen_pdgId", &gen_pdgId );
@@ -118,6 +133,8 @@ void Analysis_NtupleContent::CreateBranches(const std::vector<std::string> &HLTs
     t1->Branch(TString(HLTs[ihlt]), &trigger[ihlt]);
 
   // Tag specific
+  t1->Branch("tag_isMuon", &tag_isMuon);
+  t1->Branch("tag_isElectron", &tag_isElectron);
   t1->Branch("tag_pt", &tag_pt);
   t1->Branch("tag_eta", &tag_eta);
   t1->Branch("tag_phi", &tag_phi);
@@ -373,6 +390,8 @@ void Analysis_NtupleContent::CreateBranches(const std::vector<std::string> &HLTs
 
 
    t1->Branch("nEle", &nEle);  
+   t1->Branch("ele_isProbe", &ele_isProbe);
+   t1->Branch("ele_isTag", &ele_isTag);
    t1->Branch("eleCharge", &eleCharge);
    t1->Branch("eleChargeConsistent", &eleChargeConsistent);
    t1->Branch("eleSCPixCharge", &eleSCPixCharge);
@@ -484,6 +503,8 @@ void Analysis_NtupleContent::CreateBranches_GenVtxStudy() {
   t2->Branch("pv_x", &pv_x);
   t2->Branch("pv_y", &pv_y);
   t2->Branch("pv_z", &pv_z);
+  t2->Branch("hasValidVertex", &hasValidVertex);
+  t2->Branch("hasFakeVertex", &hasFakeVertex);
  
   t2->Branch("gentrk1_pt", &gentrk1_pt);
   t2->Branch("gentrk1_eta", &gentrk1_eta);
@@ -508,9 +529,21 @@ void Analysis_NtupleContent::CreateBranches_GenVtxStudy() {
   t2->Branch("gentrk2_pz", &gentrk2_pz);
   t2->Branch("gentrk2_pdgId", &gentrk2_pdgId); 
   t2->Branch("genFinalMass", &genFinalMass);
+  t2->Branch("genFinalPt", &genFinalPt);
+  t2->Branch("genFinalEta", &genFinalEta);
+  t2->Branch("genFinalPhi", &genFinalPhi);
+  t2->Branch("genFinalE", &genFinalE);
+  t2->Branch("genFinalPx", &genFinalPx);
+  t2->Branch("genFinalPy", &genFinalPy);
+  t2->Branch("genFinalPz", &genFinalPz);  
   
   
-
+  t2->Branch("indep_pt", &indep_pt);
+  t2->Branch("indep_eta", &indep_eta);
+  t2->Branch("indep_phi", &indep_phi);
+  t2->Branch("indep_mass", &indep_mass);
+  t2->Branch("gentau1_gamma_pz", &gentau1_gamma_pz);
+  t2->Branch("gentau2_gamma_pz", &gentau2_gamma_pz);
   t2->Branch("gentau1_pt", &gentau1_pt);
   t2->Branch("gentau1_eta", &gentau1_eta);
   t2->Branch("gentau1_phi", &gentau1_phi);
@@ -548,7 +581,13 @@ void Analysis_NtupleContent::CreateBranches_GenVtxStudy() {
   t2->Branch("gentau2_decay", &gentau2_decay); 
   t2->Branch("gentau2_N_pi0", &gentau2_N_pi0);   
   t2->Branch("genDiTauMass", &genDiTauMass);
-
+  t2->Branch("genDiTauPt", &genDiTauPt);
+  t2->Branch("genDiTauEta", &genDiTauEta);
+  t2->Branch("genDiTauPhi", &genDiTauPhi);
+  t2->Branch("genDiTauE", &genDiTauE);
+  t2->Branch("genDiTauPx", &genDiTauPx);
+  t2->Branch("genDiTauPy", &genDiTauPy);
+  t2->Branch("genDiTauPz", &genDiTauPz);
 
   // t2->Branch("genDiTau_pair_svprob", &genDiTau_pair_svprob);
   // t2->Branch("genDiTau_pair_fit_mass", &genDiTau_pair_fit_mass);
@@ -624,10 +663,12 @@ void Analysis_NtupleContent::ClearBranches() {
 
   nvertices = 0;
   hasValidVertex = false;
+  hasFakeVertex = false;
   trueNumInteractions = -1.0;
   puNumInteractions = -1;
   Rho = -1;
   ntag = 0;
+  ntag_electron = 0;
   npairs = 0;
 
   for (unsigned int itrg = 0; itrg < NTRIGGERMAX; itrg++) {
@@ -672,7 +713,21 @@ void Analysis_NtupleContent::ClearBranches() {
   gentrk2_pz = -99;
   gentrk2_pdgId = -99;
   genFinalMass = -99;
+  genFinalPt = -99;
+  genFinalEta = -99;
+  genFinalPhi = -99;
+  genFinalE = -99;
+  genFinalPx = -99;
+  genFinalPy= -99;
+  genFinalPz = -99; 
   
+  
+  indep_pt = -99;
+  indep_eta = -99;
+  indep_phi = -99;
+  indep_mass = -99;
+  gentau1_gamma_pz = -99;
+  gentau2_gamma_pz = -99;  
   gentau1_pt = 0;
   gentau1_eta = -99;
   gentau1_phi = -99;
@@ -710,7 +765,13 @@ void Analysis_NtupleContent::ClearBranches() {
   gentau2_decay = -99;
   gentau2_N_pi0 =0;
   genDiTauMass = -99;
-  
+  genDiTauPt = -99;
+  genDiTauEta = -99;
+  genDiTauPhi = -99;
+  genDiTauE = -99;
+  genDiTauPx = -99;
+  genDiTauPy= -99;
+  genDiTauPz = -99;   
   
   // genDiTau_pair_svprob = -1;
   // genDiTau_pair_fit_mass = -1 ;
@@ -790,6 +851,8 @@ void Analysis_NtupleContent::ClearBranches() {
   prb_eta.clear();
   prb_phi.clear();
 
+  tag_isMuon = false;
+  tag_isElectron = false;
   tag_pt = 0;
   tag_eta = -99;
   tag_phi = -99;
@@ -1038,6 +1101,8 @@ void Analysis_NtupleContent::ClearBranches() {
 
   
     nEle = 0;
+    ele_isProbe.clear();
+    ele_isTag.clear();
     eleCharge.clear();
     eleChargeConsistent.clear();
     eleSCPixCharge.clear();

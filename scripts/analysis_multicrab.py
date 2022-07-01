@@ -129,7 +129,7 @@ def getOptions():
     parser.add_option('--unitsPerJobData',
                       dest = 'unitsPerJobData',
                       type = 'int',
-                      default = 25,
+                      default = 10,
                       help = "unitsPerJob option for data",
                       metavar = 'UNIT_PER_JOB_DATA')
 
@@ -142,9 +142,16 @@ def getOptions():
     parser.add_option('--unitsPerJobMC',
                       dest = 'unitsPerJobMC',
                       type = 'int',
-                      default = 25,
+                      default = 5,
                       help = "unitsPerJob option for MC",
                       metavar = 'UNIT_PER_JOB_MC')
+
+    parser.add_option('--isNotHIUPC',
+                      dest = 'isHIUPC',
+                      action = 'store_false',
+                      default = True,
+                      help = "print out CRAB configuration instead of submitting it")
+
 
     parser.add_option('--dryrun',
                       dest = 'dryrun',
@@ -291,15 +298,16 @@ def main():
                 else:
                     if '2018' in era:
                         # config.Data.lumiMask = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/ReReco/Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt'
-                        '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/HI/PromptReco/Cert_326381-327564_HI_PromptReco_Collisions18_JSON_HF_and_MuonPhys.txt'
+                        config.Data.lumiMask = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/HI/PromptReco/Cert_326381-327564_HI_PromptReco_Collisions18_JSON_HF_and_MuonPhys.txt'
+                        # config.Data.lumiMask = '/afs/cern.ch/user/m/mnickel/private/MUONPDG/CMSSW_10_6_18/src/MuonAnalysis/MuonAnalyzer/job_lumis_1369.json'
                     elif '2017' in era:
                         config.Data.lumiMask = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/ReReco/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_v1.txt'
                     elif '2016' in era:
                         config.Data.lumiMask = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/ReReco/Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON.txt'
 
-                #config.Data.splitting = 'Automatic' # Not working after rucio transition
-                config.Data.splitting = options.splittingData
-                config.Data.unitsPerJob = options.unitsPerJobData
+                config.Data.splitting = 'Automatic' # Not working after rucio transition
+                # config.Data.splitting = options.splittingData
+                # config.Data.unitsPerJob = options.unitsPerJobData
 
             else:
                 config.Data.splitting = options.splittingMC
@@ -313,6 +321,7 @@ def main():
             config.JobType.pyCfgParams = [
                     'isFullAOD={}'.format(isFullAOD),
                     'isMC={}'.format(not isData),
+                    'isHIUPC={}'.format(options.isHIUPC),
                     'mcType={}'.format(mcType),
                     'globalTag={}'.format(globalTag),
                     'numThreads={}'.format(numThreads),
@@ -328,6 +337,7 @@ def main():
 
             # If we need to pull input files from a list file instead of CRAB:
             # config.Data.userInputFiles = open(basedir + sample + '.list').readlines()
+            # config.Data.userInputFiles = open("/afs/cern.ch/user/m/mnickel/private/MUONPDG/CMSSW_10_6_18/src/MuonAnalysis/MuonAnalyzer/scripts/files.txt").readlines()
 
             # Submit.
             def submit(config, options):

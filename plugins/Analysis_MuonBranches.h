@@ -32,12 +32,12 @@ inline void FillTagBranches(const MUON &muon,
   nt.tag_eta = muon.eta();
   nt.tag_phi = muon.phi();
   nt.tag_charge = muon.charge();
-  nt.tag_pterr = muon.innerTrack()->ptError() / muon.innerTrack()->pt();
-  nt.tag_dxy = muon.innerTrack()->dxy(reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
-  nt.tag_dz = muon.innerTrack()->dz(reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
   nt.tag_vtx_x = muon.vx();
   nt.tag_vtx_y = muon.vy();
   nt.tag_vtx_z = muon.vz();
+  nt.tag_pterr = muon.innerTrack()->ptError() / muon.innerTrack()->pt();
+  nt.tag_dxy = muon.innerTrack()->dxy(reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
+  nt.tag_dz = muon.innerTrack()->dz(reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
   nt.tag_isPF = muon.isPFMuon();
   nt.tag_isSA = muon.isStandAloneMuon();
   nt.tag_isTracker = muon.isTrackerMuon();
@@ -71,6 +71,56 @@ inline void FillTagBranches(const MUON &muon,
     nsegments += chamber.segmentMatches.size();
   }
   nt.tag_nsegments = nsegments;
+}
+
+template <typename ELECTRON, typename TRK>
+inline void FillTagElectronBranches(const ELECTRON &ele,
+                            const std::vector<TRK> &tracks,
+                            Analysis_NtupleContent &nt,
+                            const reco::Vertex &vertex) {
+  nt.tag_pt = ele.pt();
+  nt.tag_eta = ele.eta();
+  nt.tag_phi = ele.phi();
+  nt.tag_charge = ele.charge();
+  nt.tag_vtx_x = ele.vx();
+  nt.tag_vtx_y = ele.vy();
+  nt.tag_vtx_z = ele.vz();
+  nt.tag_pterr = ele.gsfTrack()->ptError() / ele.gsfTrack()->pt();
+  nt.tag_dxy = ele.gsfTrack()->dxy(reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
+  nt.tag_dz = ele.gsfTrack()->dz(reco::TrackBase::Point(nt.pv_x, nt.pv_y, nt.pv_z));
+  // nt.tag_isPF = muon.isPFMuon();
+  // nt.tag_isSA = muon.isStandAloneMuon();
+  // nt.tag_isTracker = muon.isTrackerMuon();
+  // nt.tag_isGlobal = muon.isGlobalMuon();
+  // // Use selectors instead of 'muon.passed' method which is only introduced in CMSSW_9_4_X
+  // nt.tag_isLoose = muon::isLooseMuon(muon);
+  // nt.tag_isMedium = muon::isMediumMuon(muon);
+  // nt.tag_isTight = muon::isTightMuon(muon, vertex);
+  // nt.tag_isSoft = muon::isSoftMuon(muon, vertex, false);
+  // nt.tag_isHighPt = muon::isHighPtMuon(muon, vertex);
+  // float iso04 = (TrackerEnergy04<TRK>(muon.eta(), muon.phi(), tracks) - muon.pt()) / muon.pt();
+  // nt.tag_relIso04 = (iso04 > 0) ? iso04 : 0;
+  // nt.tag_iso03_sumPt = muon.isolationR03().sumPt;
+  // nt.tag_pfIso04_charged = muon.pfIsolationR04().sumChargedHadronPt;
+  // nt.tag_pfIso04_neutral = muon.pfIsolationR04().sumNeutralHadronEt;
+  // nt.tag_pfIso04_photon = muon.pfIsolationR04().sumPhotonEt;
+  // nt.tag_pfIso04_sumPU = muon.pfIsolationR04().sumPUPt;
+  // if (muon.tunePMuonBestTrack().isNonnull()) {
+    // nt.tag_tuneP_pt = muon.tunePMuonBestTrack()->pt();
+    // nt.tag_tuneP_pterr = muon.tunePMuonBestTrack()->ptError();
+  // } else {
+    // nt.tag_tuneP_pt = -99.;
+    // nt.tag_tuneP_pterr = -99.;
+  // }
+  // int nsegments = 0;
+  // for (auto &chamber : muon.matches()) {
+    // if (chamber.id.det() != DetId::Muon)
+      // continue;
+    // if (chamber.id.subdetId() != MuonSubdetId::DT && chamber.id.subdetId() != MuonSubdetId::CSC)
+      // continue;
+    // nsegments += chamber.segmentMatches.size();
+  // }
+  // nt.tag_nsegments = nsegments;
 }
 
 template <typename MUON>
@@ -231,7 +281,7 @@ inline void FillTrackBranches(
     
 template <typename ELE>
 inline void FillElectronBranches(
-    const std::vector<ELE> &electrons, Analysis_NtupleContent &nt, int &probe_idx, const reco::Vertex &pv){
+    const std::vector<ELE> &electrons, Analysis_NtupleContent &nt, int &tag_idx, int &probe_idx, const reco::Vertex &pv){
 
        nt.nEle = electrons.size();
        for (const auto& ele : electrons) {
@@ -287,7 +337,20 @@ inline void FillElectronBranches(
           nt.eleSigmaIPhiIPhi.push_back(ele.sigmaIphiIphi());
           nt.eleMissHits.push_back(ele.gsfTrack()->numberOfLostHits());  
           if((&ele - &electrons.at(0)) == probe_idx) nt.ele_isProbe.push_back(true);
-          else nt.ele_isProbe.push_back(false);        
+          else nt.ele_isProbe.push_back(false);  
+
+          if((&ele - &electrons.at(0)) == probe_idx){
+          nt.ele_isProbe.push_back(true);
+          nt.ele_isTag.push_back(false);
+          }
+          if((&ele - &electrons.at(0)) == tag_idx){
+          nt.ele_isProbe.push_back(false);
+          nt.ele_isTag.push_back(true);
+          }
+          else{
+          nt.ele_isProbe.push_back(false);
+          nt.ele_isTag.push_back(false);
+          }           
        }
     }
     

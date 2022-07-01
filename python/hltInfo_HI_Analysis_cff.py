@@ -46,15 +46,26 @@ hltInfoAll = {
 'Run2018': {
   'triggerPaths': [
     "HLT_HIUPC_SingleMuOpen_NotMBHF2AND_v",
-    "HLT_HIUPC_SingleMu0_NotMBHF2AND_v1",
+    "HLT_HIUPC_SingleMu0_NotMBHF2AND_v",
+    "HLT_HIUPC_SingleEG3_NotMBHF2AND_v",
+    "HLT_HIUPC_SingleEG5_NotMBHF2AND_v",
+    "HLT_HIUPC_DoubleEG2_NotMBHF2AND_v",
+    "HLT_HIUPC_SingleEG3_BptxAND_SinglePixelTrack_MaxPixelTrack_v",
+    "HLT_HIUPC_SingleEG5_BptxAND_SinglePixelTrack_MaxPixelTrack_v",
   ],
   'tagFilters': [
     'hltL1sSingleMuOpenNotMBHF2AND',
     'hltL1sSingleMu0NotMBHF2AND',
+    'hltL1sSingleEG3NotHF2AND',
+    'hltL1sSingleEG5BptxAND',
+    'hltL1sDoubleEG2NotHF2AND',
   ],
   'probeFilters': [
     'hltL1sSingleMuOpenNotMBHF2AND',
     'hltL1sSingleMu0NotMBHF2AND',
+    'hltL1sSingleEG3NotHF2AND',
+    'hltL1sSingleEG5BptxAND',
+    'hltL1sDoubleEG2NotHF2AND',
 
   ]
 }

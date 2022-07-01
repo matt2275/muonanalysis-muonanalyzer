@@ -1,0 +1,27 @@
+{
+    "particle": "muon",
+    "resonance": "HIUPC",
+    "era": "Run2018",
+    "suberas": {
+        "AOD": {
+            "MuMu": {
+                "dataset": "/GammaGammatoMuMu_5p02TeV_STARlight/HINPbPbAutumn18DR-NoPU_103X_upgrade2018_realistic_HI_v11-v2/AODSIM",
+                "globalTag": "103X_upgrade2018_realistic_HI_v11"
+            },
+            "TauTau": {
+                "dataset": "/ggTauTau_TuneCP5_5p02TeV_amcatnlo_pythia8/HINPbPbAutumn18DR-NoPUlowPtPhotonReg_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v2/AODSIM",
+                "globalTag": "103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2"
+            },
+            "EE": {
+                "dataset": "/QEDGammaGamma_5p02TeV_STARlight/HINPbPbAutumn18DR-NoPUlowPtPhotonReg_LbyL_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v5/AODSIM",
+                "globalTag": "103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2"
+            },
+            "Run2018": {
+                "dataset": "/HIForward/HIRun2018A-ForLByL-v2/AOD",
+                "globalTag": "103X_dataRun2_Prompt_LowPtPhotonReg_v1"
+            }
+        },
+        "MINIAOD": {
+        }
+    }
+}

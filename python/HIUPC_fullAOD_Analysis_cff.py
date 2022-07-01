@@ -3,7 +3,7 @@ option for AOD run'''
 
 import FWCore.ParameterSet.Config as cms
 
-muon = cms.EDAnalyzer('HIUPC_Analysis_FullAODAnalyzer',
+muon = cms.EDAnalyzer('HIUPC_Analysis_Electrons_FullAODAnalyzer',
         isMC=cms.bool(False),
         includeJets=cms.bool(False),
         era = cms.string('dummy'), # updated in run_muonAnalyzer_cfg.py
@@ -11,7 +11,7 @@ muon = cms.EDAnalyzer('HIUPC_Analysis_FullAODAnalyzer',
         pileupInfo=cms.InputTag('addPileupInfo'),
         Rho=cms.InputTag('fixedGridRhoFastjetAll'),
         beamSpot=cms.InputTag('offlineBeamSpot'),
-        vertices=cms.InputTag("offlinePrimaryVertices"),
+        vertices=cms.InputTag("offlinePrimaryVerticesRecovery"),
         muons=cms.InputTag("muons"),
         electrons=cms.InputTag("gedGsfElectrons"),
         tracks=cms.InputTag("generalTracks"),
@@ -49,6 +49,7 @@ muon = cms.EDAnalyzer('HIUPC_Analysis_FullAODAnalyzer',
         trgDRwindow= cms.double(1.0), # dr winwow hlt mu/offline
         tagQuality = cms.uint32(0),
         tagSelection = cms.string("pt()>3 && abs(eta())<2.4"),
+        tagElectronSelection = cms.string("pt()>3 && abs(eta())<2.4"),
         probeHPurity = cms.bool(False),
         probeSelection = cms.string("pt()>1 && abs(eta())<2.5"),
         probeSelectionSA = cms.string("pt()>0"),
@@ -56,7 +57,7 @@ muon = cms.EDAnalyzer('HIUPC_Analysis_FullAODAnalyzer',
         probeMuonSelection = cms.string("pt()>0"), #string for probe (reco or pat Muon)
         pairMassMin = cms.double(0.0),
         pairMassMax = cms.double(999.0), # 9999.0 for high mass C&C
-        pairDz = cms.double(1e99),
+        pairDz = cms.double(-1),
         RequireVtxCreation = cms.bool(False),
         minSVtxProb = cms.double(-1),
         maxDzProbeTrkMuon = cms.double(0.1), # max Dz(mu1,mu2)
@@ -78,7 +79,8 @@ muon = cms.EDAnalyzer('HIUPC_Analysis_FullAODAnalyzer',
         maxTrkNum = cms.int32(2),
         momPdgId= cms.uint32(443),
         genRecoDrMatch = cms.double(0.03),
-        saveCutTree = cms.bool(True),
+        saveCutTree = cms.bool(False),
+        keepelectrontags = cms.bool(True),
         debug = cms.int32(0),
         MCType = cms.string(""), # filled in test_run file
         propM1 = cms.PSet(

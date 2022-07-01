@@ -149,11 +149,12 @@ using namespace std;
 // from  edm::one::EDAnalyzer<> and also remove the line from
 // constructor "usesResource("TFileService");"
 // This will improve performance in multithreaded jobs.
-class HIUPC_Analysis_FullAODAnalyzer : public edm::one::EDAnalyzer<> {
+class HIUPC_Analysis_Electrons_FullAODAnalyzer : public edm::one::EDAnalyzer<> {
 public:
   typedef std::vector<std::pair<reco::Muon, reco::TransientTrack>> RecoTrkAndTransientTrkCollection;
-  explicit HIUPC_Analysis_FullAODAnalyzer(const edm::ParameterSet&);
-  ~HIUPC_Analysis_FullAODAnalyzer() override;
+  typedef std::vector<std::pair<reco::GsfElectron, reco::TransientTrack>> RecoElectronTrkAndTransientTrkCollection;
+  explicit HIUPC_Analysis_Electrons_FullAODAnalyzer(const edm::ParameterSet&);
+  ~HIUPC_Analysis_Electrons_FullAODAnalyzer() override;
 
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
@@ -167,7 +168,7 @@ private:
                    std::vector<float>&,
                    std::vector<std::string>&,
                    const int&);
-  void embedTriggerMatching(const reco::Muon&,
+  void embedTriggerMatching(const reco::Track&,
                             std::vector<TString>&,
                             std::vector<float>&,
                             std::vector<float>&,
@@ -236,6 +237,7 @@ private:
   const double trgDRwindow_;
   const unsigned int tagQual_;
   const StringCutObjectSelector<reco::Muon> tagSelection_;  // kinematic cuts for tag
+  const StringCutObjectSelector<reco::GsfElectron> tagElectronSelection_;
   const bool HighPurity_;
   const StringCutObjectSelector<reco::Track> probeSelection_;    // kinematic cuts for probe
   const StringCutObjectSelector<reco::Track> probeSelectionSA_;  // kinematic cuts for probe
@@ -267,6 +269,7 @@ private:
   const unsigned momPdgId_;
   const double genRecoDrMatch_;
   const bool saveCutTree_;
+  const bool keepelectrontags_;
   const int debug_;
   const string MCType_;
   PropagateToMuon prop1_;
@@ -290,7 +293,7 @@ private:
 //
 // constructors and destructor
 //
-HIUPC_Analysis_FullAODAnalyzer::HIUPC_Analysis_FullAODAnalyzer(const edm::ParameterSet& iConfig)
+HIUPC_Analysis_Electrons_FullAODAnalyzer::HIUPC_Analysis_Electrons_FullAODAnalyzer(const edm::ParameterSet& iConfig)
     :  // inputs
 
       genEventInfoToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("genEventInfo"))),
@@ -340,6 +343,7 @@ HIUPC_Analysis_FullAODAnalyzer::HIUPC_Analysis_FullAODAnalyzer(const edm::Parame
       trgDRwindow_(iConfig.getParameter<double>("trgDRwindow")),
       tagQual_(iConfig.getParameter<unsigned>("tagQuality")),
       tagSelection_(iConfig.getParameter<std::string>("tagSelection")),
+      tagElectronSelection_(iConfig.getParameter<std::string>("tagElectronSelection")),
       HighPurity_(iConfig.getParameter<bool>("probeHPurity")),
       probeSelection_(iConfig.getParameter<std::string>("probeSelection")),
       probeSelectionSA_(iConfig.getParameter<std::string>("probeSelectionSA")),
@@ -370,6 +374,7 @@ HIUPC_Analysis_FullAODAnalyzer::HIUPC_Analysis_FullAODAnalyzer(const edm::Parame
       momPdgId_(iConfig.getParameter<unsigned>("momPdgId")),
       genRecoDrMatch_(iConfig.getParameter<double>("genRecoDrMatch")),
       saveCutTree_(iConfig.getParameter<bool>("saveCutTree")),
+      keepelectrontags_(iConfig.getParameter<bool>("keepelectrontags")),
       debug_(iConfig.getParameter<int>("debug")),
       MCType_(iConfig.getParameter<std::string>("MCType")),
       prop1_(iConfig.getParameter<edm::ParameterSet>("propM1")) {
@@ -382,13 +387,13 @@ HIUPC_Analysis_FullAODAnalyzer::HIUPC_Analysis_FullAODAnalyzer(const edm::Parame
   }
 }
 
-HIUPC_Analysis_FullAODAnalyzer::~HIUPC_Analysis_FullAODAnalyzer() {
+HIUPC_Analysis_Electrons_FullAODAnalyzer::~HIUPC_Analysis_Electrons_FullAODAnalyzer() {
   // cout << "total " << trg_counter << " fires " << fire_counter << " l3"
   // << l3_counter << endl; do anything here that needs to be done at
   // desctruction time
 }
 
-bool HIUPC_Analysis_FullAODAnalyzer::HLTaccept(const edm::Event& iEvent,
+bool HIUPC_Analysis_Electrons_FullAODAnalyzer::HLTaccept(const edm::Event& iEvent,
                                               Analysis_NtupleContent& nt,
                                               std::vector<std::string>& HLTPaths) {
   edm::Handle<edm::TriggerResults> trigResults;
@@ -407,7 +412,6 @@ bool HIUPC_Analysis_FullAODAnalyzer::HLTaccept(const edm::Event& iEvent,
         continue;
       EvtFire = true;
       TrgFire = true;
-      cout << "trigger path " << path << endl;
     }
     nt.trigger[ipath] = TrgFire;
     ipath++;
@@ -415,7 +419,7 @@ bool HIUPC_Analysis_FullAODAnalyzer::HLTaccept(const edm::Event& iEvent,
   return EvtFire;
 }
 
-void HIUPC_Analysis_FullAODAnalyzer::fillHLTmuon(const edm::Event& iEvent,
+void HIUPC_Analysis_Electrons_FullAODAnalyzer::fillHLTmuon(const edm::Event& iEvent,
                                                 std::vector<TString>& trg_filter,
                                                 std::vector<float>& trg_pt,
                                                 std::vector<float>& trg_eta,
@@ -439,7 +443,6 @@ void HIUPC_Analysis_FullAODAnalyzer::fillHLTmuon(const edm::Event& iEvent,
         trg_pt.push_back(foundObject.pt());
         trg_eta.push_back(foundObject.eta());
         trg_phi.push_back(foundObject.phi());
-        std::cout << "Trg muon " << ifilter << " pT "<< foundObject.pt() << std::endl;
         if (debug_ > 0)
           std::cout << "Trg muon " << foundObject.pt() << std::endl;
       }
@@ -448,7 +451,7 @@ void HIUPC_Analysis_FullAODAnalyzer::fillHLTmuon(const edm::Event& iEvent,
 }
 
 
-void HIUPC_Analysis_FullAODAnalyzer::embedTriggerMatching(const reco::Muon& mu,
+void HIUPC_Analysis_Electrons_FullAODAnalyzer::embedTriggerMatching(const reco::Track& mu,
                                                          std::vector<TString>& trg_filter,
                                                          std::vector<float>& trg_pt,
                                                          std::vector<float>& trg_eta,
@@ -472,8 +475,8 @@ void HIUPC_Analysis_FullAODAnalyzer::embedTriggerMatching(const reco::Muon& mu,
       if (!filter_tstr.Contains(thefilter_tstr))
         continue;
       float dR_tmp = deltaR(mu.eta(), mu.phi(), trg_eta.at(itrg), trg_phi.at(itrg));
-      if ((dR_tmp < matched_dr && dR_tmp < trgDRwindow_) ||
-          (isL2DSA && dR_tmp < matched_dr && dR_tmp < maxdr_trk_dsa_)) {
+      if ((dR_tmp < matched_dr && dR_tmp < trgDRwindow_) || 
+        (isL2DSA && dR_tmp < matched_dr && dR_tmp < maxdr_trk_dsa_)) {
         matched = true;
         matched_pt = trg_pt.at(itrg);
         matched_eta = trg_eta.at(itrg);
@@ -499,12 +502,11 @@ void HIUPC_Analysis_FullAODAnalyzer::embedTriggerMatching(const reco::Muon& mu,
       nt.probe_trg_phi[&thefilter - &HLTFilters[0]] = matched_phi;
       nt.probe_trg_dr[&thefilter - &HLTFilters[0]] = matched_dr;
     }
-
-    return;
   }
+ return;
 }
 
-void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void HIUPC_Analysis_Electrons_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   using namespace std;
   using namespace edm;
   using namespace reco;
@@ -531,7 +533,7 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
 
    return;   
   }
-  nt.CutThrough_Num++; // 1
+  nt.CutThrough_Num = __LINE__; // 1
  
 
   edm::Handle<std::vector<reco::Track>> SAmuons;
@@ -708,13 +710,13 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
      if(saveCutTree_) t2->Fill();
      return;
   } 
-  nt.CutThrough_Num++; // 2
+  nt.CutThrough_Num = __LINE__; // 2
   
    if(tracks->size() < 2){
      if(saveCutTree_) t2->Fill();
      return;
   }  
-  nt.CutThrough_Num++; // 3
+  nt.CutThrough_Num = __LINE__; // 3
  
      // add cut to max number of tracks for HIUPC events deal with exclusivity
   int nTrk = 0;
@@ -726,7 +728,7 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
      if(saveCutTree_) t2->Fill();
      return;
   } 
-  nt.CutThrough_Num++; // 4
+  nt.CutThrough_Num = __LINE__; // 4
  
  
  
@@ -747,6 +749,7 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
 //  Analysis_MuonGenAnalyzer genmu;
   std::vector<unsigned> matched_muon_idx;
   std::vector<unsigned> matched_track_idx;
+  std::vector<unsigned> matched_electron_idx;
   if (!iEvent.isRealData()) {
      if(!saveCutTree_){
     if(MCType_ == "TauTau") genmu.SetInputsandFillNtuple_TauTau(nt, iEvent, genToken_);
@@ -767,58 +770,65 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
       matched_muon_idx.push_back(reco_match_gentrk2.second);
 
     reco_match_gentrk1 =
-        MatchReco<reco::Track>(*tracks, nt.gentrk1_eta, nt.gentrk1_phi, nt.gentrk1_charge, genRecoDrMatch_);
+        MatchReco<reco::GsfElectron>(*electrons, nt.gentrk1_eta, nt.gentrk1_phi, nt.gentrk1_charge, genRecoDrMatch_);
     reco_match_gentrk2 =
-        MatchReco<reco::Track>(*tracks, nt.gentrk2_eta, nt.gentrk2_phi, nt.gentrk2_charge, genRecoDrMatch_);
+        MatchReco<reco::GsfElectron>(*electrons, nt.gentrk2_eta, nt.gentrk2_phi, nt.gentrk2_charge, genRecoDrMatch_);
 
     if (reco_match_gentrk1.first)
-      matched_track_idx.push_back(reco_match_gentrk1.second);
+      matched_electron_idx.push_back(reco_match_gentrk1.second);
     if (reco_match_gentrk2.first)
-      matched_track_idx.push_back(reco_match_gentrk2.second);
+      matched_electron_idx.push_back(reco_match_gentrk2.second);
+   
+   
   }
 
   // match hlt with offline muon
   std::vector<unsigned> trg_idx;
-  std::vector<unsigned> electron_trg_idx;
   for (unsigned itrg = 0; itrg < nt.trg_pt.size(); ++itrg) {
     float minDR = 1000;
-    float electron_minDR = 1000;
     unsigned idx = 0;
-    unsigned electron_idx = 0;
     for (auto& mu : *muons) {
       if (minDR < deltaR(nt.trg_eta[itrg], nt.trg_phi[itrg], mu.eta(), mu.phi()))
         continue;
       minDR = deltaR(nt.trg_eta[itrg], nt.trg_phi[itrg], mu.eta(), mu.phi());
       idx = &mu - &muons->at(0);
     }
-    for (auto& ele : *electrons) {
-      if (electron_minDR < deltaR(nt.trg_eta[itrg], nt.trg_phi[itrg], ele.eta(), ele.phi()))
-        continue;
-      electron_minDR = deltaR(nt.trg_eta[itrg], nt.trg_phi[itrg], ele.eta(), ele.phi());
-      electron_idx = &ele - &electrons->at(0);
-    }
     if (debug_ > 0)
       std::cout << "Trg " << itrg << ", min DR " << minDR << std::endl;
     if (minDR < trgDRwindow_)
       trg_idx.push_back(idx);
-    if (electron_minDR < trgDRwindow_)
-      electron_trg_idx.push_back(electron_idx);
-    if (electron_minDR < trgDRwindow_)
-      std::cout << "electron trigger match " <<std::endl;
     if (minDR < trgDRwindow_ && debug_ > 0)
       std::cout << "Matched!" << std::endl;
   }
   nt.nMu = muons->size();
 
-  // select tags
+
+  // match hlt with offline electrons
+  std::vector<unsigned> electron_trg_idx;
+  for (unsigned itrg = 0; itrg < nt.trg_pt.size(); ++itrg) {
+    float minDR = 1000;
+    unsigned idx = 0;
+    for (auto& ele : *electrons) {
+      if (minDR < deltaR(nt.trg_eta[itrg], nt.trg_phi[itrg], ele.eta(), ele.phi()))
+        continue;
+      minDR = deltaR(nt.trg_eta[itrg], nt.trg_phi[itrg], ele.eta(), ele.phi());
+      idx = &ele - &electrons->at(0);
+    }
+    if (debug_ > 0)
+      std::cout << "Trg " << itrg << ", min DR " << minDR << std::endl;
+    if (minDR < trgDRwindow_)
+      electron_trg_idx.push_back(idx);
+    if (minDR < trgDRwindow_ && debug_ > 0)
+      std::cout << "Matched! Electron" << std::endl;
+  }
+  nt.nEle = electrons->size();
+  // select muon tags
   int tag_muon_index = 0;
   std::vector<unsigned> tag_muon_map;  // idx of tag muon in muons
   RecoTrkAndTransientTrkCollection tag_trkttrk;
   std::vector<bool> genmatched_tag;
   
   
-  
-    
   for (const auto& mu : *muons) {
     tag_muon_index++;
     if (mu.selectors() != 0) {  // Only 9_4_X and later have selector bits
@@ -840,13 +850,47 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
       genmatched_tag.push_back(false);
   }
   
-  nt.ntag = tag_trkttrk.size();
+   // select muon tags
+  int tag_electron_index = 0;
+  std::vector<unsigned> tag_electron_map;  // idx of tag muon in muons
+  RecoElectronTrkAndTransientTrkCollection tag_electron_trkttrk;
+  std::vector<bool> genmatched_electron_tag;
   
-  if(nt.ntag == 0){
+  
+  for (const auto& ele : *electrons) {
+    tag_electron_index++;
+    // if (ele.selectors() != 0) {  // Only 9_4_X and later have selector bits
+      // if (!.passed(pow(2, tagQual_)))
+        // continue;
+    // }
+    // else {  // For 2016, assume loose ID on the tag (can be tightened at spark level)
+      // if (!muon::isLooseMuon(mu))
+        // continue;
+    // }
+    if (!tagElectronSelection_(ele))
+      continue;
+    if (std::find(electron_trg_idx.begin(), electron_trg_idx.end(), &ele - &electrons->at(0)) == electron_trg_idx.end())
+      continue;
+    tag_electron_trkttrk.emplace_back(std::make_pair(ele, reco::TransientTrack(*ele.bestTrack(), &(*bField))));
+    tag_electron_map.push_back(&ele - &electrons->at(0));
+    if (std::find(matched_electron_idx.begin(), matched_electron_idx.end(), &ele - &electrons->at(0)) != matched_electron_idx.end())
+      genmatched_electron_tag.push_back(true);
+    else
+      genmatched_electron_tag.push_back(false);
+  }
+   
+  
+  
+  
+  nt.ntag = tag_trkttrk.size();
+  nt.ntag_electron = tag_electron_trkttrk.size();
+  
+  
+  if(nt.ntag == 0 && (nt.ntag_electron == 0 || !keepelectrontags_)){
      if(saveCutTree_) t2->Fill();
      return;
   } 
-  nt.CutThrough_Num++; // 5
+  nt.CutThrough_Num = __LINE__; // 5
   
   
   if (debug_ > 0)
@@ -1350,17 +1394,57 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
   int TnPSize = 0;
   int tag_idx = 0;
   int tag_pt = 0;
-
+  // int tag_electron_idx = 0;
+  // int tag_electron_pt = 0;
+  std::string tagtype = "none";
     for (auto& tag : tag_trkttrk) {
        if( tag.first.pt() < tag_pt) continue;
        tag_pt = tag.first.pt();
        tag_idx = &tag - &tag_trkttrk[0];
+       tagtype = "muon";
+
     
     }
     
+    if(tagtype != "muon"  && keepelectrontags_){
+    for (auto& tag : tag_electron_trkttrk) {
+       if( tag.first.pt() < tag_pt) continue;
+       tag_pt = tag.first.pt();
+       tag_idx = &tag - &tag_electron_trkttrk[0];
+       tagtype = "electron";
+    }
+    }
+    
+      reco::Muon tag_muon;
+      reco::GsfElectron tag_electron;
+      reco::TransientTrack tag_transtrk;
+      reco::Track tag_track;
+      if(tagtype == "muon"){
+         auto tag = tag_trkttrk[tag_idx];
+         tag_muon = tag.first;
+         tag_transtrk = tag.second;
+         tag_track = *tag_muon.bestTrack();
+         nt.tag_isElectron = false;
+         nt.tag_isMuon = true;
+      }
+      
+      if(tagtype == "electron"){
+         auto tag = tag_electron_trkttrk[tag_idx];
+         tag_electron = tag.first;
+         tag_transtrk = tag.second;
+         tag_track = *tag_electron.bestTrack();
+         nt.tag_isElectron = true;
+         nt.tag_isMuon = false;
+      }
+    if(tagtype == "none" ){
+       if(saveCutTree_) t2->Fill();
+       return;
+    }
+       nt.CutThrough_Num = __LINE__; // 6
+    std::pair<reco::Track, reco::TransientTrack> tag = {tag_track, tag_transtrk};      
       
     for (const reco::Track& probe : *tracks) {
-       auto tag = tag_trkttrk[tag_idx];
+       // auto tag = tag_trkttrk[tag_idx];
       auto probe_idx = &probe - &tracks->at(0);
       if((tag.first.charge() == probe.charge()) && (deltaR(tag.first.eta(), tag.first.phi(), probe.eta(),probe.phi()) < .0001))
          continue;
@@ -1433,11 +1517,10 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
   }
 
     // loop over probe tracks
-      int tmp_cutnum = nt.CutThrough_Num;
       for (const reco::Track& probe : *tracks) {
-      nt.CutThrough_Num = tmp_cutnum + 1; //6
+      nt.CutThrough_Num = __LINE__; //7
          
-      auto tag = tag_trkttrk[tag_idx];
+      // auto tag = tag_trkttrk[tag_idx];
       if((tag.first.charge() == probe.charge()) && (deltaR(tag.first.eta(), tag.first.phi(), probe.eta(),probe.phi()) < .0001)){
          continue;
       }
@@ -1453,30 +1536,30 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
           if(saveCutTree_) t2->Fill();
           continue;
           }
-        nt.CutThrough_Num++;  //7
+        nt.CutThrough_Num++;  //8
         if (!probeSelection_(probe)){
           if(saveCutTree_) t2->Fill();
           continue;
           }
-        nt.CutThrough_Num++; //8
+        nt.CutThrough_Num = __LINE__; //9
         // apply cuts on pairs; selected will be saved
         if (tag.first.charge() == probe.charge()){
           if(saveCutTree_) t2->Fill();
           continue;
           }
-        nt.CutThrough_Num++; //9
+        nt.CutThrough_Num = __LINE__; //9
         if (fabs(tag.first.vz() - probe.vz()) > pairDz_ && pairDz_ > 0){
           if(saveCutTree_) t2->Fill();
           continue;
           }
-        nt.CutThrough_Num++; //10
+        nt.CutThrough_Num = __LINE__; //10
 
         float mass = DimuonMass(tag.first.pt(), tag.first.eta(), tag.first.phi(), probe.pt(), probe.eta(), probe.phi());
         if (mass < pairMassMin_ || mass > pairMassMax_){
           if(saveCutTree_) t2->Fill();
           continue;
           }
-        nt.CutThrough_Num++; // 11
+        nt.CutThrough_Num = __LINE__; // 11
         std::vector<reco::TransientTrack> trk_pair = {tag.second, reco::TransientTrack(probe, &(*bField))};
         Analysis_KlFitter vtx(trk_pair);
         // if (RequireVtxCreation_ && !vtx.status())
@@ -1492,7 +1575,7 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
           if(saveCutTree_) t2->Fill();
           continue;
           }
-        nt.CutThrough_Num++; // 12
+        nt.CutThrough_Num = __LINE__; // 12
        
 
         if(!iEvent.isRealData()){
@@ -1538,23 +1621,38 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
 
         int probe_muon_idx = -99 ;
         int tag_trk_idx = -99;
-        int tag_muon_idx = tag_muon_map.at(tag_idx);
-        auto it_tag_trk = std::find(trk_muon_map.second.begin(), trk_muon_map.second.end(), tag_muon_idx);
+        int tag_muon_idx = -99;
+        int tag_electron_idx = -99;
+        if( tagtype  =="muon") tag_muon_idx = tag_muon_map[tag_idx];
+        if( tagtype  =="electron") tag_electron_idx = tag_electron_map[tag_idx]; 
+        
         nt.probe_vtx_x =probe.vx();
         nt.probe_vtx_y =probe.vy();
         nt.probe_vtx_z =probe.vz();
-
+        
         if (it != trk_muon_map.first.end()){
            unsigned tmp_idx = std::distance(trk_muon_map.first.begin(), it);
            probe_muon_idx = trk_muon_map.second[tmp_idx];
            nt.probe_hasMuonMatch = true;
            nt.probe_MuonMatchDR = deltaR(probe.eta(), probe.phi(), muons->at(probe_muon_idx).eta(), muons->at(probe_muon_idx).phi());
         }
+        if(tagtype == "muon"){
+        auto it_tag_trk = std::find(trk_muon_map.second.begin(), trk_muon_map.second.end(), tag_muon_idx);
         if (it_tag_trk != trk_muon_map.second.end()){
            unsigned tmp_idx = std::distance(trk_muon_map.second.begin(), it_tag_trk);
            tag_trk_idx = trk_muon_map.first[tmp_idx];
            nt.tag_hasTrackMatch = true;
-           nt.tag_TrackMatchDR = deltaR(tag.first.eta(), tag.first.phi(), tracks->at(tag_trk_idx).eta(), tracks->at(tag_trk_idx).phi());
+           nt.tag_TrackMatchDR = deltaR(tag_muon.eta(), tag_muon.phi(), tracks->at(tag_trk_idx).eta(), tracks->at(tag_trk_idx).phi());
+        }
+        }
+        if(tagtype == "electron"){
+        auto it_tag_trk = std::find(trk_electron_map.second.begin(), trk_electron_map.second.end(), tag_electron_idx);
+        if (it_tag_trk != trk_electron_map.second.end()){
+           unsigned tmp_idx = std::distance(trk_electron_map.second.begin(), it_tag_trk);
+           tag_trk_idx = trk_electron_map.first[tmp_idx];
+           nt.tag_hasTrackMatch = true;
+           nt.tag_TrackMatchDR = deltaR(tag_electron.eta(), tag_electron.phi(), tracks->at(tag_trk_idx).eta(), tracks->at(tag_trk_idx).phi());
+        }
         }
         int probe_pfc_idx = -99;
         if (it_pfc != trk_pfc_map.first.end()){
@@ -1573,21 +1671,23 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
         }
 
         FillMuonBranches<reco::Muon>(*muons, nt,tag_muon_idx, probe_muon_idx, *pv);
-        FillElectronBranches<reco::GsfElectron>(*electrons, nt, probe_electron_idx,probe_electron_idx, *pv);
+        FillElectronBranches<reco::GsfElectron>(*electrons, nt, tag_electron_idx, probe_electron_idx, *pv);
         FillPFCandBranches<reco::PFCandidate>(*pfcands, nt, probe_pfc_idx);
         FillTrackBranches<reco::Track>(*tracks, nt, tag_trk_idx,probe_trk_idx);
-     
         
         
         math::PtEtaPhiMLorentzVector mu1(tag.first.pt(), tag.first.eta(), tag.first.phi(), MU_MASS);
         math::PtEtaPhiMLorentzVector mu2(probe.pt(), probe.eta(), probe.phi(), MU_MASS);
 
-        nt.tag_isMatchedGen = genmatched_tag[tag_idx];
-        
-        FillTagBranches<reco::Muon, reco::Track>(tag.first, *tracks, nt, *pv);
-        FillMiniIso<reco::Muon, reco::PFCandidate>(*pfcands, tag.first, *rhoJetsNC, nt, true);
+        if(tagtype == "muon" )nt.tag_isMatchedGen = genmatched_tag[tag_idx];
+        if(tagtype == "electron" )nt.tag_isMatchedGen = genmatched_electron_tag[tag_electron_idx];        
+                                                                                    
 
+        if(tagtype == "muon" ) FillTagBranches<reco::Muon, reco::Track>(tag_muon, *tracks, nt, *pv);
+        if(tagtype == "electron" ) FillTagElectronBranches<reco::GsfElectron,reco::Track>(tag_electron, *tracks, nt, *pv);
+        if(tagtype == "muon" ) FillMiniIso<reco::Muon, reco::PFCandidate>(*pfcands, tag_muon, *rhoJetsNC, nt, true);
         // Tag-trigger matching
+        if(tagtype == "muon"){
         auto tagRef = muonsView->refAt(tag_muon_map[tag_idx]);
         pat::TriggerObjectStandAloneRef tagl1Match = (*l1Matches)[tagRef];
         if (tagl1Match.isNonnull()) {
@@ -1610,6 +1710,7 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
           nt.tag_l1qByQ = -99;
           nt.tag_l1drByQ = 99.;
         }
+        }                                
         embedTriggerMatching(tag.first, nt.trg_filter, nt.trg_pt, nt.trg_eta, nt.trg_phi, tagFilters_, true, debug_);
 
         // if (!simInfoIsAvailalbe) {
@@ -1692,7 +1793,7 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
             nt.l1drByQ = 99.;
           }
 
-          embedTriggerMatching(muons->at(trk_muon_map.second[idx]),
+          embedTriggerMatching(probe,
                                nt.prb_filter,
                                nt.prb_pt,
                                nt.prb_eta,
@@ -1709,9 +1810,10 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
           // }
 
           // TuneP pair branches
-          if (tag.first.tunePMuonBestTrack().isNonnull() &&
+          if(tagtype == "muon"){
+          if (tag_muon.tunePMuonBestTrack().isNonnull() &&
               muons->at(trk_muon_map.second[idx]).tunePMuonBestTrack().isNonnull()) {
-            const reco::TrackRef tag_tuneP = tag.first.tunePMuonBestTrack();
+            const reco::TrackRef tag_tuneP = tag_muon.tunePMuonBestTrack();
             const reco::TrackRef probe_tuneP = muons->at(trk_muon_map.second[idx]).tunePMuonBestTrack();
             FillTunePPairBranches<reco::Track, reco::Track>(*tag_tuneP, *probe_tuneP, nt);
             std::vector<reco::TransientTrack> ttrk_pair_tuneP = {reco::TransientTrack(*tag_tuneP, &(*bField)),
@@ -1722,6 +1824,7 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
             FillTunePPairBranchesDummy(nt);
           }
         }
+        }        
 
         // if (itdsa == probe_dSA_map.first.end()) {
           // nt.probe_dsa_segmentMatches = -1;
@@ -1779,7 +1882,7 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
           FillProbeBranchesCosmic<reco::Track>(staCosmic->at(probe_cosmic_map.second[idx]), nt, true);
         }
 
-        FillPairBranches<reco::Muon, reco::Track>(tag.first, probe, nt, prop1_);
+        FillPairBranches<reco::Track, reco::Track>(tag.first, probe, nt, prop1_);
         vtx.fillNtuple(nt);
 
         auto it_genmatch = std::find(matched_track_idx.begin(), matched_track_idx.end(), &probe - &tracks->at(0));
@@ -1802,7 +1905,7 @@ void HIUPC_Analysis_FullAODAnalyzer::analyze(const edm::Event& iEvent, const edm
 
 // ------------ method called once each job just before starting event loop
 // ------------
-void HIUPC_Analysis_FullAODAnalyzer::beginJob() {
+void HIUPC_Analysis_Electrons_FullAODAnalyzer::beginJob() {
   t1 = fs->make<TTree>("Events", "Events");
   t2 = fs->make<TTree>("GenVtxStudy","GenVtxStudy");
   t3 = fs->make<TTree>("test","test");
@@ -1821,11 +1924,11 @@ void HIUPC_Analysis_FullAODAnalyzer::beginJob() {
 
 // ------------ method called once each job just after ending the event loop
 // ------------
-void HIUPC_Analysis_FullAODAnalyzer::endJob() {}
+void HIUPC_Analysis_Electrons_FullAODAnalyzer::endJob() {}
 
 // ------------ method fills 'descriptions' with the allowed parameters for the
 // module  ------------
-void HIUPC_Analysis_FullAODAnalyzer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+void HIUPC_Analysis_Electrons_FullAODAnalyzer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   // The following says we do not know what parameters are allowed so do no
   // validation
   // Please change this to state exactly what you do use, even if it is no
@@ -1838,4 +1941,4 @@ void HIUPC_Analysis_FullAODAnalyzer::fillDescriptions(edm::ConfigurationDescript
 ///////////////////////
 
 // define this as a plug-in
-DEFINE_FWK_MODULE(HIUPC_Analysis_FullAODAnalyzer);
+DEFINE_FWK_MODULE(HIUPC_Analysis_Electrons_FullAODAnalyzer);

@@ -42,6 +42,7 @@ public:
   float pv_z;
   int nvertices;
   bool hasValidVertex;
+  bool hasFakeVertex;
   
 
    int nGen;
@@ -67,6 +68,7 @@ public:
   // Number of muons
 
   int ntag;
+  int ntag_electron;
   int iprobe;
   int npairs;
 
@@ -136,6 +138,13 @@ public:
   float gentrk2_pz;
   int gentrk2_pdgId;
   float genFinalMass;
+  float genFinalPt;
+  float genFinalEta;
+  float genFinalPhi;
+  float genFinalE;
+  float genFinalPx;
+  float genFinalPy;
+  float genFinalPz; 
   
   float gentrk1_match_dr;
   float gentrk1_match_dphi;
@@ -157,6 +166,12 @@ public:
   
   
   //NEW
+  float indep_pt;
+  float indep_eta;
+  float indep_phi;
+  float indep_mass;
+  float gentau1_gamma_pz;
+  float gentau2_gamma_pz;
   float gentau1_pt;
   float gentau1_eta;
   float gentau1_phi;
@@ -194,6 +209,13 @@ public:
   int gentau2_decay;
   int gentau2_N_pi0;
   float genDiTauMass;
+  float genDiTauPt;
+  float genDiTauEta;
+  float genDiTauPhi;
+  float genDiTauE;
+  float genDiTauPx;
+  float genDiTauPy;
+  float genDiTauPz; 
   
   
   // float genDiTau_pair_svprob;
@@ -231,6 +253,8 @@ public:
   // float genFinal_refit_vtx_gentrk2_IP;   
    
   // Tag properties
+  bool tag_isMuon;
+  bool tag_isElectron;
   float tag_pt;
   float tag_eta;
   float tag_phi;
@@ -463,6 +487,7 @@ public:
 
    int nEle;
    std::vector<bool>   ele_isProbe;
+   std::vector<bool>   ele_isTag;
    std::vector<int>    eleCharge;
    std::vector<int>    eleChargeConsistent;
    std::vector<int>    eleSCPixCharge;
