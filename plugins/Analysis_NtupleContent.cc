@@ -4,6 +4,17 @@ Analysis_NtupleContent::Analysis_NtupleContent() {}
 
 Analysis_NtupleContent::~Analysis_NtupleContent() {}
 
+  void Analysis_NtupleContent::SetTreeVariables(bool keepMuons_ ,bool keepElectrons_ ,bool keepTracks_ ,bool keepPFcands_ 
+  ,bool keepPhotons_ ,bool keepCaloTowers_ ,bool keepZDC_ ){
+    keepMuons = keepMuons_ ;
+    keepElectrons = keepElectrons_ ;
+    keepTracks = keepTracks_ ;
+    keepPFcands = keepPFcands_;
+    keepPhotons = keepPhotons_;
+    keepCaloTowers = keepCaloTowers_;
+    keepZDC = keepZDC_;
+  }
+
 void Analysis_NtupleContent::SetTree(TTree *mytree) { t1 = mytree; }
 
 void Analysis_NtupleContent::CreateBranches(const std::vector<std::string> &HLTs,
@@ -29,12 +40,20 @@ void Analysis_NtupleContent::CreateBranches(const std::vector<std::string> &HLTs
   t1->Branch("ntag", &ntag);
   t1->Branch("ntag_electron", &ntag_electron);
   t1->Branch("npairs", &npairs);
-  
+  t1->Branch("npairs_3prong", &npairs_3prong);
+  t1->Branch("tag_isMuon", &tag_isMuon);
+  t1->Branch("tag_isElectron", &tag_isElectron);
+  t1->Branch("probe_isMuon", &probe_isMuon );
+  t1->Branch("probe_isElectron", &probe_isElectron );
+  t1->Branch("probe_isPion", &probe_isPion );
+  t1->Branch("probe_isOther", &probe_isOther );
+  t1->Branch("probe_typeSum", &probe_typeSum );
   
   t1->Branch("gentrk1_pt", &gentrk1_pt);
   t1->Branch("gentrk1_eta", &gentrk1_eta);
   t1->Branch("gentrk1_phi", &gentrk1_phi);
   t1->Branch("gentrk1_charge", &gentrk1_charge);
+  t1->Branch("gentrk1_M", &gentrk1_M);
   t1->Branch("gentrk1_vtx_x", &gentrk1_vtx_x);
   t1->Branch("gentrk1_vtx_y", &gentrk1_vtx_y);
   t1->Branch("gentrk1_vtx_z", &gentrk1_vtx_z);
@@ -43,6 +62,7 @@ void Analysis_NtupleContent::CreateBranches(const std::vector<std::string> &HLTs
   t1->Branch("gentrk2_eta", &gentrk2_eta);
   t1->Branch("gentrk2_phi", &gentrk2_phi);
   t1->Branch("gentrk2_charge", &gentrk2_charge);
+  t1->Branch("gentrk2_M", &gentrk2_M);
   t1->Branch("gentrk2_vtx_x", &gentrk2_vtx_x);
   t1->Branch("gentrk2_vtx_y", &gentrk2_vtx_y);
   t1->Branch("gentrk2_vtx_z", &gentrk2_vtx_z);
@@ -109,6 +129,35 @@ void Analysis_NtupleContent::CreateBranches(const std::vector<std::string> &HLTs
   t1->Branch("gen_status", &gen_status );
   t1->Branch("gen_E", &gen_E );
   t1->Branch("gen_Et", &gen_Et );  
+  
+  
+  t1->Branch("nGen_tau1", &nGen_tau1 );
+  t1->Branch("gen_pdgId_tau1", &gen_pdgId_tau1 );
+  t1->Branch("gen_pT_tau1", &gen_pT_tau1 );
+  t1->Branch("gen_eta_tau1", &gen_eta_tau1 );
+  t1->Branch("gen_phi_tau1", &gen_phi_tau1 ); 
+  t1->Branch("gen_charge_tau1", &gen_charge_tau1 );
+  t1->Branch("gen_mass_tau1", &gen_mass_tau1 );  
+  t1->Branch("gen_vtx_x_tau1", &gen_vtx_x_tau1 );
+  t1->Branch("gen_vtx_y_tau1", &gen_vtx_y_tau1 );
+  t1->Branch("gen_vtx_z_tau1", &gen_vtx_z_tau1 );
+  t1->Branch("gen_status_tau1", &gen_status_tau1 );
+  t1->Branch("gen_E_tau1", &gen_E_tau1 );
+  t1->Branch("gen_Et_tau1", &gen_Et_tau1 );
+
+  t1->Branch("nGen_tau2", &nGen_tau2 );
+  t1->Branch("gen_pdgId_tau2", &gen_pdgId_tau2 );
+  t1->Branch("gen_pT_tau2", &gen_pT_tau2 );
+  t1->Branch("gen_eta_tau2", &gen_eta_tau2 );
+  t1->Branch("gen_phi_tau2", &gen_phi_tau2 ); 
+  t1->Branch("gen_charge_tau2", &gen_charge_tau2 );
+  t1->Branch("gen_mass_tau2", &gen_mass_tau2 );  
+  t1->Branch("gen_vtx_x_tau2", &gen_vtx_x_tau2 );
+  t1->Branch("gen_vtx_y_tau2", &gen_vtx_y_tau2 );
+  t1->Branch("gen_vtx_z_tau2", &gen_vtx_z_tau2 );
+  t1->Branch("gen_status_tau2", &gen_status_tau2 );
+  t1->Branch("gen_E_tau2", &gen_E_tau2 );
+  t1->Branch("gen_Et_tau2", &gen_Et_tau2 );
 
   t1->Branch("gentrk1_match_dr", &gentrk1_match_dr );
   t1->Branch("gentrk1_match_dphi", &gentrk1_match_dphi );
@@ -133,8 +182,6 @@ void Analysis_NtupleContent::CreateBranches(const std::vector<std::string> &HLTs
     t1->Branch(TString(HLTs[ihlt]), &trigger[ihlt]);
 
   // Tag specific
-  t1->Branch("tag_isMuon", &tag_isMuon);
-  t1->Branch("tag_isElectron", &tag_isElectron);
   t1->Branch("tag_pt", &tag_pt);
   t1->Branch("tag_eta", &tag_eta);
   t1->Branch("tag_phi", &tag_phi);
@@ -312,7 +359,7 @@ void Analysis_NtupleContent::CreateBranches(const std::vector<std::string> &HLTs
   t1->Branch("probe_tuneP_transverse_IP", &probe_tuneP_transverse_IP);
   
   //commented out to save space, added useful details for HIUPC collisions
-
+    if(keepMuons){
     t1->Branch("nMu", &nMu);
     t1->Branch("mu_isProbe", &mu_isProbe);
     t1->Branch("mu_isTag", &mu_isTag);    
@@ -364,6 +411,9 @@ void Analysis_NtupleContent::CreateBranches(const std::vector<std::string> &HLTs
     t1->Branch("muIDTrkHighPt", &muIDTrkHighPt);
     t1->Branch("muIDInTime", &muIDInTime);
 
+    }
+    
+    if(keepTracks){
     t1->Branch("nTrk", &nTrk);
     t1->Branch("trkisTag", &trkisTag);
     t1->Branch("trkisProbe", &trkisProbe);
@@ -387,8 +437,10 @@ void Analysis_NtupleContent::CreateBranches(const std::vector<std::string> &HLTs
     t1->Branch("trkValidHits", &trkValidHits);
     t1->Branch("trkMissHits", &trkMissHits);
     t1->Branch("trkPurity", &trkPurity);
+    }
 
 
+   if(keepElectrons){
    t1->Branch("nEle", &nEle);  
    t1->Branch("ele_isProbe", &ele_isProbe);
    t1->Branch("ele_isTag", &ele_isTag);
@@ -441,7 +493,9 @@ void Analysis_NtupleContent::CreateBranches(const std::vector<std::string> &HLTs
    t1->Branch("eleSigmaIEtaIEta_2012", &eleSigmaIEtaIEta_2012);
    t1->Branch("eleSigmaIPhiIPhi", &eleSigmaIPhiIPhi);
    t1->Branch("eleMissHits", &eleMissHits);
-
+   }
+   
+   if(keepPFcands){
   t1->Branch("nPFCands", &nPFCands);
   t1->Branch("pfcand_isProbe", &pfcand_isProbe);  
   t1->Branch("pfcand_pdgId", &pfcand_pdgId);
@@ -452,15 +506,68 @@ void Analysis_NtupleContent::CreateBranches(const std::vector<std::string> &HLTs
   t1->Branch("pfcand_vtx_x", &pfcand_vtx_x); 
   t1->Branch("pfcand_vtx_y", &pfcand_vtx_y);    
   t1->Branch("pfcand_vtx_z", &pfcand_vtx_z);      
+   }
+  if(keepPhotons){
+  t1->Branch("nPho", &nPho);
+  t1->Branch("phoE", &phoE);
+  t1->Branch("phoEt", &phoEt);
+  t1->Branch("phoEta", &phoEta);
+  t1->Branch("phoPhi", &phoPhi);
+
+  t1->Branch("phoEcorrStdEcal", &phoEcorrStdEcal);
+  t1->Branch("phoEcorrPhoEcal", &phoEcorrPhoEcal);
+  t1->Branch("phoEcorrRegr1", &phoEcorrRegr1);
+  t1->Branch("phoEcorrRegr2", &phoEcorrRegr2);
+  t1->Branch("phoEcorrErrStdEcal", &phoEcorrErrStdEcal);
+  t1->Branch("phoEcorrErrPhoEcal", &phoEcorrErrPhoEcal);
+  t1->Branch("phoEcorrErrRegr1", &phoEcorrErrRegr1);
+  t1->Branch("phoEcorrErrRegr2", &phoEcorrErrRegr2);
+
+  t1->Branch("phoSCE", &phoSCE);
+  t1->Branch("phoSCEt", &phoSCEt);
+  t1->Branch("phoSCRawE", &phoSCRawE);
+  t1->Branch("phoSCEta", &phoSCEta);
+  t1->Branch("phoSCPhi", &phoSCPhi);
+  t1->Branch("phoSCEtaWidth", &phoSCEtaWidth);
+  t1->Branch("phoSCPhiWidth", &phoSCPhiWidth);
+  t1->Branch("phoSCBrem", &phoSCBrem);
+  t1->Branch("phoSCnHits", &phoSCnHits);
+  t1->Branch("phoSCflags", &phoSCflags);
+  t1->Branch("phoSCinClean", &phoSCinClean);
+  t1->Branch("phoSCinUnClean", &phoSCinUnClean);
+  t1->Branch("phoSCnBC", &phoSCnBC);
+  t1->Branch("phoESEn", &phoESEn);
+    
+  t1->Branch("phoIsPFPhoton", &phoIsPFPhoton);
+  t1->Branch("phoIsStandardPhoton", &phoIsStandardPhoton);
+  t1->Branch("phoHasPixelSeed", &phoHasPixelSeed);
+  t1->Branch("phoHasConversionTracks", &phoHasConversionTracks);
+    // tree_->Branch("phoEleVeto", &phoEleVeto);        // TODO: not available in reco::
+  t1->Branch("phoHadTowerOverEm", &phoHadTowerOverEm);
+  t1->Branch("phoHoverE", &phoHoverE);
+  t1->Branch("phoHoverEValid", &phoHoverEValid);
+  t1->Branch("phoSigmaIEtaIEta", &phoSigmaIEtaIEta);
+  t1->Branch("phoR9", &phoR9);
+  }
   
+  if(keepCaloTowers){
   t1->Branch("nTower", &nTower);
+  t1->Branch("maxHFp", &maxHFp);
+  t1->Branch("maxHFm", &maxHFm);
   t1->Branch("CaloTower_hadE", &CaloTower_hadE);
   t1->Branch("CaloTower_emE", &CaloTower_emE);
   t1->Branch("CaloTower_e", &CaloTower_e);
   t1->Branch("CaloTower_et", &CaloTower_et);
   t1->Branch("CaloTower_eta", &CaloTower_eta);
   t1->Branch("CaloTower_phi", &CaloTower_phi);
-
+  t1->Branch("CaloTower_HF_AboveThreshold", &CaloTower_HF_AboveThreshold );
+  t1->Branch("CaloTower_Had_AboveThreshold", &CaloTower_Had_AboveThreshold );
+  t1->Branch("CaloTower_EM_AboveThreshold", &CaloTower_EM_AboveThreshold );
+  t1->Branch("CaloTower_HF_inNoiseRegion", &CaloTower_HF_inNoiseRegion );
+  t1->Branch("CaloTower_Had_inNoiseRegion", &CaloTower_Had_inNoiseRegion );
+  t1->Branch("CaloTower_EM_inNoiseRegion", &CaloTower_EM_inNoiseRegion );
+  }
+  if(keepZDC){
   t1->Branch("ZDC_n",&ZDC_n);
   t1->Branch("ZDC_e",ZDC_e,"ZDC_e[ZDC_n]/F");
   t1->Branch("ZDC_zside",ZDC_zside,"ZDC_zside[ZDC_n]/I");
@@ -474,7 +581,7 @@ void Analysis_NtupleContent::CreateBranches(const std::vector<std::string> &HLTs
   t1->Branch("ZDC_M_ECal_Energy",&ZDC_M_ECal_Energy );
   t1->Branch("ZDC_M_HCal_Energy",&ZDC_M_HCal_Energy); 
   
-  
+  }
 }
 
 
@@ -588,6 +695,35 @@ void Analysis_NtupleContent::CreateBranches_GenVtxStudy() {
   t2->Branch("genDiTauPx", &genDiTauPx);
   t2->Branch("genDiTauPy", &genDiTauPy);
   t2->Branch("genDiTauPz", &genDiTauPz);
+  
+  
+  t2->Branch("nGen_tau1", &nGen_tau1 );
+  t2->Branch("gen_pdgId_tau1", &gen_pdgId_tau1 );
+  t2->Branch("gen_pT_tau1", &gen_pT_tau1 );
+  t2->Branch("gen_eta_tau1", &gen_eta_tau1 );
+  t2->Branch("gen_phi_tau1", &gen_phi_tau1 ); 
+  t2->Branch("gen_charge_tau1", &gen_charge_tau1 );
+  t2->Branch("gen_mass_tau1", &gen_mass_tau1 );  
+  t2->Branch("gen_vtx_x_tau1", &gen_vtx_x_tau1 );
+  t2->Branch("gen_vtx_y_tau1", &gen_vtx_y_tau1 );
+  t2->Branch("gen_vtx_z_tau1", &gen_vtx_z_tau1 );
+  t2->Branch("gen_status_tau1", &gen_status_tau1 );
+  t2->Branch("gen_E_tau1", &gen_E_tau1 );
+  t2->Branch("gen_Et_tau1", &gen_Et_tau1 );
+
+  t2->Branch("nGen_tau2", &nGen_tau2 );
+  t2->Branch("gen_pdgId_tau2", &gen_pdgId_tau2 );
+  t2->Branch("gen_pT_tau2", &gen_pT_tau2 );
+  t2->Branch("gen_eta_tau2", &gen_eta_tau2 );
+  t2->Branch("gen_phi_tau2", &gen_phi_tau2 ); 
+  t2->Branch("gen_charge_tau2", &gen_charge_tau2 );
+  t2->Branch("gen_mass_tau2", &gen_mass_tau2 );  
+  t2->Branch("gen_vtx_x_tau2", &gen_vtx_x_tau2 );
+  t2->Branch("gen_vtx_y_tau2", &gen_vtx_y_tau2 );
+  t2->Branch("gen_vtx_z_tau2", &gen_vtx_z_tau2 );
+  t2->Branch("gen_status_tau2", &gen_status_tau2 );
+  t2->Branch("gen_E_tau2", &gen_E_tau2 );
+  t2->Branch("gen_Et_tau2", &gen_Et_tau2 );
 
   // t2->Branch("genDiTau_pair_svprob", &genDiTau_pair_svprob);
   // t2->Branch("genDiTau_pair_fit_mass", &genDiTau_pair_fit_mass);
@@ -645,6 +781,864 @@ void Analysis_NtupleContent::CreateExtraTrgBranches(const std::vector<std::strin
   }
 }
 
+
+void Analysis_NtupleContent::CreateExtraTrgBranches_3prong(const std::vector<std::string> &HLTs, bool isTag = false) {
+  for (unsigned int ihlt = 0; ihlt < HLTs.size(); ihlt++) {
+    if (isTag) {
+      t4->Branch(TString("tag_" + HLTs[ihlt]), &tag_trg[ihlt]);
+      t4->Branch(TString("tag_" + HLTs[ihlt] + "_pt"), &tag_trg_pt[ihlt]);
+      t4->Branch(TString("tag_" + HLTs[ihlt] + "_eta"), &tag_trg_eta[ihlt]);
+      t4->Branch(TString("tag_" + HLTs[ihlt] + "_phi"), &tag_trg_phi[ihlt]);
+      t4->Branch(TString("tag_" + HLTs[ihlt] + "_dr"), &tag_trg_dr[ihlt]);
+    }
+    // else {
+      // t1->Branch(TString("probe_" + HLTs[ihlt]), &probe_trg[ihlt]);
+      // t1->Branch(TString("probe_" + HLTs[ihlt] + "_pt"), &probe_trg_pt[ihlt]);
+      // t1->Branch(TString("probe_" + HLTs[ihlt] + "_eta"), &probe_trg_eta[ihlt]);
+      // t1->Branch(TString("probe_" + HLTs[ihlt] + "_phi"), &probe_trg_phi[ihlt]);
+      // t1->Branch(TString("probe_" + HLTs[ihlt] + "_dr"), &probe_trg_dr[ihlt]);
+    // }
+  }
+}
+
+
+  void Analysis_NtupleContent::SetTree_3ProngStudy(TTree *mytree) { t4 = mytree; }
+  void Analysis_NtupleContent::CreateBranches_3ProngStudy(const std::vector<std::string> &HLTs,
+                                   const std::vector<std::string> &selectorNames){
+     
+  t4->Branch("run", &run);
+  t4->Branch("event", &event);
+  t4->Branch("ls", &ls);
+  t4->Branch("fromFullAOD", &fromFullAOD);
+  t4->Branch("genWeight", &genWeight);
+  t4->Branch("BSpot_x", &BSpot_x);
+  t4->Branch("BSpot_y", &BSpot_y);
+  t4->Branch("BSpot_z", &BSpot_z);
+  t4->Branch("pv_x", &pv_x);
+  t4->Branch("pv_y", &pv_y);
+  t4->Branch("pv_z", &pv_z);
+  t4->Branch("nVertices", &nvertices);
+  t4->Branch("hasValidVertex", &hasValidVertex);
+  t4->Branch("hasFakeVertex", &hasFakeVertex);
+  t4->Branch("nTrueInteractions", &trueNumInteractions);
+  t4->Branch("nPUInteractions", &puNumInteractions);
+  t4->Branch("rho", &Rho);
+  t4->Branch("ntag", &ntag);
+  t4->Branch("ntag_electron", &ntag_electron);
+  t4->Branch("npairs", &npairs);
+  t4->Branch("npairs_3prong", &npairs_3prong);
+  t4->Branch("tag_isMuon", &tag_isMuon);
+  t4->Branch("tag_isElectron", &tag_isElectron);
+  t4->Branch("iprobe_3prong", &iprobe_3prong);
+  
+  t4->Branch("gentrk1_pt", &gentrk1_pt);
+  t4->Branch("gentrk1_eta", &gentrk1_eta);
+  t4->Branch("gentrk1_phi", &gentrk1_phi);
+  t4->Branch("gentrk1_charge", &gentrk1_charge);
+  t4->Branch("gentrk1_M", &gentrk1_M);
+  t4->Branch("gentrk1_vtx_x", &gentrk1_vtx_x);
+  t4->Branch("gentrk1_vtx_y", &gentrk1_vtx_y);
+  t4->Branch("gentrk1_vtx_z", &gentrk1_vtx_z);
+  t4->Branch("gentrk1_pdgId", &gentrk1_pdgId);  
+  t4->Branch("gentrk2_pt", &gentrk2_pt);
+  t4->Branch("gentrk2_eta", &gentrk2_eta);
+  t4->Branch("gentrk2_phi", &gentrk2_phi);
+  t4->Branch("gentrk2_charge", &gentrk2_charge);
+  t4->Branch("gentrk2_M", &gentrk2_M);
+  t4->Branch("gentrk2_vtx_x", &gentrk2_vtx_x);
+  t4->Branch("gentrk2_vtx_y", &gentrk2_vtx_y);
+  t4->Branch("gentrk2_vtx_z", &gentrk2_vtx_z);
+  t4->Branch("gentrk2_pdgId", &gentrk2_pdgId); 
+  t4->Branch("genFinalMass", &genFinalMass);
+  t4->Branch("genFinalPt", &genFinalPt);
+  t4->Branch("genFinalEta", &genFinalEta);
+  t4->Branch("genFinalPhi", &genFinalPhi);
+  t4->Branch("genFinalE", &genFinalE);
+  t4->Branch("genFinalPx", &genFinalPx);
+  t4->Branch("genFinalPy", &genFinalPy);
+  t4->Branch("genFinalPz", &genFinalPz);  
+  
+
+  t4->Branch("gentau1_pt", &gentau1_pt);
+  t4->Branch("gentau1_eta", &gentau1_eta);
+  t4->Branch("gentau1_phi", &gentau1_phi);
+  t4->Branch("gentau1_charge", &gentau1_charge);
+  t4->Branch("gentau1_vtx_x", &gentau1_vtx_x);
+  t4->Branch("gentau1_vtx_y", &gentau1_vtx_y);
+  t4->Branch("gentau1_vtx_z", &gentau1_vtx_z);
+  t4->Branch("gentau1_pdgId", &gentau1_pdgId);  
+  t4->Branch("gentau1_decay_el", &gentau1_decay_el);
+  t4->Branch("gentau1_decay_mu", &gentau1_decay_mu); 
+  t4->Branch("gentau1_decay_1prong", &gentau1_decay_1prong); 
+  t4->Branch("gentau1_decay_3prong", &gentau1_decay_3prong); 
+  t4->Branch("gentau1_decay_other", &gentau1_decay_other); 
+  t4->Branch("gentau1_decay", &gentau1_decay); 
+  t4->Branch("gentau1_N_pi0", &gentau1_N_pi0);   
+  t4->Branch("gentau2_pt", &gentau2_pt);
+  t4->Branch("gentau2_eta", &gentau2_eta);
+  t4->Branch("gentau2_phi", &gentau2_phi);
+  t4->Branch("gentau2_charge", &gentau2_charge);
+  t4->Branch("gentau2_vtx_x", &gentau2_vtx_x);
+  t4->Branch("gentau2_vtx_y", &gentau2_vtx_y);
+  t4->Branch("gentau2_vtx_z", &gentau2_vtx_z);
+  t4->Branch("gentau2_pdgId", &gentau2_pdgId);
+  t4->Branch("gentau2_decay_el", &gentau2_decay_el);
+  t4->Branch("gentau2_decay_mu", &gentau2_decay_mu); 
+  t4->Branch("gentau2_decay_1prong", &gentau2_decay_1prong); 
+  t4->Branch("gentau2_decay_3prong", &gentau2_decay_3prong); 
+  t4->Branch("gentau2_decay_other", &gentau2_decay_other); 
+  t4->Branch("gentau2_decay", &gentau2_decay);  
+  t4->Branch("gentau2_N_pi0", &gentau2_N_pi0);   
+  t4->Branch("genDiTauMass", &genDiTauMass);
+  t4->Branch("genDiTauPt", &genDiTauPt);
+  t4->Branch("genDiTauEta", &genDiTauEta);
+  t4->Branch("genDiTauPhi", &genDiTauPhi);
+  t4->Branch("genDiTauE", &genDiTauE);
+  t4->Branch("genDiTauPx", &genDiTauPx);
+  t4->Branch("genDiTauPy", &genDiTauPy);
+  t4->Branch("genDiTauPz", &genDiTauPz);
+  
+  t4->Branch("nGen", &nGen );
+  t4->Branch("gen_pdgId", &gen_pdgId );
+  t4->Branch("gen_pT", &gen_pT );
+  t4->Branch("gen_eta", &gen_eta );
+  t4->Branch("gen_phi", &gen_phi ); 
+  t4->Branch("gen_charge", &gen_charge );
+  t4->Branch("gen_mass", &gen_mass );  
+  t4->Branch("gen_vtx_x", &gen_vtx_x );
+  t4->Branch("gen_vtx_y", &gen_vtx_y );
+  t4->Branch("gen_vtx_z", &gen_vtx_z );
+  t4->Branch("gen_status", &gen_status );
+  t4->Branch("gen_E", &gen_E );
+  t4->Branch("gen_Et", &gen_Et );  
+  
+  
+  t4->Branch("nGen_tau1", &nGen_tau1 );
+  t4->Branch("gen_pdgId_tau1", &gen_pdgId_tau1 );
+  t4->Branch("gen_pT_tau1", &gen_pT_tau1 );
+  t4->Branch("gen_eta_tau1", &gen_eta_tau1 );
+  t4->Branch("gen_phi_tau1", &gen_phi_tau1 ); 
+  t4->Branch("gen_charge_tau1", &gen_charge_tau1 );
+  t4->Branch("gen_mass_tau1", &gen_mass_tau1 );  
+  t4->Branch("gen_vtx_x_tau1", &gen_vtx_x_tau1 );
+  t4->Branch("gen_vtx_y_tau1", &gen_vtx_y_tau1 );
+  t4->Branch("gen_vtx_z_tau1", &gen_vtx_z_tau1 );
+  t4->Branch("gen_status_tau1", &gen_status_tau1 );
+  t4->Branch("gen_E_tau1", &gen_E_tau1 );
+  t4->Branch("gen_Et_tau1", &gen_Et_tau1 );
+
+  t4->Branch("nGen_tau2", &nGen_tau2 );
+  t4->Branch("gen_pdgId_tau2", &gen_pdgId_tau2 );
+  t4->Branch("gen_pT_tau2", &gen_pT_tau2 );
+  t4->Branch("gen_eta_tau2", &gen_eta_tau2 );
+  t4->Branch("gen_phi_tau2", &gen_phi_tau2 ); 
+  t4->Branch("gen_charge_tau2", &gen_charge_tau2 );
+  t4->Branch("gen_mass_tau2", &gen_mass_tau2 );  
+  t4->Branch("gen_vtx_x_tau2", &gen_vtx_x_tau2 );
+  t4->Branch("gen_vtx_y_tau2", &gen_vtx_y_tau2 );
+  t4->Branch("gen_vtx_z_tau2", &gen_vtx_z_tau2 );
+  t4->Branch("gen_status_tau2", &gen_status_tau2 );
+  t4->Branch("gen_E_tau2", &gen_E_tau2 );
+  t4->Branch("gen_Et_tau2", &gen_Et_tau2 );
+
+  t4->Branch("gentrk1_match_dr", &gentrk1_match_dr );
+  t4->Branch("gentrk1_match_dphi", &gentrk1_match_dphi );
+  t4->Branch("gentrk1_match_diff_eta", &gentrk1_match_diff_eta );
+  t4->Branch("gentrk1_match_diff_pt", &gentrk1_match_diff_pt ); 
+  t4->Branch("gentrk1_diff_vtx_x", &gentrk1_diff_vtx_x );
+  t4->Branch("gentrk1_diff_vtx_y", &gentrk1_diff_vtx_y );
+  t4->Branch("gentrk1_diff_vtx_z", & gentrk1_diff_vtx_z);
+  t4->Branch("gentrk1_isTag", &gentrk1_isTag );
+  
+  t4->Branch("gentrk2_match_dr", &gentrk2_match_dr );
+  t4->Branch("gentrk2_match_dphi", &gentrk2_match_dphi );
+  t4->Branch("gentrk2_match_diff_eta", &gentrk2_match_diff_eta );
+  t4->Branch("gentrk2_match_diff_pt", &gentrk2_match_diff_pt ); 
+  t4->Branch("gentrk2_diff_vtx_x", &gentrk2_diff_vtx_x );
+  t4->Branch("gentrk2_diff_vtx_y", &gentrk2_diff_vtx_y );
+  t4->Branch("gentrk2_diff_vtx_z", &gentrk2_diff_vtx_z );  
+  t4->Branch("gentrk2_isTag", &gentrk2_isTag );
+  
+  
+  for (unsigned int ihlt = 0; ihlt < HLTs.size(); ihlt++)
+    t4->Branch(TString(HLTs[ihlt]), &trigger[ihlt]);
+
+  // Tag specific
+  t4->Branch("tag_pt", &tag_pt);
+  t4->Branch("tag_eta", &tag_eta);
+  t4->Branch("tag_phi", &tag_phi);
+  t4->Branch("tag_charge", &tag_charge);
+  t4->Branch("tag_pterr", &tag_pterr);
+  t4->Branch("tag_dxy", &tag_dxy);
+  t4->Branch("tag_dz", &tag_dz);
+  t4->Branch("tag_vtx_x", &tag_vtx_x);
+  t4->Branch("tag_vtx_y", &tag_vtx_y);
+  t4->Branch("tag_vtx_z", &tag_vtx_z);
+  t4->Branch("tag_isPF", &tag_isPF);
+  t4->Branch("tag_isSA", &tag_isSA);
+  t4->Branch("tag_isdSA", &tag_isdSA);
+  t4->Branch("tag_isTracker", &tag_isTracker);
+  t4->Branch("tag_isGlobal", &tag_isGlobal);
+  t4->Branch("tag_isLoose", &tag_isLoose);
+  t4->Branch("tag_isMedium", &tag_isMedium);
+  t4->Branch("tag_isTight", &tag_isTight);
+  t4->Branch("tag_isSoft", &tag_isSoft);
+  t4->Branch("tag_isHighPt", &tag_isHighPt);
+  t4->Branch("tag_relIso04", &tag_relIso04);
+  t4->Branch("tag_miniIso", &tag_miniIso);
+  t4->Branch("tag_miniIsoCharged", &tag_miniIsoCharged);
+  t4->Branch("tag_miniIsoPhotons", &tag_miniIsoPhotons);
+  t4->Branch("tag_miniIsoNeutrals", &tag_miniIsoPhotons);
+  t4->Branch("tag_isMatchedGen", &tag_isMatchedGen);
+  t4->Branch("tag_minDR", &tag_minDR);
+  t4->Branch("tag_ptRel_minDR", &tag_ptRel_minDR);
+  t4->Branch("tag_iso03_sumPt", &tag_iso03_sumPt);
+  t4->Branch("tag_pfIso04_charged", &tag_pfIso04_charged);
+  t4->Branch("tag_pfIso04_neutral", &tag_pfIso04_neutral);
+  t4->Branch("tag_pfIso04_photon", &tag_pfIso04_photon);
+  t4->Branch("tag_pfIso04_sumPU", &tag_pfIso04_sumPU);
+  t4->Branch("tag_tuneP_pt", &tag_tuneP_pt);
+  t4->Branch("tag_tuneP_pterr", &tag_tuneP_pterr);
+  t4->Branch("tag_nsegments", &tag_nsegments);
+  t4->Branch("tag_hasTrackMatch", &tag_hasTrackMatch);
+  t4->Branch("tag_TrackMatchDR", &tag_TrackMatchDR);
+ 
+
+// New 3 prong variables 
+
+
+  
+  t4->Branch("tau_3prong_trk1_pt", &tau_3prong_trk1_pt );
+  t4->Branch("tau_3prong_trk1_eta", &tau_3prong_trk1_eta );
+  t4->Branch("tau_3prong_trk1_phi", &tau_3prong_trk1_phi );
+  t4->Branch("tau_3prong_trk1_charge", &tau_3prong_trk1_charge );
+  t4->Branch("tau_3prong_trk1_vtx_x", &tau_3prong_trk1_vtx_x );
+  t4->Branch("tau_3prong_trk1_vtx_y", &tau_3prong_trk1_vtx_y );
+  t4->Branch("tau_3prong_trk1_vtx_z", &tau_3prong_trk1_vtx_z );
+        
+  t4->Branch("tau_3prong_trk2_pt", &tau_3prong_trk2_pt );
+  t4->Branch("tau_3prong_trk2_eta", &tau_3prong_trk2_eta );
+  t4->Branch("tau_3prong_trk2_phi", &tau_3prong_trk2_phi );
+   t4->Branch("tau_3prong_trk2_charge", &tau_3prong_trk2_charge );
+  t4->Branch("tau_3prong_trk2_vtx_x", &tau_3prong_trk2_vtx_x);
+  t4->Branch("tau_3prong_trk2_vtx_y", &tau_3prong_trk2_vtx_y );
+  t4->Branch("tau_3prong_trk2_vtx_z", &tau_3prong_trk2_vtx_z);
+     
+  t4->Branch("tau_3prong_trk3_pt", &tau_3prong_trk3_pt );
+  t4->Branch("tau_3prong_trk3_eta", &tau_3prong_trk3_eta );
+  t4->Branch("tau_3prong_trk3_phi", &tau_3prong_trk3_phi );
+   t4->Branch("tau_3prong_trk3_charge", &tau_3prong_trk3_charge );
+  t4->Branch("tau_3prong_trk3_vtx_x", &tau_3prong_trk3_vtx_x );
+  t4->Branch("tau_3prong_trk3_vtx_y", &tau_3prong_trk3_vtx_y );
+  t4->Branch("tau_3prong_trk3_vtx_z", &tau_3prong_trk3_vtx_z );
+        
+  t4->Branch("tau_3prong_total_pt", &tau_3prong_total_pt );
+  t4->Branch("tau_3prong_total_eta", &tau_3prong_total_eta );
+  t4->Branch("tau_3prong_total_phi", &tau_3prong_total_phi );
+  t4->Branch("tau_3prong_total_M", &tau_3prong_total_M );
+  t4->Branch("tau_3prong_total_pt_sum", &tau_3prong_total_pt_sum );
+   t4->Branch("tau_3prong_total_charge", &tau_3prong_total_charge );
+   t4->Branch("tau_3prong_total_Dz", &tau_3prong_total_Dz );
+  t4->Branch("tau_3prong_total_vtx_x", &tau_3prong_total_vtx_x );
+  t4->Branch("tau_3prong_total_vtx_y", &tau_3prong_total_vtx_y );
+  t4->Branch("tau_3prong_total_vtx_z", &tau_3prong_total_vtx_z );
+  t4->Branch("tau_3prong_total_vtx_prob", &tau_3prong_total_vtx_prob );
+  t4->Branch("tau_3prong_total_vtx_chi2", &tau_3prong_total_vtx_chi2 );
+  t4->Branch("tau_3prong_DR_1_2", &tau_3prong_DR_1_2 );
+  t4->Branch("tau_3prong_DR_1_3", &tau_3prong_DR_1_3 );
+  t4->Branch("tau_3prong_DR_2_3", &tau_3prong_DR_2_3 );
+  t4->Branch("tau_3prong_DR_tag_1", &tau_3prong_DR_tag_1 );
+  t4->Branch("tau_3prong_DR_tag_2", &tau_3prong_DR_tag_2 );
+  t4->Branch("tau_3prong_DR_tag_3", &tau_3prong_DR_tag_3 );
+  t4->Branch("tau_3prong_total_area", &tau_3prong_total_area );
+  
+  
+ 
+  t4->Branch("pair_rank_vtx_prob_3prong", &pair_rank_vtx_prob_3prong );
+  t4->Branch("pair_rank_dPhi_muons_3prong", &pair_rank_dPhi_muons_3prong );
+  t4->Branch("pair_rank_Mass_Mmumu_3prong", &pair_rank_Mass_Mmumu_3prong );
+
+
+  t4->Branch("pair_pt", &pair_pt);
+  t4->Branch("pair_eta", &pair_eta);
+  t4->Branch("pair_phi", &pair_phi);
+  t4->Branch("pair_mass", &pair_mass);
+  t4->Branch("pair_fit_mass", &pair_fit_mass);
+  t4->Branch("pair_svprob", &pair_svprob);
+  t4->Branch("pair_normalchi2", &pair_normalchi2);
+  t4->Branch("pair_dz", &pair_dz);
+  t4->Branch("pair_dR", &pair_dR);
+  t4->Branch("pair_dphi", &pair_dphi);
+  t4->Branch("pair_rank_vtx_prob_3prong", &pair_rank_vtx_prob_3prong);
+  t4->Branch("pair_rank_dPhi_muons_3prong", &pair_rank_dPhi_muons_3prong);
+  t4->Branch("pair_rank_Mass_Mmumu_3prong", &pair_rank_Mass_Mmumu_3prong);
+
+ //commented out to save space, added useful details for HIUPC collisions
+    if(keepMuons){
+    t4->Branch("nMu", &nMu);
+    t4->Branch("mu_isProbe", &mu_isProbe);
+    t4->Branch("mu_isTag", &mu_isTag);    
+    t4->Branch("muPt", &muPt);
+    t4->Branch("muEta", &muEta);
+    t4->Branch("muPhi", &muPhi);
+    t4->Branch("muCharge", &muCharge);
+    t4->Branch("muType", &muType);
+    t4->Branch("muIsGood", &muIsGood);
+    
+    t4->Branch("muIsGlobal", &muIsGlobal);
+    t4->Branch("muIsTracker", &muIsTracker);
+    t4->Branch("muIsPF", &muIsPF);
+    t4->Branch("muIsSTA", &muIsSTA);
+
+    t4->Branch("muD0", &muD0);
+    t4->Branch("muDz", &muDz);
+    t4->Branch("muIP3D", &muIP3D);
+    t4->Branch("muD0Err", &muD0Err);
+    t4->Branch("muDzErr", &muDzErr);
+    t4->Branch("muIP3DErr", &muIP3DErr);
+    t4->Branch("muChi2NDF", &muChi2NDF);
+    t4->Branch("muInnerD0", &muInnerD0);
+    t4->Branch("muInnerDz", &muInnerDz);
+    
+    t4->Branch("muInnerD0Err", &muInnerD0Err);
+    t4->Branch("muInnerDzErr", &muInnerDzErr);
+    t4->Branch("muInnerPt", &muInnerPt);
+    t4->Branch("muInnerPtErr", &muInnerPtErr);
+    t4->Branch("muInnerEta", &muInnerEta);
+
+    t4->Branch("muTrkLayers", &muTrkLayers);
+    t4->Branch("muPixelLayers", &muPixelLayers);
+    t4->Branch("muPixelHits", &muPixelHits);
+    t4->Branch("muMuonHits", &muMuonHits);
+    t4->Branch("muTrkQuality", &muTrkQuality);
+    t4->Branch("muStations", &muStations);
+    t4->Branch("muIsoTrk", &muIsoTrk);
+    t4->Branch("muPFChIso", &muPFChIso);
+    t4->Branch("muPFPhoIso", &muPFPhoIso);
+    t4->Branch("muPFNeuIso", &muPFNeuIso);
+    t4->Branch("muPFPUIso", &muPFPUIso);
+    t4->Branch("muIDSoft", &muIDSoft);
+    t4->Branch("muIDLoose", &muIDLoose);
+    t4->Branch("muIDMedium", &muIDMedium);
+    t4->Branch("muIDMediumPrompt", &muIDMediumPrompt);
+    t4->Branch("muIDTight", &muIDTight);
+    t4->Branch("muIDGlobalHighPt", &muIDGlobalHighPt);
+    t4->Branch("muIDTrkHighPt", &muIDTrkHighPt);
+    t4->Branch("muIDInTime", &muIDInTime);
+
+    }
+    
+    if(keepTracks){
+    t4->Branch("nTrk", &nTrk);
+    t4->Branch("trkisTag", &trkisTag);
+    t4->Branch("trkisProbe", &trkisProbe);
+    t4->Branch("trkPt", &trkPt);
+    t4->Branch("trkP", &trkP);
+    t4->Branch("trkEta", &trkEta);
+    t4->Branch("trkPhi", &trkPhi);
+    t4->Branch("trkcharge", &trkcharge);
+    t4->Branch("trkvx", &trkvx);
+    t4->Branch("trkvy", &trkvy);
+    t4->Branch("trkvz", &trkvz);
+    t4->Branch("trknormchi2", &trknormchi2);
+    t4->Branch("trkchi2", &trkchi2);
+    t4->Branch("trkd0", &trkd0);
+    t4->Branch("trkdxy", &trkdxy);
+    t4->Branch("trkdz", &trkdz);
+    // t4->Branch("trkdxyBS", &trkdxyBS);
+    // t4->Branch("trkdzBS", &trkdzBS);
+    t4->Branch("trkdxyError", &trkdxyError);
+    t4->Branch("trkdzError", &trkdzError);
+    t4->Branch("trkValidHits", &trkValidHits);
+    t4->Branch("trkMissHits", &trkMissHits);
+    t4->Branch("trkPurity", &trkPurity);
+    }
+
+
+   if(keepElectrons){
+   t4->Branch("nEle", &nEle);  
+   t4->Branch("ele_isProbe", &ele_isProbe);
+   t4->Branch("ele_isTag", &ele_isTag);
+   t4->Branch("eleCharge", &eleCharge);
+   t4->Branch("eleChargeConsistent", &eleChargeConsistent);
+   t4->Branch("eleSCPixCharge", &eleSCPixCharge);
+   // t4->Branch("eleCtfCharge", &eleCtfCharge);
+   t4->Branch("eleEn", &eleEn);
+   t4->Branch("eleD0", &eleD0);
+   t4->Branch("eleDz", &eleDz);
+   t4->Branch("eleIP3D", &eleIP3D);
+   t4->Branch("eleD0Err", &eleD0Err);
+   t4->Branch("eleDzErr", &eleDzErr);
+   t4->Branch("eleIP3DErr", &eleIP3DErr);
+   t4->Branch("eleTrkPt", &eleTrkPt);
+   t4->Branch("eleTrkEta", &eleTrkEta);
+   t4->Branch("eleTrkPhi", &eleTrkPhi);
+   t4->Branch("eleTrkCharge", &eleTrkCharge);
+   t4->Branch("eleTrkPtErr", &eleTrkPtErr);
+   t4->Branch("eleTrkChi2", &eleTrkChi2);
+   t4->Branch("eleTrkNdof", &eleTrkNdof);
+   t4->Branch("eleTrkNormalizedChi2", &eleTrkNormalizedChi2);
+   t4->Branch("eleTrkValidHits", &eleTrkValidHits);
+   t4->Branch("eleTrkLayers", &eleTrkLayers);
+
+   t4->Branch("elePt", &elePt);
+   t4->Branch("eleEta", &eleEta);
+   t4->Branch("elePhi", &elePhi);
+   t4->Branch("eleSCEn", &eleSCEn);
+   t4->Branch("eleESEn", &eleESEn);
+   t4->Branch("eleSCEta", &eleSCEta);
+   t4->Branch("eleSCPhi", &eleSCPhi);
+   t4->Branch("eleSCRawEn", &eleSCRawEn);
+   t4->Branch("eleSCEtaWidth", &eleSCEtaWidth);
+   t4->Branch("eleSCPhiWidth", &eleSCPhiWidth);
+   t4->Branch("eleHoverE", &eleHoverE);
+   t4->Branch("eleHoverEBc", &eleHoverEBc);
+   t4->Branch("eleEoverP", &eleEoverP);
+   t4->Branch("eleEoverPInv", &eleEoverPInv);
+   t4->Branch("eleEcalE", &eleEcalE);
+   t4->Branch("elePAtVtx", &elePAtVtx);
+   t4->Branch("elePAtSC", &elePAtSC);
+   t4->Branch("elePAtCluster", &elePAtCluster);
+   t4->Branch("elePAtSeed", &elePAtSeed);
+   t4->Branch("eleBrem", &eleBrem);
+   t4->Branch("eledEtaAtVtx", &eledEtaAtVtx);
+   t4->Branch("eledPhiAtVtx", &eledPhiAtVtx);
+   t4->Branch("eledEtaSeedAtVtx", &eledEtaSeedAtVtx);
+   t4->Branch("eleSigmaIEtaIEta", &eleSigmaIEtaIEta);
+   t4->Branch("eleSigmaIEtaIEta_2012", &eleSigmaIEtaIEta_2012);
+   t4->Branch("eleSigmaIPhiIPhi", &eleSigmaIPhiIPhi);
+   t4->Branch("eleMissHits", &eleMissHits);
+   }
+   
+   if(keepPFcands){
+  t4->Branch("nPFCands", &nPFCands);
+  t4->Branch("pfcand_isProbe", &pfcand_isProbe);  
+  t4->Branch("pfcand_pdgId", &pfcand_pdgId);
+  t4->Branch("pfcand_charge", &pfcand_charge);  
+  t4->Branch("pfcand_pt", &pfcand_pt);  
+  t4->Branch("pfcand_eta", &pfcand_eta);  
+  t4->Branch("pfcand_phi", &pfcand_phi);    
+  t4->Branch("pfcand_vtx_x", &pfcand_vtx_x); 
+  t4->Branch("pfcand_vtx_y", &pfcand_vtx_y);    
+  t4->Branch("pfcand_vtx_z", &pfcand_vtx_z);      
+   }
+  if(keepPhotons){
+  t4->Branch("nPho", &nPho);
+  t4->Branch("phoE", &phoE);
+  t4->Branch("phoEt", &phoEt);
+  t4->Branch("phoEta", &phoEta);
+  t4->Branch("phoPhi", &phoPhi);
+
+  t4->Branch("phoEcorrStdEcal", &phoEcorrStdEcal);
+  t4->Branch("phoEcorrPhoEcal", &phoEcorrPhoEcal);
+  t4->Branch("phoEcorrRegr1", &phoEcorrRegr1);
+  t4->Branch("phoEcorrRegr2", &phoEcorrRegr2);
+  t4->Branch("phoEcorrErrStdEcal", &phoEcorrErrStdEcal);
+  t4->Branch("phoEcorrErrPhoEcal", &phoEcorrErrPhoEcal);
+  t4->Branch("phoEcorrErrRegr1", &phoEcorrErrRegr1);
+  t4->Branch("phoEcorrErrRegr2", &phoEcorrErrRegr2);
+
+  t4->Branch("phoSCE", &phoSCE);
+  t4->Branch("phoSCEt", &phoSCEt);
+  t4->Branch("phoSCRawE", &phoSCRawE);
+  t4->Branch("phoSCEta", &phoSCEta);
+  t4->Branch("phoSCPhi", &phoSCPhi);
+  t4->Branch("phoSCEtaWidth", &phoSCEtaWidth);
+  t4->Branch("phoSCPhiWidth", &phoSCPhiWidth);
+  t4->Branch("phoSCBrem", &phoSCBrem);
+  t4->Branch("phoSCnHits", &phoSCnHits);
+  t4->Branch("phoSCflags", &phoSCflags);
+  t4->Branch("phoSCinClean", &phoSCinClean);
+  t4->Branch("phoSCinUnClean", &phoSCinUnClean);
+  t4->Branch("phoSCnBC", &phoSCnBC);
+  t4->Branch("phoESEn", &phoESEn);
+    
+  t4->Branch("phoIsPFPhoton", &phoIsPFPhoton);
+  t4->Branch("phoIsStandardPhoton", &phoIsStandardPhoton);
+  t4->Branch("phoHasPixelSeed", &phoHasPixelSeed);
+  t4->Branch("phoHasConversionTracks", &phoHasConversionTracks);
+    // tree_->Branch("phoEleVeto", &phoEleVeto);        // TODO: not available in reco::
+  t4->Branch("phoHadTowerOverEm", &phoHadTowerOverEm);
+  t4->Branch("phoHoverE", &phoHoverE);
+  t4->Branch("phoHoverEValid", &phoHoverEValid);
+  t4->Branch("phoSigmaIEtaIEta", &phoSigmaIEtaIEta);
+  t4->Branch("phoR9", &phoR9);
+  }
+  
+  if(keepCaloTowers){
+  t4->Branch("nTower", &nTower);
+  t4->Branch("maxHFp", &maxHFp);
+  t4->Branch("maxHFm", &maxHFm);
+  t4->Branch("CaloTower_hadE", &CaloTower_hadE);
+  t4->Branch("CaloTower_emE", &CaloTower_emE);
+  t4->Branch("CaloTower_e", &CaloTower_e);
+  t4->Branch("CaloTower_et", &CaloTower_et);
+  t4->Branch("CaloTower_eta", &CaloTower_eta);
+  t4->Branch("CaloTower_phi", &CaloTower_phi);
+  t4->Branch("CaloTower_HF_AboveThreshold", &CaloTower_HF_AboveThreshold );
+  t4->Branch("CaloTower_Had_AboveThreshold", &CaloTower_Had_AboveThreshold );
+  t4->Branch("CaloTower_EM_AboveThreshold", &CaloTower_EM_AboveThreshold );
+  t4->Branch("CaloTower_HF_inNoiseRegion", &CaloTower_HF_inNoiseRegion );
+  t4->Branch("CaloTower_Had_inNoiseRegion", &CaloTower_Had_inNoiseRegion );
+  t4->Branch("CaloTower_EM_inNoiseRegion", &CaloTower_EM_inNoiseRegion );
+  }
+  if(keepZDC){
+  t4->Branch("ZDC_n",&ZDC_n);
+  t4->Branch("ZDC_e",ZDC_e,"ZDC_e[ZDC_n]/F");
+  t4->Branch("ZDC_zside",ZDC_zside,"ZDC_zside[ZDC_n]/I");
+  t4->Branch("ZDC_section",ZDC_section,"ZDC_section[ZDC_n]/I");
+  t4->Branch("ZDC_channel",ZDC_channel,"ZDC_channel[ZDC_n]/I");
+  t4->Branch("ZDC_PM_Total_Energy",&ZDC_PM_Total_Energy );  
+  t4->Branch("ZDC_P_Total_Energy",&ZDC_P_Total_Energy );
+  t4->Branch("ZDC_P_ECal_Energy",&ZDC_P_ECal_Energy );
+  t4->Branch("ZDC_P_HCal_Energy",&ZDC_P_HCal_Energy );          
+  t4->Branch("ZDC_M_Total_Energy",&ZDC_M_Total_Energy );
+  t4->Branch("ZDC_M_ECal_Energy",&ZDC_M_ECal_Energy );
+  t4->Branch("ZDC_M_HCal_Energy",&ZDC_M_HCal_Energy); 
+  }
+     
+  }
+  
+  
+void Analysis_NtupleContent::SetTree_EfficiencyTree(TTree *mytree) { Eff_Tree = mytree; }
+  void Analysis_NtupleContent::CreateBranches_EfficiencyTree(const std::vector<std::string> &HLTs,
+                                   const std::vector<std::string> &selectorNames){
+     
+  Eff_Tree->Branch("run", &run);
+  Eff_Tree->Branch("event", &event);
+  Eff_Tree->Branch("ls", &ls);
+  Eff_Tree->Branch("fromFullAOD", &fromFullAOD);
+  Eff_Tree->Branch("genWeight", &genWeight);
+  Eff_Tree->Branch("BSpot_x", &BSpot_x);
+  Eff_Tree->Branch("BSpot_y", &BSpot_y);
+  Eff_Tree->Branch("BSpot_z", &BSpot_z);
+  Eff_Tree->Branch("pv_x", &pv_x);
+  Eff_Tree->Branch("pv_y", &pv_y);
+  Eff_Tree->Branch("pv_z", &pv_z);
+
+  
+  Eff_Tree->Branch("gentrk1_pt", &gentrk1_pt);
+  Eff_Tree->Branch("gentrk1_eta", &gentrk1_eta);
+  Eff_Tree->Branch("gentrk1_phi", &gentrk1_phi);
+  Eff_Tree->Branch("gentrk1_charge", &gentrk1_charge);
+  Eff_Tree->Branch("gentrk1_M", &gentrk1_M);
+  Eff_Tree->Branch("gentrk1_vtx_x", &gentrk1_vtx_x);
+  Eff_Tree->Branch("gentrk1_vtx_y", &gentrk1_vtx_y);
+  Eff_Tree->Branch("gentrk1_vtx_z", &gentrk1_vtx_z);
+  Eff_Tree->Branch("gentrk1_pdgId", &gentrk1_pdgId);  
+  Eff_Tree->Branch("gentrk2_pt", &gentrk2_pt);
+  Eff_Tree->Branch("gentrk2_eta", &gentrk2_eta);
+  Eff_Tree->Branch("gentrk2_phi", &gentrk2_phi);
+  Eff_Tree->Branch("gentrk2_charge", &gentrk2_charge);
+  Eff_Tree->Branch("gentrk2_M", &gentrk2_M);
+  Eff_Tree->Branch("gentrk2_vtx_x", &gentrk2_vtx_x);
+  Eff_Tree->Branch("gentrk2_vtx_y", &gentrk2_vtx_y);
+  Eff_Tree->Branch("gentrk2_vtx_z", &gentrk2_vtx_z);
+  Eff_Tree->Branch("gentrk2_pdgId", &gentrk2_pdgId); 
+  Eff_Tree->Branch("genFinalMass", &genFinalMass);
+  Eff_Tree->Branch("genFinalPt", &genFinalPt);
+  Eff_Tree->Branch("genFinalEta", &genFinalEta);
+  Eff_Tree->Branch("genFinalPhi", &genFinalPhi);
+  Eff_Tree->Branch("genFinalE", &genFinalE);
+  Eff_Tree->Branch("genFinalPx", &genFinalPx);
+  Eff_Tree->Branch("genFinalPy", &genFinalPy);
+  Eff_Tree->Branch("genFinalPz", &genFinalPz);  
+  
+
+  Eff_Tree->Branch("gentau1_pt", &gentau1_pt);
+  Eff_Tree->Branch("gentau1_eta", &gentau1_eta);
+  Eff_Tree->Branch("gentau1_phi", &gentau1_phi);
+  Eff_Tree->Branch("gentau1_charge", &gentau1_charge);
+  Eff_Tree->Branch("gentau1_vtx_x", &gentau1_vtx_x);
+  Eff_Tree->Branch("gentau1_vtx_y", &gentau1_vtx_y);
+  Eff_Tree->Branch("gentau1_vtx_z", &gentau1_vtx_z);
+  Eff_Tree->Branch("gentau1_pdgId", &gentau1_pdgId);  
+  Eff_Tree->Branch("gentau1_decay_el", &gentau1_decay_el);
+  Eff_Tree->Branch("gentau1_decay_mu", &gentau1_decay_mu); 
+  Eff_Tree->Branch("gentau1_decay_1prong", &gentau1_decay_1prong); 
+  Eff_Tree->Branch("gentau1_decay_3prong", &gentau1_decay_3prong); 
+  Eff_Tree->Branch("gentau1_decay_other", &gentau1_decay_other); 
+  Eff_Tree->Branch("gentau1_decay", &gentau1_decay); 
+  Eff_Tree->Branch("gentau1_N_pi0", &gentau1_N_pi0);   
+  Eff_Tree->Branch("gentau2_pt", &gentau2_pt);
+  Eff_Tree->Branch("gentau2_eta", &gentau2_eta);
+  Eff_Tree->Branch("gentau2_phi", &gentau2_phi);
+  Eff_Tree->Branch("gentau2_charge", &gentau2_charge);
+  Eff_Tree->Branch("gentau2_vtx_x", &gentau2_vtx_x);
+  Eff_Tree->Branch("gentau2_vtx_y", &gentau2_vtx_y);
+  Eff_Tree->Branch("gentau2_vtx_z", &gentau2_vtx_z);
+  Eff_Tree->Branch("gentau2_pdgId", &gentau2_pdgId);
+  Eff_Tree->Branch("gentau2_decay_el", &gentau2_decay_el);
+  Eff_Tree->Branch("gentau2_decay_mu", &gentau2_decay_mu); 
+  Eff_Tree->Branch("gentau2_decay_1prong", &gentau2_decay_1prong); 
+  Eff_Tree->Branch("gentau2_decay_3prong", &gentau2_decay_3prong); 
+  Eff_Tree->Branch("gentau2_decay_other", &gentau2_decay_other); 
+  Eff_Tree->Branch("gentau2_decay", &gentau2_decay);  
+  Eff_Tree->Branch("gentau2_N_pi0", &gentau2_N_pi0);   
+  Eff_Tree->Branch("genDiTauMass", &genDiTauMass);
+  Eff_Tree->Branch("genDiTauPt", &genDiTauPt);
+  Eff_Tree->Branch("genDiTauEta", &genDiTauEta);
+  Eff_Tree->Branch("genDiTauPhi", &genDiTauPhi);
+  Eff_Tree->Branch("genDiTauE", &genDiTauE);
+  Eff_Tree->Branch("genDiTauPx", &genDiTauPx);
+  Eff_Tree->Branch("genDiTauPy", &genDiTauPy);
+  Eff_Tree->Branch("genDiTauPz", &genDiTauPz);
+  
+  Eff_Tree->Branch("nGen", &nGen );
+  Eff_Tree->Branch("gen_pdgId", &gen_pdgId );
+  Eff_Tree->Branch("gen_pT", &gen_pT );
+  Eff_Tree->Branch("gen_eta", &gen_eta );
+  Eff_Tree->Branch("gen_phi", &gen_phi ); 
+  Eff_Tree->Branch("gen_charge", &gen_charge );
+  Eff_Tree->Branch("gen_mass", &gen_mass );  
+  Eff_Tree->Branch("gen_vtx_x", &gen_vtx_x );
+  Eff_Tree->Branch("gen_vtx_y", &gen_vtx_y );
+  Eff_Tree->Branch("gen_vtx_z", &gen_vtx_z );
+  Eff_Tree->Branch("gen_status", &gen_status );
+  Eff_Tree->Branch("gen_E", &gen_E );
+  Eff_Tree->Branch("gen_Et", &gen_Et );  
+  
+  
+  Eff_Tree->Branch("nGen_tau1", &nGen_tau1 );
+  Eff_Tree->Branch("gen_pdgId_tau1", &gen_pdgId_tau1 );
+  Eff_Tree->Branch("gen_pT_tau1", &gen_pT_tau1 );
+  Eff_Tree->Branch("gen_eta_tau1", &gen_eta_tau1 );
+  Eff_Tree->Branch("gen_phi_tau1", &gen_phi_tau1 ); 
+  Eff_Tree->Branch("gen_charge_tau1", &gen_charge_tau1 );
+  Eff_Tree->Branch("gen_mass_tau1", &gen_mass_tau1 );  
+  Eff_Tree->Branch("gen_vtx_x_tau1", &gen_vtx_x_tau1 );
+  Eff_Tree->Branch("gen_vtx_y_tau1", &gen_vtx_y_tau1 );
+  Eff_Tree->Branch("gen_vtx_z_tau1", &gen_vtx_z_tau1 );
+  Eff_Tree->Branch("gen_status_tau1", &gen_status_tau1 );
+  Eff_Tree->Branch("gen_E_tau1", &gen_E_tau1 );
+  Eff_Tree->Branch("gen_Et_tau1", &gen_Et_tau1 );
+
+  Eff_Tree->Branch("nGen_tau2", &nGen_tau2 );
+  Eff_Tree->Branch("gen_pdgId_tau2", &gen_pdgId_tau2 );
+  Eff_Tree->Branch("gen_pT_tau2", &gen_pT_tau2 );
+  Eff_Tree->Branch("gen_eta_tau2", &gen_eta_tau2 );
+  Eff_Tree->Branch("gen_phi_tau2", &gen_phi_tau2 ); 
+  Eff_Tree->Branch("gen_charge_tau2", &gen_charge_tau2 );
+  Eff_Tree->Branch("gen_mass_tau2", &gen_mass_tau2 );  
+  Eff_Tree->Branch("gen_vtx_x_tau2", &gen_vtx_x_tau2 );
+  Eff_Tree->Branch("gen_vtx_y_tau2", &gen_vtx_y_tau2 );
+  Eff_Tree->Branch("gen_vtx_z_tau2", &gen_vtx_z_tau2 );
+  Eff_Tree->Branch("gen_status_tau2", &gen_status_tau2 );
+  Eff_Tree->Branch("gen_E_tau2", &gen_E_tau2 );
+  Eff_Tree->Branch("gen_Et_tau2", &gen_Et_tau2 );
+
+  // Eff_Tree->Branch("gentrk1_match_dr", &gentrk1_match_dr );
+  // Eff_Tree->Branch("gentrk1_match_dphi", &gentrk1_match_dphi );
+  // Eff_Tree->Branch("gentrk1_match_diff_eta", &gentrk1_match_diff_eta );
+  // Eff_Tree->Branch("gentrk1_match_diff_pt", &gentrk1_match_diff_pt ); 
+  // Eff_Tree->Branch("gentrk1_diff_vtx_x", &gentrk1_diff_vtx_x );
+  // Eff_Tree->Branch("gentrk1_diff_vtx_y", &gentrk1_diff_vtx_y );
+  // Eff_Tree->Branch("gentrk1_diff_vtx_z", & gentrk1_diff_vtx_z);
+  // Eff_Tree->Branch("gentrk1_isTag", &gentrk1_isTag );
+  
+  // Eff_Tree->Branch("gentrk2_match_dr", &gentrk2_match_dr );
+  // Eff_Tree->Branch("gentrk2_match_dphi", &gentrk2_match_dphi );
+  // Eff_Tree->Branch("gentrk2_match_diff_eta", &gentrk2_match_diff_eta );
+  // Eff_Tree->Branch("gentrk2_match_diff_pt", &gentrk2_match_diff_pt ); 
+  // Eff_Tree->Branch("gentrk2_diff_vtx_x", &gentrk2_diff_vtx_x );
+  // Eff_Tree->Branch("gentrk2_diff_vtx_y", &gentrk2_diff_vtx_y );
+  // Eff_Tree->Branch("gentrk2_diff_vtx_z", &gentrk2_diff_vtx_z );  
+  // Eff_Tree->Branch("gentrk2_isTag", &gentrk2_isTag );
+  
+  
+  for (unsigned int ihlt = 0; ihlt < HLTs.size(); ihlt++)
+    Eff_Tree->Branch(TString(HLTs[ihlt]), &trigger[ihlt]);
+
+
+ //commented out to save space, added useful details for HIUPC collisions
+    if(keepMuons){
+    Eff_Tree->Branch("nMu", &nMu);
+    Eff_Tree->Branch("mu_isProbe", &mu_isProbe);
+    Eff_Tree->Branch("mu_isTag", &mu_isTag);    
+    Eff_Tree->Branch("muPt", &muPt);
+    Eff_Tree->Branch("muEta", &muEta);
+    Eff_Tree->Branch("muPhi", &muPhi);
+    Eff_Tree->Branch("muCharge", &muCharge);
+    Eff_Tree->Branch("muType", &muType);
+    Eff_Tree->Branch("muIsGood", &muIsGood);
+    
+    Eff_Tree->Branch("muIsGlobal", &muIsGlobal);
+    Eff_Tree->Branch("muIsTracker", &muIsTracker);
+    Eff_Tree->Branch("muIsPF", &muIsPF);
+    Eff_Tree->Branch("muIsSTA", &muIsSTA);
+
+    Eff_Tree->Branch("muD0", &muD0);
+    Eff_Tree->Branch("muDz", &muDz);
+    Eff_Tree->Branch("muIP3D", &muIP3D);
+    Eff_Tree->Branch("muD0Err", &muD0Err);
+    Eff_Tree->Branch("muDzErr", &muDzErr);
+    Eff_Tree->Branch("muIP3DErr", &muIP3DErr);
+    Eff_Tree->Branch("muChi2NDF", &muChi2NDF);
+    Eff_Tree->Branch("muInnerD0", &muInnerD0);
+    Eff_Tree->Branch("muInnerDz", &muInnerDz);
+    
+    Eff_Tree->Branch("muInnerD0Err", &muInnerD0Err);
+    Eff_Tree->Branch("muInnerDzErr", &muInnerDzErr);
+    Eff_Tree->Branch("muInnerPt", &muInnerPt);
+    Eff_Tree->Branch("muInnerPtErr", &muInnerPtErr);
+    Eff_Tree->Branch("muInnerEta", &muInnerEta);
+
+    Eff_Tree->Branch("muTrkLayers", &muTrkLayers);
+    Eff_Tree->Branch("muPixelLayers", &muPixelLayers);
+    Eff_Tree->Branch("muPixelHits", &muPixelHits);
+    Eff_Tree->Branch("muMuonHits", &muMuonHits);
+    Eff_Tree->Branch("muTrkQuality", &muTrkQuality);
+    Eff_Tree->Branch("muStations", &muStations);
+    Eff_Tree->Branch("muIsoTrk", &muIsoTrk);
+    Eff_Tree->Branch("muPFChIso", &muPFChIso);
+    Eff_Tree->Branch("muPFPhoIso", &muPFPhoIso);
+    Eff_Tree->Branch("muPFNeuIso", &muPFNeuIso);
+    Eff_Tree->Branch("muPFPUIso", &muPFPUIso);
+    Eff_Tree->Branch("muIDSoft", &muIDSoft);
+    Eff_Tree->Branch("muIDLoose", &muIDLoose);
+    Eff_Tree->Branch("muIDMedium", &muIDMedium);
+    Eff_Tree->Branch("muIDMediumPrompt", &muIDMediumPrompt);
+    Eff_Tree->Branch("muIDTight", &muIDTight);
+    Eff_Tree->Branch("muIDGlobalHighPt", &muIDGlobalHighPt);
+    Eff_Tree->Branch("muIDTrkHighPt", &muIDTrkHighPt);
+    Eff_Tree->Branch("muIDInTime", &muIDInTime);
+
+    }
+    
+    if(keepTracks){
+    Eff_Tree->Branch("nTrk", &nTrk);
+    Eff_Tree->Branch("trkisTag", &trkisTag);
+    Eff_Tree->Branch("trkisProbe", &trkisProbe);
+    Eff_Tree->Branch("trkPt", &trkPt);
+    Eff_Tree->Branch("trkP", &trkP);
+    Eff_Tree->Branch("trkEta", &trkEta);
+    Eff_Tree->Branch("trkPhi", &trkPhi);
+    Eff_Tree->Branch("trkcharge", &trkcharge);
+    Eff_Tree->Branch("trkvx", &trkvx);
+    Eff_Tree->Branch("trkvy", &trkvy);
+    Eff_Tree->Branch("trkvz", &trkvz);
+    Eff_Tree->Branch("trknormchi2", &trknormchi2);
+    Eff_Tree->Branch("trkchi2", &trkchi2);
+    Eff_Tree->Branch("trkd0", &trkd0);
+    Eff_Tree->Branch("trkdxy", &trkdxy);
+    Eff_Tree->Branch("trkdz", &trkdz);
+    // Eff_Tree->Branch("trkdxyBS", &trkdxyBS);
+    // Eff_Tree->Branch("trkdzBS", &trkdzBS);
+    Eff_Tree->Branch("trkdxyError", &trkdxyError);
+    Eff_Tree->Branch("trkdzError", &trkdzError);
+    Eff_Tree->Branch("trkValidHits", &trkValidHits);
+    Eff_Tree->Branch("trkMissHits", &trkMissHits);
+    Eff_Tree->Branch("trkPurity", &trkPurity);
+    }
+
+
+   if(keepElectrons){
+   Eff_Tree->Branch("nEle", &nEle);  
+   Eff_Tree->Branch("ele_isProbe", &ele_isProbe);
+   Eff_Tree->Branch("ele_isTag", &ele_isTag);
+   Eff_Tree->Branch("eleCharge", &eleCharge);
+   Eff_Tree->Branch("eleChargeConsistent", &eleChargeConsistent);
+   Eff_Tree->Branch("eleSCPixCharge", &eleSCPixCharge);
+   // Eff_Tree->Branch("eleCtfCharge", &eleCtfCharge);
+   Eff_Tree->Branch("eleEn", &eleEn);
+   Eff_Tree->Branch("eleD0", &eleD0);
+   Eff_Tree->Branch("eleDz", &eleDz);
+   Eff_Tree->Branch("eleIP3D", &eleIP3D);
+   Eff_Tree->Branch("eleD0Err", &eleD0Err);
+   Eff_Tree->Branch("eleDzErr", &eleDzErr);
+   Eff_Tree->Branch("eleIP3DErr", &eleIP3DErr);
+   Eff_Tree->Branch("eleTrkPt", &eleTrkPt);
+   Eff_Tree->Branch("eleTrkEta", &eleTrkEta);
+   Eff_Tree->Branch("eleTrkPhi", &eleTrkPhi);
+   Eff_Tree->Branch("eleTrkCharge", &eleTrkCharge);
+   Eff_Tree->Branch("eleTrkPtErr", &eleTrkPtErr);
+   Eff_Tree->Branch("eleTrkChi2", &eleTrkChi2);
+   Eff_Tree->Branch("eleTrkNdof", &eleTrkNdof);
+   Eff_Tree->Branch("eleTrkNormalizedChi2", &eleTrkNormalizedChi2);
+   Eff_Tree->Branch("eleTrkValidHits", &eleTrkValidHits);
+   Eff_Tree->Branch("eleTrkLayers", &eleTrkLayers);
+
+   Eff_Tree->Branch("elePt", &elePt);
+   Eff_Tree->Branch("eleEta", &eleEta);
+   Eff_Tree->Branch("elePhi", &elePhi);
+   Eff_Tree->Branch("eleSCEn", &eleSCEn);
+   Eff_Tree->Branch("eleESEn", &eleESEn);
+   Eff_Tree->Branch("eleSCEta", &eleSCEta);
+   Eff_Tree->Branch("eleSCPhi", &eleSCPhi);
+   Eff_Tree->Branch("eleSCRawEn", &eleSCRawEn);
+   Eff_Tree->Branch("eleSCEtaWidth", &eleSCEtaWidth);
+   Eff_Tree->Branch("eleSCPhiWidth", &eleSCPhiWidth);
+   Eff_Tree->Branch("eleHoverE", &eleHoverE);
+   Eff_Tree->Branch("eleHoverEBc", &eleHoverEBc);
+   Eff_Tree->Branch("eleEoverP", &eleEoverP);
+   Eff_Tree->Branch("eleEoverPInv", &eleEoverPInv);
+   Eff_Tree->Branch("eleEcalE", &eleEcalE);
+   Eff_Tree->Branch("elePAtVtx", &elePAtVtx);
+   Eff_Tree->Branch("elePAtSC", &elePAtSC);
+   Eff_Tree->Branch("elePAtCluster", &elePAtCluster);
+   Eff_Tree->Branch("elePAtSeed", &elePAtSeed);
+   Eff_Tree->Branch("eleBrem", &eleBrem);
+   Eff_Tree->Branch("eledEtaAtVtx", &eledEtaAtVtx);
+   Eff_Tree->Branch("eledPhiAtVtx", &eledPhiAtVtx);
+   Eff_Tree->Branch("eledEtaSeedAtVtx", &eledEtaSeedAtVtx);
+   Eff_Tree->Branch("eleSigmaIEtaIEta", &eleSigmaIEtaIEta);
+   Eff_Tree->Branch("eleSigmaIEtaIEta_2012", &eleSigmaIEtaIEta_2012);
+   Eff_Tree->Branch("eleSigmaIPhiIPhi", &eleSigmaIPhiIPhi);
+   Eff_Tree->Branch("eleMissHits", &eleMissHits);
+   }
+   
+   // if(keepPFcands){
+  // Eff_Tree->Branch("nPFCands", &nPFCands);
+  // Eff_Tree->Branch("pfcand_isProbe", &pfcand_isProbe);  
+  // Eff_Tree->Branch("pfcand_pdgId", &pfcand_pdgId);
+  // Eff_Tree->Branch("pfcand_charge", &pfcand_charge);  
+  // Eff_Tree->Branch("pfcand_pt", &pfcand_pt);  
+  // Eff_Tree->Branch("pfcand_eta", &pfcand_eta);  
+  // Eff_Tree->Branch("pfcand_phi", &pfcand_phi);    
+  // Eff_Tree->Branch("pfcand_vtx_x", &pfcand_vtx_x); 
+  // Eff_Tree->Branch("pfcand_vtx_y", &pfcand_vtx_y);    
+  // Eff_Tree->Branch("pfcand_vtx_z", &pfcand_vtx_z);      
+   // }
+   
+  Eff_Tree->Branch("Pos_pt", &tag_pt);
+  Eff_Tree->Branch("Pos_eta", &tag_eta);
+  Eff_Tree->Branch("Pos_phi", &tag_phi);
+  Eff_Tree->Branch("Pos_charge", &tag_charge);
+  Eff_Tree->Branch("Pos_vtx_x", &tag_vtx_x);
+  Eff_Tree->Branch("Pos_vtx_y", &tag_vtx_y);
+  Eff_Tree->Branch("Pos_vtx_z", &tag_vtx_z);
+   
+  Eff_Tree->Branch("Neg_pt", &probe_pt);
+  Eff_Tree->Branch("Neg_eta", &probe_eta);
+  Eff_Tree->Branch("Neg_phi", &probe_phi);
+  Eff_Tree->Branch("Neg_charge", &probe_charge);
+  Eff_Tree->Branch("Neg_vtx_x", &probe_vtx_x);
+  Eff_Tree->Branch("Neg_vtx_y", &probe_vtx_y);
+  Eff_Tree->Branch("Neg_vtx_z", &probe_vtx_z);
+ 
+  }
+  
+  
+  
+  void Analysis_NtupleContent::CreateExtraTrgBranches_EfficiencyTree(const std::vector<std::string> &HLTs, bool isPos) {
+  for (unsigned int ihlt = 0; ihlt < HLTs.size(); ihlt++) {
+  if(isPos){
+      Eff_Tree->Branch(TString("Pos_" + HLTs[ihlt]), &tag_trg[ihlt]);
+      Eff_Tree->Branch(TString("Pos_" + HLTs[ihlt] + "_pt"), &tag_trg_pt[ihlt]);
+      Eff_Tree->Branch(TString("Pos_" + HLTs[ihlt] + "_eta"), &tag_trg_eta[ihlt]);
+      Eff_Tree->Branch(TString("Pos_" + HLTs[ihlt] + "_phi"), &tag_trg_phi[ihlt]);
+      Eff_Tree->Branch(TString("Pos_" + HLTs[ihlt] + "_dr"), &tag_trg_dr[ihlt]);
+  }if(!isPos){
+      Eff_Tree->Branch(TString("Neg_" + HLTs[ihlt]), &probe_trg[ihlt]);
+      Eff_Tree->Branch(TString("Neg_" + HLTs[ihlt] + "_pt"), &probe_trg_pt[ihlt]);
+      Eff_Tree->Branch(TString("Neg_" + HLTs[ihlt] + "_eta"), &probe_trg_eta[ihlt]);
+      Eff_Tree->Branch(TString("Neg_" + HLTs[ihlt] + "_phi"), &probe_trg_phi[ihlt]);
+      Eff_Tree->Branch(TString("Neg_" + HLTs[ihlt] + "_dr"), &probe_trg_dr[ihlt]);
+  }
+}
+  }
+
+
 void Analysis_NtupleContent::ClearBranches() {
    
   CutThrough_Num = 0;
@@ -694,6 +1688,7 @@ void Analysis_NtupleContent::ClearBranches() {
   gentrk1_eta = -99;
   gentrk1_phi = -99;
   gentrk1_charge = 0;
+  gentrk1_M = 0;
   gentrk1_vtx_x = -99;
   gentrk1_vtx_y = -99;
   gentrk1_vtx_z = -99;
@@ -705,6 +1700,7 @@ void Analysis_NtupleContent::ClearBranches() {
   gentrk2_eta = -99;
   gentrk2_phi = -99;
   gentrk2_charge = 0;
+  gentrk2_M = 0;
   gentrk2_vtx_x = -99;
   gentrk2_vtx_y = -99;
   gentrk2_vtx_z = -99;
@@ -822,6 +1818,34 @@ void Analysis_NtupleContent::ClearBranches() {
    gen_status.clear();
    gen_E.clear();
    gen_Et.clear();
+   
+   nGen_tau1 = 0;
+   gen_pdgId_tau1.clear();
+   gen_pT_tau1.clear();
+   gen_eta_tau1.clear();
+   gen_phi_tau1.clear(); 
+   gen_charge_tau1.clear();
+   gen_mass_tau1.clear();  
+   gen_vtx_x_tau1.clear();
+   gen_vtx_y_tau1.clear();
+   gen_vtx_z_tau1.clear();
+   gen_status_tau1.clear();
+   gen_E_tau1.clear();
+   gen_Et_tau1.clear();
+   
+   nGen_tau2 = 0;
+   gen_pdgId_tau2.clear();
+   gen_pT_tau2.clear();
+   gen_eta_tau2.clear();
+   gen_phi_tau2.clear(); 
+   gen_charge_tau2.clear();
+   gen_mass_tau2.clear();  
+   gen_vtx_x_tau2.clear();
+   gen_vtx_y_tau2.clear();
+   gen_vtx_z_tau2.clear();
+   gen_status_tau2.clear();
+   gen_E_tau2.clear();
+   gen_Et_tau2.clear();
    
   gentrk1_match_dr = -99;
   gentrk1_match_dphi = -99;
@@ -1163,13 +2187,64 @@ void Analysis_NtupleContent::ClearBranches() {
   pfcand_vtx_y.clear(); 
   pfcand_vtx_z.clear();   
   
+  //photons
+  
+    nPho = 0;
+    phoE.clear();
+    phoEt.clear();
+    phoEta.clear();
+    phoPhi.clear();
+
+    phoEcorrStdEcal.clear();
+    phoEcorrPhoEcal.clear();
+    phoEcorrRegr1.clear();
+    phoEcorrRegr2.clear();
+    phoEcorrErrStdEcal.clear();
+    phoEcorrErrPhoEcal.clear();
+    phoEcorrErrRegr1.clear();
+    phoEcorrErrRegr2.clear();
+
+    phoSCE.clear();
+    phoSCEt.clear();
+    phoSCRawE.clear();
+    phoSCEta.clear();
+    phoSCPhi.clear();
+    phoSCEtaWidth.clear();
+    phoSCPhiWidth.clear();
+    phoSCBrem.clear();
+    phoSCnHits.clear();
+    phoSCflags.clear();
+    phoSCinClean.clear();
+    phoSCinUnClean.clear();
+    phoSCnBC.clear();
+    phoESEn.clear();
+    
+    phoIsPFPhoton.clear();
+    phoIsStandardPhoton.clear();
+    phoHasPixelSeed.clear();
+    phoHasConversionTracks.clear();
+    // phoEleVeto.clear();  // TODO: not available in reco::
+    phoHadTowerOverEm.clear();
+    phoHoverE.clear();
+    phoHoverEValid.clear();
+    phoSigmaIEtaIEta.clear();
+    phoR9.clear();
+  
   nTower= 0;
+  maxHFp =0;
+  maxHFm =0;
   CaloTower_hadE.clear();
   CaloTower_emE.clear();
   CaloTower_e.clear();
   CaloTower_et.clear();
   CaloTower_eta.clear();
   CaloTower_phi.clear();
+  CaloTower_HF_AboveThreshold.clear();
+  CaloTower_Had_AboveThreshold.clear();
+  CaloTower_EM_AboveThreshold.clear();
+  CaloTower_HF_inNoiseRegion.clear();
+  CaloTower_Had_inNoiseRegion.clear();
+  CaloTower_EM_inNoiseRegion.clear();
   
   ZDC_n = 0;
   for (unsigned int i = 0; i < 18; i++) {
@@ -1187,5 +2262,228 @@ void Analysis_NtupleContent::ClearBranches() {
   ZDC_M_ECal_Energy = 0;
   ZDC_M_HCal_Energy = 0; 
   
+  
+  // probe info
+  
+  probe_isMuon = false ;
+  probe_isElectron = false ;
+  probe_isPion = false ;
+  probe_isOther = false ;
+  probe_typeSum = 0;
+  
+  
+   // 3 prong things
+  
+  
+  iprobe_3prong = 0;
+  npairs_3prong = 0;
+  
+  tau_3prong_trk1_pt = 0;
+  tau_3prong_trk1_eta = 0;
+  tau_3prong_trk1_phi = 0;
+  tau_3prong_trk1_charge = 0;
+  tau_3prong_trk1_vtx_x = 0;
+  tau_3prong_trk1_vtx_y = 0;
+  tau_3prong_trk1_vtx_z = 0;
+        
+  tau_3prong_trk2_pt = 0;
+  tau_3prong_trk2_eta = 0;
+  tau_3prong_trk2_phi = 0;
+   tau_3prong_trk2_charge = 0;
+  tau_3prong_trk2_vtx_x = 0;
+  tau_3prong_trk2_vtx_y = 0;
+  tau_3prong_trk2_vtx_z = 0;
+     
+  tau_3prong_trk3_pt = 0;
+  tau_3prong_trk3_eta = 0;
+  tau_3prong_trk3_phi = 0;
+   tau_3prong_trk3_charge = 0;
+  tau_3prong_trk3_vtx_x = 0;
+  tau_3prong_trk3_vtx_y = 0;
+  tau_3prong_trk3_vtx_z  = 0;
+        
+  tau_3prong_total_pt = 0;
+  tau_3prong_total_eta= 0;
+  tau_3prong_total_phi = 0;
+  tau_3prong_total_M = 0;
+  tau_3prong_total_pt_sum = 0;
+   tau_3prong_total_charge = 0;
+   tau_3prong_total_Dz = 0;
+  tau_3prong_total_vtx_x = 0;
+  tau_3prong_total_vtx_y = 0;
+  tau_3prong_total_vtx_z = 0;
+  tau_3prong_total_vtx_prob = 0;
+  tau_3prong_total_vtx_chi2 = 0;
+  tau_3prong_DR_1_2 = 0;
+  tau_3prong_DR_1_3 = 0;
+  tau_3prong_DR_2_3 = 0;
+  tau_3prong_DR_tag_1 = 0;
+  tau_3prong_DR_tag_3 = 0;
+  tau_3prong_DR_tag_3 = 0;
+  tau_3prong_total_area = 0;
+  
+  
+  pfcand_isFirstProbe.clear();
+  pfcand_isSecondProbe.clear();
+  pfcand_isThirdProbe.clear();
+  trk_isFirstProbe.clear();
+  trk_isSecondProbe.clear();
+  trk_isThirdProbe.clear();
+ 
+  pair_rank_vtx_prob_3prong = -1;
+  pair_rank_dPhi_muons_3prong = -1;
+  pair_rank_Mass_Mmumu_3prong = -1;
+  
 
+}
+
+// Clears Vectors that are Filled both the 3prong and 1 prong loops to avoid double filling
+void Analysis_NtupleContent::ClearVectors(){
+   
+       nMu = 0;
+    mu_isProbe.clear();
+    mu_isTag.clear();
+    muPt.clear();
+    muEta.clear();
+    muPhi.clear();
+    muCharge.clear();
+    muType.clear();
+    muIsGood.clear();
+
+    muIsGlobal.clear();
+    muIsTracker.clear();
+    muIsPF.clear();
+    muIsSTA.clear();
+
+    muD0.clear();
+    muDz.clear();
+    muIP3D.clear();
+    muD0Err.clear();
+    muDzErr.clear();
+    muIP3DErr.clear();
+    muChi2NDF.clear();
+    muInnerD0.clear();
+    muInnerDz.clear();
+    
+    muInnerD0Err.clear();
+    muInnerDzErr.clear();
+    muInnerPt.clear();
+    muInnerPtErr.clear();
+    muInnerEta.clear();
+
+    muTrkLayers.clear();
+    muPixelLayers.clear();
+    muPixelHits.clear();
+    muMuonHits.clear();
+    muTrkQuality.clear();
+    muStations.clear();
+    muIsoTrk.clear();
+    muPFChIso.clear();
+    muPFPhoIso.clear();
+    muPFNeuIso.clear();
+    muPFPUIso.clear();
+    muIDSoft.clear();
+    muIDLoose.clear();
+    muIDMedium.clear();
+    muIDMediumPrompt.clear();
+    muIDTight.clear();
+    muIDGlobalHighPt.clear();
+    muIDTrkHighPt.clear();
+    muIDInTime.clear();
+
+    nTrk =0;
+    trkisProbe.clear();
+    trkisTag.clear();
+    trkPt.clear();
+    trkP.clear();
+    trkEta.clear();
+    trkPhi.clear();
+    trkcharge.clear();
+    trkvx.clear();
+    trkvy.clear(); 
+    trkvz.clear();
+    trknormchi2.clear();                 
+    trkchi2.clear();
+    trkd0.clear(); 
+    trkdxy.clear();
+    trkdz.clear();
+    // trkdxyBS.clear();
+    // trkdzBS.clear();
+    trkdxyError.clear();     
+    trkdzError.clear();
+    trkValidHits.clear();                     
+    trkMissHits.clear();
+    trkPurity.clear();
+
+  
+    nEle = 0;
+    ele_isProbe.clear();
+    ele_isTag.clear();
+    eleCharge.clear();
+    eleChargeConsistent.clear();
+    eleSCPixCharge.clear();
+    // eleCtfCharge.clear();
+    eleEn.clear();
+    eleD0.clear();
+    eleDz.clear();
+    eleIP3D.clear();
+    eleD0Err.clear();
+    eleDzErr.clear();
+    eleIP3DErr.clear();
+    eleTrkPt.clear();
+    eleTrkEta.clear();
+    eleTrkPhi.clear();
+    eleTrkCharge.clear();
+    eleTrkPtErr.clear();
+    eleTrkChi2.clear();
+    eleTrkNdof.clear();
+    eleTrkNormalizedChi2.clear();
+    eleTrkValidHits.clear();
+    eleTrkLayers.clear();
+    elePt.clear();
+    eleEta.clear();
+    elePhi.clear();
+    eleSCEn.clear();
+    eleESEn.clear();
+    eleSCEta.clear();
+    eleSCPhi.clear();
+    eleSCRawEn.clear();
+    eleSCEtaWidth.clear();
+    eleSCPhiWidth.clear();
+    eleHoverE.clear();
+    eleHoverEBc.clear();
+    eleEoverP.clear();
+    eleEoverPInv.clear();
+    eleEcalE.clear();
+    elePAtVtx.clear();
+    elePAtSC.clear();
+    elePAtCluster.clear();
+    elePAtSeed.clear();
+    eleBrem.clear();
+    eledEtaAtVtx.clear();
+    eledPhiAtVtx.clear();
+    eledEtaSeedAtVtx.clear();
+    eleSigmaIEtaIEta.clear();
+    eleSigmaIEtaIEta_2012.clear();
+    eleSigmaIPhiIPhi.clear();
+    eleMissHits.clear();
+  
+  nPFCands = 0;
+  pfcand_isProbe.clear();
+  pfcand_pdgId.clear();
+  pfcand_charge.clear(); 
+  pfcand_pt.clear();
+  pfcand_eta.clear();
+  pfcand_phi.clear(); 
+  pfcand_vtx_x.clear(); 
+  pfcand_vtx_y.clear(); 
+  pfcand_vtx_z.clear();   
+  
+  pfcand_isFirstProbe.clear();
+  pfcand_isSecondProbe.clear();
+  pfcand_isThirdProbe.clear();
+  trk_isFirstProbe.clear();
+  trk_isSecondProbe.clear();
+  trk_isThirdProbe.clear();
+  
 }

@@ -213,7 +213,8 @@ inline void FillMuonBranches(
           nt.muPFPhoIso.push_back(mu.pfIsolationR04().sumPhotonEt);
           nt.muPFNeuIso.push_back(mu.pfIsolationR04().sumNeutralHadronEt);
           nt.muPFPUIso.push_back(mu.pfIsolationR04().sumPUPt);
-          nt.muIDSoft.push_back(mu.passed(reco::Muon::SoftMvaId));
+          // nt.muIDSoft.push_back(mu.passed(reco::Muon::SoftMvaId));
+          nt.muIDSoft.push_back(muon::isSoftMuon(mu, pv, false));
           nt.muIDLoose.push_back(mu.passed(reco::Muon::CutBasedIdLoose));
           nt.muIDMedium.push_back(mu.passed(reco::Muon::CutBasedIdMedium));
           nt.muIDMediumPrompt.push_back(mu.passed(reco::Muon::CutBasedIdMediumPrompt));
@@ -224,16 +225,16 @@ inline void FillMuonBranches(
 
           if((&mu - &muons.at(0)) == probe_idx){
           nt.mu_isProbe.push_back(true);
-          nt.mu_isTag.push_back(false);
           }
-          else if((&mu - &muons.at(0)) == tag_idx){
+          else if((&mu - &muons.at(0)) != probe_idx){
           nt.mu_isProbe.push_back(false);
+          }
+          if((&mu - &muons.at(0)) == tag_idx){
           nt.mu_isTag.push_back(true);
           }
-          else{
-          nt.mu_isProbe.push_back(false);
+          else if((&mu - &muons.at(0)) != tag_idx){
           nt.mu_isTag.push_back(false);
-          }           
+          }                     
        
     }
     }
@@ -265,16 +266,16 @@ inline void FillTrackBranches(
           nt.trkPurity.push_back(trk.quality(reco::Track::highPurity));         
           if((&trk - &tracks.at(0)) == probe_idx){
           nt.trkisProbe.push_back(true);
-          nt.trkisTag.push_back(false);
+          }
+          else if((&trk - &tracks.at(0)) != probe_idx){
+          nt.trkisProbe.push_back(false);
           }
           if((&trk - &tracks.at(0)) == tag_idx){
-          nt.trkisProbe.push_back(false);
           nt.trkisTag.push_back(true);
           }
-          else{
-          nt.trkisProbe.push_back(false);
+          else if((&trk - &tracks.at(0)) != tag_idx){
           nt.trkisTag.push_back(false);
-          }           
+          }       
        }
 
     }
@@ -336,19 +337,16 @@ inline void FillElectronBranches(
           nt.eleSigmaIEtaIEta.push_back(ele.sigmaIetaIeta());
           nt.eleSigmaIPhiIPhi.push_back(ele.sigmaIphiIphi());
           nt.eleMissHits.push_back(ele.gsfTrack()->numberOfLostHits());  
-          if((&ele - &electrons.at(0)) == probe_idx) nt.ele_isProbe.push_back(true);
-          else nt.ele_isProbe.push_back(false);  
-
           if((&ele - &electrons.at(0)) == probe_idx){
           nt.ele_isProbe.push_back(true);
-          nt.ele_isTag.push_back(false);
+          }
+          else if((&ele - &electrons.at(0)) != probe_idx){
+          nt.ele_isProbe.push_back(false);
           }
           if((&ele - &electrons.at(0)) == tag_idx){
-          nt.ele_isProbe.push_back(false);
           nt.ele_isTag.push_back(true);
           }
-          else{
-          nt.ele_isProbe.push_back(false);
+          else if((&ele - &electrons.at(0)) != tag_idx){
           nt.ele_isTag.push_back(false);
           }           
        }
@@ -431,6 +429,8 @@ inline void FillPairBranches(const MUO &muon, const TRK &trk, Analysis_NtupleCon
   // }
 }
 
+
+
 template <typename MUO, typename TRK>
 inline void FillTunePPairBranches(const MUO &muon, const TRK &trk, Analysis_NtupleContent &nt) {
   math::PtEtaPhiMLorentzVector mu1(muon.pt(), muon.eta(), muon.phi(), MU_MASS);
@@ -455,6 +455,89 @@ inline void FillTunePPairBranchesDummy(Analysis_NtupleContent &nt) {
   nt.pair_tuneP_svprob = -99;
   nt.pair_tuneP_normalchi2 = -99;
 }
+
+// 3 prong functions
+
+template <typename MUO>
+inline void FillPairBranches_3prong(const MUO &muon, const float trk_pt, const float trk_eta,const float trk_phi,float trk_mass, Analysis_NtupleContent &nt) {
+  math::PtEtaPhiMLorentzVector mu1(muon.pt(), muon.eta(), muon.phi(), 0);
+  math::PtEtaPhiMLorentzVector mu2(trk_pt, trk_eta, trk_phi, trk_mass);
+  nt.pair_pt = (mu1 + mu2).pt();
+  nt.pair_mass = (mu1 + mu2).mass();
+  nt.pair_eta = (mu1 + mu2).eta();
+  nt.pair_phi = (mu1 + mu2).phi();
+  nt.pair_dz = muon.vz() - nt.tau_3prong_total_vtx_z;
+  nt.pair_dR = deltaR(muon.eta(), muon.phi(),  trk_eta, trk_phi);
+  nt.pair_dphi = std::fabs(muon.phi() - trk_phi);
+}
+
+template <typename PFC>
+inline void FillPFCandBranches_3prong(
+    const std::vector<PFC> &pfcands, Analysis_NtupleContent &nt, int probe1_idx, int probe2_idx, int probe3_idx){
+
+       nt.nPFCands = pfcands.size();
+    for (const auto &pfc : pfcands) {
+      if(pfc.charge() == 0) continue;         
+      bool probe1_match = false;          
+      bool probe2_match = false;          
+      bool probe3_match = false;  
+      nt.pfcand_pdgId.push_back(pfc.pdgId());
+      nt.pfcand_charge.push_back(pfc.charge()); 
+      nt.pfcand_pt.push_back(pfc.pt());
+      nt.pfcand_eta.push_back(pfc.eta());
+      nt.pfcand_phi.push_back(pfc.phi()); 
+      nt.pfcand_vtx_x.push_back(pfc.vx());
+      nt.pfcand_vtx_y.push_back(pfc.vy());
+      nt.pfcand_vtx_z.push_back(pfc.vz());
+      if((&pfc - &pfcands.at(0)) == probe1_idx) probe1_match = true;
+      if((&pfc - &pfcands.at(0)) == probe2_idx) probe2_match = true;
+      if((&pfc - &pfcands.at(0)) == probe3_idx) probe3_match = true;
+      nt.pfcand_isFirstProbe.push_back(probe1_match);
+      nt.pfcand_isSecondProbe.push_back(probe2_match);
+      nt.pfcand_isThirdProbe.push_back(probe3_match);
+    }
+    }
+    
+    
+    template <typename TRK>
+inline void FillTrackBranches_3prong(
+    const std::vector<TRK> &tracks, Analysis_NtupleContent &nt, int tag_idx, int probe1_idx, int probe2_idx, int probe3_idx){
+       nt.nTrk = tracks.size();
+       for (const auto& trk : tracks) {
+          bool tag_match = false;          
+          bool probe1_match = false;          
+          bool probe2_match = false;          
+          bool probe3_match = false;          
+          nt.trkPt.push_back(trk.pt());            
+          nt.trkP .push_back(trk.p());            
+          nt.trkEta.push_back(trk.eta());           
+          nt.trkPhi.push_back(trk.phi());     
+          nt.trkcharge.push_back(trk.charge()); 
+          nt.trkvx.push_back(trk.vx());       
+          nt.trkvy.push_back(trk.vy());             
+          nt.trkvz.push_back(trk.vz());  
+          nt.trknormchi2.push_back(trk.normalizedChi2());                   
+          nt.trkchi2.push_back(trk.chi2());    
+          nt.trkd0.push_back(trk.d0());               
+          nt.trkdxy.push_back(trk.dxy());             
+          nt.trkdz.push_back(trk.dz());
+          // nt.trkdxyBS.push_back(trk.dxy(beamSpotPosition));
+          // nt.trkdzBS.push_back(trk.dz(beamSpotPosition));
+          nt.trkdxyError.push_back(trk.dxyError());             
+          nt.trkdzError.push_back(trk.dzError());   
+          nt.trkValidHits.push_back(trk.numberOfValidHits());                     
+          nt.trkMissHits.push_back(trk.numberOfLostHits());  
+          nt.trkPurity.push_back(trk.quality(reco::Track::highPurity));         
+          if((&trk - &tracks.at(0)) == probe1_idx) probe1_match = true;
+          if((&trk - &tracks.at(0)) == probe2_idx) probe2_match = true;
+          if((&trk - &tracks.at(0)) == probe3_idx) probe3_match = true;
+          if((&trk - &tracks.at(0)) == tag_idx) tag_match = true;
+          nt.trk_isFirstProbe.push_back(probe1_match);
+          nt.trk_isSecondProbe.push_back(probe2_match);
+          nt.trk_isThirdProbe.push_back(probe3_match);
+          nt.trkisTag.push_back(tag_match);
+          }           
+       }
 
 
 #endif

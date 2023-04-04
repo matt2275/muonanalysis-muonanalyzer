@@ -8,13 +8,69 @@
                 "dataset": "/GammaGammatoMuMu_5p02TeV_STARlight/HINPbPbAutumn18DR-NoPU_103X_upgrade2018_realistic_HI_v11-v2/AODSIM",
                 "globalTag": "103X_upgrade2018_realistic_HI_v11"
             },
-            "TauTau": {
+            "MuMuGamma": {
+                "dataset": "/gammaUPCmumuFSR/ajofrehe-gammaUPCmumuFSR-lowPtPhoton-ab88f6a9dde6b509a1fe1e1c1ef68448/USER",
+                "globalTag": "auto:phase1_2018_realistic_hi"
+            },
+            "MuMuGamma_OLD": {
+                "dataset": "/GammaGammatoMuMu_5p02TeV_gammaUPCEDFF-pLHE-v1/comm_luminosity-GammaGammatoMuMu_5p02TeV_gammaUPCEDFF_AODSIM-v1-9d6276cdc6045615bacf105699937a6f/USER",
+                "globalTag": "auto:phase1_2018_realistic_hi"
+            },
+            "MuMuPrivate": {
+                "dataset": "/GammaGamma2MuMu_GENSIM_woPtCut_PbPb5TeV_v1/shuaiy-STARlight_GammaGamma2MuMu_Reco_woPtCut_PbPb5TeV_v1-b447df81a372bf861abc60046f44f8bd/USER",
+                "globalTag": "auto:phase1_2018_realistic_hi"
+            },
+            "TauTauMadgraph": {
                 "dataset": "/ggTauTau_TuneCP5_5p02TeV_amcatnlo_pythia8/HINPbPbAutumn18DR-NoPUlowPtPhotonReg_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v2/AODSIM",
                 "globalTag": "103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2"
             },
-            "EE": {
+            "TauTauSuperChic": {
+                "dataset": "/ggTauTau_TuneCP5_5p02TeV_SuperChic_pythia8/HINPbPbAutumn18DR-NoPUlowPtPhotonReg_LbyL_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v2/AODSIM",
+                "globalTag": "103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2"
+            },
+            "TauTauBSM1": {
+                "dataset": "/ggTauTau_atau_m0p01_dtau_0p0_TuneCP5_5p02TeV_amcatnlo_pythia8/HINPbPbAutumn18DR-NoPUlowPtPhotonReg_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v2/AODSIM",
+                "globalTag": "103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2"
+            },
+            "TauTauBSM2": {
+                "dataset": "/ggTauTau_atau_0p005_dtau_0p0_TuneCP5_5p02TeV_amcatnlo_pythia8/HINPbPbAutumn18DR-NoPUlowPtPhotonReg_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v2/AODSIM",
+                "globalTag": "103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2"
+            },
+            "TauTauGammaUPC_ChFF": {
+                "dataset": "/GammaGammatoTauTau_5p02TeV_gammaUPCChFF-pLHE-v3/comm_luminosity-GammaGammatoTauTau_5p02TeV_gammaUPCChFF_AODSIM-v3-9d6276cdc6045615bacf105699937a6f/USER",
+                "globalTag": "auto:phase1_2018_realistic_hi"
+            },
+            "TauTauGammaUPC_ChFF_kTSmearing": {
+                "dataset": "/GammaGammatoTauTau_5p02TeV_gammaUPCChFFkTSmearing-pLHE-v1/comm_luminosity-GammaGammatoTauTau_5p02TeV_gammaUPCChFFkTSmearing_AODSIM-v1-9d6276cdc6045615bacf105699937a6f/USER",
+                "globalTag": "auto:phase1_2018_realistic_hi"
+            },
+            "TauTauGammaUPC_EDFF": {
+                "dataset": "/GammaGammatoTauTau_5p02TeV_gammaUPCEDFF-pLHE-v1/comm_luminosity-GammaGammatoTauTau_5p02TeV_gammaUPCEDFF_AODSIM-v1-9d6276cdc6045615bacf105699937a6f/USER",
+                "globalTag": "auto:phase1_2018_realistic_hi"
+            },
+            "TauTauGammaUPC_EDFF_kTSmearing": {
+                "dataset": "/GammaGammatoTauTau_5p02TeV_gammaUPCEDFFkTSmearing-pLHE-v1/comm_luminosity-GammaGammatoTauTau_5p02TeV_gammaUPCEDFFkTSmearing_AODSIM-v1-9d6276cdc6045615bacf105699937a6f/USER",
+                "globalTag": "auto:phase1_2018_realistic_hi"
+            },
+            "EEStarlight": {
                 "dataset": "/QEDGammaGamma_5p02TeV_STARlight/HINPbPbAutumn18DR-NoPUlowPtPhotonReg_LbyL_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v5/AODSIM",
                 "globalTag": "103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2"
+            },
+            "EESuperChic": {
+                "dataset": "/QEDGammaGamma_5p02TeV_SuperChic/HINPbPbAutumn18DR-NoPUlowPtPhotonReg_LbyL_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2-v4/AODSIM",
+                "globalTag": "103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2"
+            },
+            "BBbar": {
+                "dataset": "/ggBBbar_4f_TuneCP5_5p02TeV_MG5_aMCatNLO_pythia8/HINPbPbAutumn18DR-NoPUlowPtPhotonReg_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2_ext1-v2/AODSIM",
+                "globalTag": "103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2"
+            },
+            "CCbar": {
+                "dataset": "/ggCCbar_TuneCP5_5p02TeV_MG5_aMCatNLO_pythia8/HINPbPbAutumn18DR-NoPUlowPtPhotonReg_103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2_ext1-v2/AODSIM",
+                "globalTag": "103X_upgrade2018_realistic_HI_LowPtPhotonReg_v2"
+            },
+            "JPsi": {
+                "dataset": "/JPsi_pThat-2_TuneCP5_HydjetDrumMB_5p02TeV_Pythia8/HINPbPbAutumn18DR-mva98_103X_upgrade2018_realistic_HI_v11-v1/AODSIM",
+                "globalTag": "103X_upgrade2018_realistic_HI_v11"
             },
             "Run2018": {
                 "dataset": "/HIForward/HIRun2018A-ForLByL-v2/AOD",

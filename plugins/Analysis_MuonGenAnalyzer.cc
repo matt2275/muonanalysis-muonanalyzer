@@ -1,8 +1,31 @@
 #include "Analysis_MuonGenAnalyzer.h"
+#include <vector>
 
 Analysis_MuonGenAnalyzer::Analysis_MuonGenAnalyzer(){};
 
 Analysis_MuonGenAnalyzer::~Analysis_MuonGenAnalyzer(){};
+
+void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_AllGenParticles(Analysis_NtupleContent& nt,const edm::Event& iEvent,
+                                const edm::EDGetTokenT<edm::View<reco::GenParticle>>& gens_){
+                                   
+    nt.nGen = gens->size();
+    for (unsigned int i = 0; i < gens->size() ; i++) {
+          auto gen = gens->at(i);
+          nt.gen_pdgId.push_back(gen.pdgId());
+          nt.gen_pT.push_back(gen.pt());
+          nt.gen_eta.push_back(gen.eta());
+          nt.gen_phi.push_back(gen.phi()); 
+          nt.gen_charge.push_back(gen.charge());
+          nt.gen_mass.push_back(gen.mass());  
+          nt.gen_vtx_x.push_back(gen.vx());
+          nt.gen_vtx_y.push_back(gen.vy());
+          nt.gen_vtx_z.push_back(gen.vz()); 
+          nt.gen_status.push_back(gen.status());
+          nt.gen_E.push_back(gen.energy());
+          nt.gen_Et.push_back(gen.et());    
+    }       
+}
+
 
 void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_MuMu(Analysis_NtupleContent& nt,const edm::Event& iEvent,
                                 const edm::EDGetTokenT<edm::View<reco::GenParticle>>& gens_) {
@@ -24,19 +47,7 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_MuMu(Analysis_NtupleConten
        nt.indep_phi = gen.phi();
        nt.indep_mass = gen.mass();       
     }
-
-    nt.gen_pdgId.push_back(gen.pdgId());
-    nt.gen_pT.push_back(gen.pt());
-    nt.gen_eta.push_back(gen.eta());
-    nt.gen_phi.push_back(gen.phi()); 
-    nt.gen_charge.push_back(gen.charge());
-    nt.gen_mass.push_back(gen.mass());  
-    nt.gen_vtx_x.push_back(gen.vx());
-    nt.gen_vtx_y.push_back(gen.vy());
-    nt.gen_vtx_z.push_back(gen.vz()); 
-    nt.gen_status.push_back(gen.status());
-    nt.gen_E.push_back(gen.energy());
-    nt.gen_Et.push_back(gen.et());    
+   
     if (fabs(gen.pdgId()) != 13)
       continue;
 
@@ -157,19 +168,7 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_EE(Analysis_NtupleContent&
        nt.indep_phi = gen.phi();
        nt.indep_mass = gen.mass();       
     }
-    
-    nt.gen_pdgId.push_back(gen.pdgId());
-    nt.gen_pT.push_back(gen.pt());
-    nt.gen_eta.push_back(gen.eta());
-    nt.gen_phi.push_back(gen.phi()); 
-    nt.gen_charge.push_back(gen.charge());
-    nt.gen_mass.push_back(gen.mass());  
-    nt.gen_vtx_x.push_back(gen.vx());
-    nt.gen_vtx_y.push_back(gen.vy());
-    nt.gen_vtx_z.push_back(gen.vz()); 
-    nt.gen_status.push_back(gen.status());
-    nt.gen_E.push_back(gen.energy());
-    nt.gen_Et.push_back(gen.et());  
+     
     if (fabs(gen.pdgId()) != 11)
       continue;
 
@@ -287,8 +286,11 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_TauTau(Analysis_NtupleCont
   float other_index1_pt = 0;
   float other_index2_pt = 0;
   int a[] = {11, 13, 211, 111};
+  int final_parts[] = {11,13,211,111,12,14,16};
   int tau_index1 = -99;
   int tau_index2 = -99;
+  std::vector<int> tau_3prong_index1;
+  std::vector<int> tau_3prong_index2;
   int tau_plus_mu = 0;
   int tau_plus_e = 0;
   int tau_plus_pi_plus = 0;
@@ -320,7 +322,8 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_TauTau(Analysis_NtupleCont
     }
        // std::cout << " pdgID " << genID << " status " << gen.status() << " charge " << gen.charge() << " pt " << gen.pt() << " eta " 
        // << gen.eta()<< "phi " << gen.phi() << " vx " <<  gen.vx() << " vy " <<  gen.vy() << " vz " <<  gen.vz() <<std::endl;
-    if(abs(genID) ==15){
+
+         if(abs(genID) ==15){
        const reco::Candidate* mother_tmp = gen.mother();
        if (abs(mother_tmp->pdgId()) != 15){
        
@@ -331,7 +334,7 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_TauTau(Analysis_NtupleCont
     }
     // if(genID==15 && gen.status()==2) tau_index1 = i;
     // if(genID==-15 && gen.status()==2) tau_index2 = i;
-    if(gen.status() != 1 ) continue;
+    if(gen.status() != 1 ){
     if(gen.pt() > other_index1_pt && gen.charge() < 0){
        other_index1 = i;
        other_index1_pt = gen.pt();
@@ -339,6 +342,55 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_TauTau(Analysis_NtupleCont
     if(gen.pt() > other_index2_pt && gen.charge() > 0){
        other_index2 = i;
        other_index2_pt = gen.pt();
+    }
+    }
+    if(status != 1 and status != 2) continue;
+        bool has_final_part = std::find(std::begin(final_parts), std::end(final_parts), fabs(genID)) != std::end(final_parts);
+    if(has_final_part){
+          const reco::Candidate* mother_tmp = gen.mother();
+      int max_depth =0 ;
+      while(mother_tmp){
+      if(mother_tmp->pdgId()== 15 && mother_tmp->status() == 2){
+             nt.nGen_tau1++;
+             nt.gen_pdgId_tau1.push_back(gen.pdgId());
+             nt.gen_pT_tau1.push_back(gen.pt());
+             nt.gen_eta_tau1.push_back(gen.eta());
+             nt.gen_phi_tau1.push_back(gen.phi()); 
+             nt.gen_charge_tau1.push_back(gen.charge());
+             nt.gen_mass_tau1.push_back(gen.mass());  
+             nt.gen_vtx_x_tau1.push_back(gen.vx());
+             nt.gen_vtx_y_tau1.push_back(gen.vy());
+             nt.gen_vtx_z_tau1.push_back(gen.vz()); 
+             nt.gen_status_tau1.push_back(gen.status());
+             nt.gen_E_tau1.push_back(gen.energy());
+             nt.gen_Et_tau1.push_back(gen.et()); 
+             break;
+                    
+      }
+      
+      
+      if(mother_tmp->pdgId()== -15 && mother_tmp->status() == 2){
+             nt.nGen_tau2++;
+             nt.gen_pdgId_tau2.push_back(gen.pdgId());
+             nt.gen_pT_tau2.push_back(gen.pt());
+             nt.gen_eta_tau2.push_back(gen.eta());
+             nt.gen_phi_tau2.push_back(gen.phi()); 
+             nt.gen_charge_tau2.push_back(gen.charge());
+             nt.gen_mass_tau2.push_back(gen.mass());  
+             nt.gen_vtx_x_tau2.push_back(gen.vx());
+             nt.gen_vtx_y_tau2.push_back(gen.vy());
+             nt.gen_vtx_z_tau2.push_back(gen.vz()); 
+             nt.gen_status_tau2.push_back(gen.status());
+             nt.gen_E_tau2.push_back(gen.energy());
+             nt.gen_Et_tau2.push_back(gen.et()); 
+             break;
+                   
+      }
+        if(max_depth > 2) break;
+        max_depth ++;
+        mother_tmp = mother_tmp->mother(); 
+     }
+
     }
     bool exists = std::find(std::begin(a), std::end(a), fabs(genID)) != std::end(a);
     if(!exists) continue;   
@@ -351,9 +403,12 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_TauTau(Analysis_NtupleCont
              if(genID == 211) tau_minus_pi_plus++;
              if(genID == -211) tau_minus_pi_minus++;             
              if(genID == 111) tau_minus_pi0++;
+             if(fabs(genID)==211) tau_3prong_index1.push_back(i);
              if(gen.pt() > index1_pt  && gen.charge() < 0){
              index1=i;
              index1_pt = gen.pt();
+             
+             
              }
           }
           if(mother_tmp->pdgId() == -15){
@@ -362,6 +417,7 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_TauTau(Analysis_NtupleCont
              if(genID == 211) tau_plus_pi_plus++;
              if(genID == -211) tau_plus_pi_minus++;             
              if(genID == 111) tau_plus_pi0++;
+             if(fabs(genID)==211) tau_3prong_index2.push_back(i);
              if(gen.pt() > index2_pt  && gen.charge() > 0){
              index2=i;
              index2_pt = gen.pt();
@@ -374,18 +430,7 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_TauTau(Analysis_NtupleCont
    }
  
 
-    nt.gen_pdgId.push_back(gen.pdgId());
-    nt.gen_pT.push_back(gen.pt());
-    nt.gen_eta.push_back(gen.eta());
-    nt.gen_phi.push_back(gen.phi()); 
-    nt.gen_charge.push_back(gen.charge());
-    nt.gen_mass.push_back(gen.mass());  
-    nt.gen_vtx_x.push_back(gen.vx());
-    nt.gen_vtx_y.push_back(gen.vy());
-    nt.gen_vtx_z.push_back(gen.vz()); 
-    nt.gen_status.push_back(gen.status());
-    nt.gen_E.push_back(gen.energy());
-    nt.gen_Et.push_back(gen.et());
+
     
   }
 
@@ -440,18 +485,37 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_TauTau(Analysis_NtupleCont
   if (index1 >= 0 && index2 >= 0 ) {
     auto gen1 = gens->at(index1);
     auto gen2 = gens->at(index2);
-    gmuon1.SetPtEtaPhiM(gen1.pt(), gen1.eta(), gen1.phi(), gen1.mass());
-    gmuon2.SetPtEtaPhiM(gen2.pt(), gen2.eta(), gen2.phi(), gen2.mass());
+    gmuon1.SetPtEtaPhiM(0, 0, 0, 0);
+    gmuon2.SetPtEtaPhiM(0, 0, 0, 0);
+    if(nt.gentau1_decay_3prong){
+       for(int gen_index : tau_3prong_index1){
+          TLorentzVector tmp_vec;
+          auto tmp_gen = gens->at(gen_index);
+          tmp_vec.SetPtEtaPhiM(tmp_gen.pt(), tmp_gen.eta(), tmp_gen.phi(), tmp_gen.mass());
+          gmuon1 = gmuon1 + tmp_vec;
+       }
+    }
+    if(!nt.gentau1_decay_3prong)    gmuon1.SetPtEtaPhiM(gen1.pt(), gen1.eta(), gen1.phi(), gen1.mass());
+    if(nt.gentau2_decay_3prong){
+       for(int gen_index : tau_3prong_index2){
+          TLorentzVector tmp_vec;
+          auto tmp_gen = gens->at(gen_index);
+          tmp_vec.SetPtEtaPhiM(tmp_gen.pt(), tmp_gen.eta(), tmp_gen.phi(), tmp_gen.mass());
+          gmuon2 = gmuon2 + tmp_vec;
+       }
+    }
+    if(!nt.gentau2_decay_3prong)    gmuon2.SetPtEtaPhiM(gen2.pt(), gen2.eta(), gen2.phi(), gen2.mass());
     nt.gentrk1_pt = gmuon1.Pt();
     nt.gentrk1_eta = gmuon1.Eta();
     nt.gentrk1_phi = gmuon1.Phi();
     nt.gentrk1_vtx_x = gen1.vx();
     nt.gentrk1_vtx_y = gen1.vy();
     nt.gentrk1_vtx_z = gen1.vz();
-    nt.gentrk1_px = gen1.px();
-    nt.gentrk1_py = gen1.py();
-    nt.gentrk1_pz = gen1.pz();
+    nt.gentrk1_px = gmuon1.Px();
+    nt.gentrk1_py = gmuon1.Py();
+    nt.gentrk1_pz = gmuon1.Pz();
     nt.gentrk1_charge = gen1.charge();
+    nt.gentrk1_M = gmuon1.M();
     nt.gentrk1_pdgId = gen1.pdgId();
     nt.gentrk2_pt = gmuon2.Pt();
     nt.gentrk2_eta = gmuon2.Eta();
@@ -459,10 +523,11 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_TauTau(Analysis_NtupleCont
     nt.gentrk2_vtx_x = gen2.vx();
     nt.gentrk2_vtx_y = gen2.vy();
     nt.gentrk2_vtx_z = gen2.vz();
-    nt.gentrk2_px = gen2.px();
-    nt.gentrk2_py = gen2.py();
-    nt.gentrk2_pz = gen2.pz();
+    nt.gentrk2_px = gmuon2.Px();
+    nt.gentrk2_py = gmuon2.Py();
+    nt.gentrk2_pz = gmuon2.Pz();
     nt.gentrk2_charge = gen2.charge();
+    nt.gentrk2_M = gmuon2.M();
     nt.gentrk2_pdgId = gen2.pdgId();
     nt.genFinalMass = (gmuon1 + gmuon2).M();
     nt.genFinalPt = (gmuon1 + gmuon2).Pt();
@@ -589,18 +654,6 @@ void Analysis_MuonGenAnalyzer::SetInputsandFillNtuple_Other(Analysis_NtupleConte
   for (unsigned int i = 0; i < gens->size() ; i++) {
 
     auto gen = gens->at(i);
-    nt.gen_pdgId.push_back(gen.pdgId());
-    nt.gen_pT.push_back(gen.pt());
-    nt.gen_eta.push_back(gen.eta());
-    nt.gen_phi.push_back(gen.phi()); 
-    nt.gen_charge.push_back(gen.charge());
-    nt.gen_mass.push_back(gen.mass());  
-    nt.gen_vtx_x.push_back(gen.vx());
-    nt.gen_vtx_y.push_back(gen.vy());
-    nt.gen_vtx_z.push_back(gen.vz()); 
-    nt.gen_status.push_back(gen.status());
-    nt.gen_E.push_back(gen.energy());
-    nt.gen_Et.push_back(gen.et());  
     // if (fabs(gen.pdgId()) != 11)
       // continue;
 

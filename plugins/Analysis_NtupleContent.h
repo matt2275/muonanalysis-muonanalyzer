@@ -16,13 +16,23 @@ class Analysis_NtupleContent {
 public:
   Analysis_NtupleContent();
   virtual ~Analysis_NtupleContent();
+  void SetTreeVariables(bool, bool,bool, bool, bool, bool, bool);
   void SetTree(TTree *t1); 
   void CreateBranches(const std::vector<std::string> &, const std::vector<std::string> &);
   void SetTree_GenVtxStudy(TTree *t2);
   void SetTree_Test(TTree *t3);  
   void CreateBranches_GenVtxStudy(); 
   void CreateExtraTrgBranches(const std::vector<std::string> &, bool);
+  void CreateExtraTrgBranches_3prong(const std::vector<std::string> &, bool);
+  void SetTree_3ProngStudy(TTree *t4);
+  void CreateBranches_3ProngStudy(const std::vector<std::string> &, const std::vector<std::string> &);
+  void SetTree_EfficiencyTree(TTree *Eff_Tree);
+  void CreateBranches_EfficiencyTree(const std::vector<std::string> &, const std::vector<std::string> &);
+  void CreateExtraTrgBranches_EfficiencyTree(const std::vector<std::string> &, bool);  
   void ClearBranches();
+  void ClearVectors();
+
+
 
   // Standard stuff
   int CutThrough_Num;
@@ -55,10 +65,39 @@ public:
    std::vector<float> gen_vtx_x;
    std::vector<float> gen_vtx_y;
    std::vector<float> gen_vtx_z;
-   //NEW
    std::vector<int> gen_status;
    std::vector<float> gen_E;
    std::vector<float> gen_Et;
+   
+   int nGen_tau1;
+   std::vector<int> gen_pdgId_tau1;
+   std::vector<float> gen_pT_tau1;
+   std::vector<float> gen_eta_tau1;
+   std::vector<float> gen_phi_tau1; 
+   std::vector<int> gen_charge_tau1;
+   std::vector<float> gen_mass_tau1;  
+   std::vector<float> gen_vtx_x_tau1;
+   std::vector<float> gen_vtx_y_tau1;
+   std::vector<float> gen_vtx_z_tau1;
+   std::vector<int> gen_status_tau1;
+   std::vector<float> gen_E_tau1;
+   std::vector<float> gen_Et_tau1;
+   
+   
+   int nGen_tau2;
+   std::vector<int> gen_pdgId_tau2;
+   std::vector<float> gen_pT_tau2;
+   std::vector<float> gen_eta_tau2;
+   std::vector<float> gen_phi_tau2; 
+   std::vector<int> gen_charge_tau2;
+   std::vector<float> gen_mass_tau2;  
+   std::vector<float> gen_vtx_x_tau2;
+   std::vector<float> gen_vtx_y_tau2;
+   std::vector<float> gen_vtx_z_tau2;
+   std::vector<int> gen_status_tau2;
+   std::vector<float> gen_E_tau2;
+   std::vector<float> gen_Et_tau2;
+
    
   // Pileup
   float trueNumInteractions;
@@ -119,6 +158,7 @@ public:
   float gentrk1_eta;
   float gentrk1_phi;
   float gentrk1_charge;
+  float gentrk1_M;
   float gentrk1_vtx_x;
   float gentrk1_vtx_y;
   float gentrk1_vtx_z;
@@ -130,6 +170,7 @@ public:
   float gentrk2_eta;
   float gentrk2_phi;
   float gentrk2_charge;
+  float gentrk2_M;
   float gentrk2_vtx_x;
   float gentrk2_vtx_y;
   float gentrk2_vtx_z;
@@ -550,12 +591,20 @@ public:
   std::vector<float> pfcand_vtx_z;   
   
    int nTower;
+   float maxHFp;
+   float maxHFm;
    std::vector<float> CaloTower_hadE;
    std::vector<float> CaloTower_emE;
    std::vector<float> CaloTower_e;
    std::vector<float> CaloTower_et;
    std::vector<float> CaloTower_eta;
    std::vector<float> CaloTower_phi;
+   std::vector<bool> CaloTower_HF_AboveThreshold;
+   std::vector<bool> CaloTower_Had_AboveThreshold;
+   std::vector<bool> CaloTower_EM_AboveThreshold;
+   std::vector<bool> CaloTower_HF_inNoiseRegion;
+   std::vector<bool> CaloTower_Had_inNoiseRegion;
+   std::vector<bool> CaloTower_EM_inNoiseRegion;
   
   int ZDC_n;
   float  ZDC_e[18];
@@ -570,10 +619,136 @@ public:
   float  ZDC_M_Total_Energy;
   float  ZDC_M_ECal_Energy;
   float  ZDC_M_HCal_Energy; 
+  
+  //Photon info
+  int nPho;
+  
+   std::vector<float>  phoE;
+   std::vector<float>  phoEt;
+   std::vector<float>  phoEta;
+   std::vector<float>  phoPhi;
+
+   std::vector<float>  phoEcorrStdEcal;
+   std::vector<float>  phoEcorrPhoEcal;
+   std::vector<float>  phoEcorrRegr1;
+   std::vector<float>  phoEcorrRegr2;
+   std::vector<float>  phoEcorrErrStdEcal;
+   std::vector<float>  phoEcorrErrPhoEcal;
+   std::vector<float>  phoEcorrErrRegr1;
+   std::vector<float>  phoEcorrErrRegr2;
+
+   std::vector<float>  phoSCE;
+   std::vector<float>  phoSCEt;
+   std::vector<float>  phoSCRawE;
+   std::vector<float>  phoSCEta;
+   std::vector<float>  phoSCPhi;
+   std::vector<float>  phoSCEtaWidth;
+   std::vector<float>  phoSCPhiWidth;
+   std::vector<float>  phoSCBrem;
+   std::vector<int>    phoSCnHits;
+   std::vector<uint32_t> phoSCflags;
+   std::vector<int>    phoSCinClean;
+   std::vector<int>    phoSCinUnClean;
+   std::vector<int>    phoSCnBC;
+   std::vector<float>  phoESEn;
+
+   std::vector<int>    phoIsPFPhoton;
+   std::vector<int>    phoIsStandardPhoton;
+   std::vector<int>    phoHasPixelSeed;
+   std::vector<int>    phoHasConversionTracks;
+// std::vector<int>    phoEleVeto;         // TODO: not available in reco::
+   std::vector<float>  phoHadTowerOverEm;
+   std::vector<float>  phoHoverE;
+   std::vector<int>    phoHoverEValid;
+   std::vector<float>  phoSigmaIEtaIEta;
+   std::vector<float>  phoR9;
+  
+  //probe types
+  bool probe_isMuon;
+  bool probe_isElectron;
+  bool probe_isPion;
+  bool probe_isOther;
+  int probe_typeSum;
+  
+  
+  
+  // 3 prong things
+  
+  
+  int iprobe_3prong;
+  int npairs_3prong;
+  
+  float  tau_3prong_trk1_pt;
+  float  tau_3prong_trk1_eta;
+  float  tau_3prong_trk1_phi;
+  int tau_3prong_trk1_charge;
+  float  tau_3prong_trk1_vtx_x;
+  float  tau_3prong_trk1_vtx_y;
+  float  tau_3prong_trk1_vtx_z;
+        
+  float  tau_3prong_trk2_pt;
+  float  tau_3prong_trk2_eta;
+  float  tau_3prong_trk2_phi;
+  int  tau_3prong_trk2_charge;
+  float  tau_3prong_trk2_vtx_x;
+  float  tau_3prong_trk2_vtx_y;
+  float  tau_3prong_trk2_vtx_z;
+     
+  float  tau_3prong_trk3_pt;
+  float  tau_3prong_trk3_eta;
+  float  tau_3prong_trk3_phi;
+  int  tau_3prong_trk3_charge;
+  float  tau_3prong_trk3_vtx_x;
+  float  tau_3prong_trk3_vtx_y;
+  float  tau_3prong_trk3_vtx_z;
+        
+  float  tau_3prong_total_pt;
+  float  tau_3prong_total_eta;
+  float  tau_3prong_total_phi;
+  float  tau_3prong_total_M;
+  float  tau_3prong_total_pt_sum;
+  int    tau_3prong_total_charge;
+  float  tau_3prong_total_Dz;
+  float  tau_3prong_total_vtx_x;
+  float  tau_3prong_total_vtx_y;
+  float  tau_3prong_total_vtx_z;
+  float  tau_3prong_total_vtx_prob;
+  float  tau_3prong_total_vtx_chi2;
+  float  tau_3prong_DR_1_2;
+  float  tau_3prong_DR_1_3;
+  float  tau_3prong_DR_2_3;
+  float  tau_3prong_DR_tag_1;
+  float  tau_3prong_DR_tag_2;
+  float  tau_3prong_DR_tag_3;
+  float  tau_3prong_total_area;
+  
+  
+  std::vector<bool>  pfcand_isFirstProbe;
+  std::vector<bool>  pfcand_isSecondProbe;
+  std::vector<bool>  pfcand_isThirdProbe;
+ 
+  std::vector<bool>  trk_isFirstProbe;
+  std::vector<bool>  trk_isSecondProbe;
+  std::vector<bool>  trk_isThirdProbe;
+ 
+  int pair_rank_vtx_prob_3prong;
+  int pair_rank_dPhi_muons_3prong;
+  int pair_rank_Mass_Mmumu_3prong;
+
 
 private:
   TTree *t1;
   TTree *t2;
   TTree *t3;
+  TTree *t4;
+  TTree *Eff_Tree;
+  
+  bool keepMuons= true ;
+  bool keepElectrons= true ;
+  bool keepTracks = true ;
+  bool keepPFcands= true ;
+  bool keepPhotons= true ;
+  bool keepCaloTowers= true ;
+  bool keepZDC= true ;
 };
 #endif

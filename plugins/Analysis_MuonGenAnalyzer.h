@@ -20,6 +20,7 @@ public:
   Analysis_MuonGenAnalyzer();
   virtual ~Analysis_MuonGenAnalyzer();
 
+  void SetInputsandFillNtuple_AllGenParticles(Analysis_NtupleContent &, const edm::Event &, const edm::EDGetTokenT<edm::View<reco::GenParticle>> &);
   void SetInputsandFillNtuple_MuMu(Analysis_NtupleContent &, const edm::Event &, const edm::EDGetTokenT<edm::View<reco::GenParticle>> &);
   void SetInputsandFillNtuple_EE(Analysis_NtupleContent &, const edm::Event &, const edm::EDGetTokenT<edm::View<reco::GenParticle>> &);
   void SetInputsandFillNtuple_TauTau(Analysis_NtupleContent &, const edm::Event &, const edm::EDGetTokenT<edm::View<reco::GenParticle>> &);

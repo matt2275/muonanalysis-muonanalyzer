@@ -56,7 +56,9 @@ def muonAnalysis_customizeHIUPCStandAloneFullAOD_JPsi(process):
    return process
    
 def muonAnalysis_customizeHIUPCStandAloneFullAOD_Analysis(process):
-   process.load("MuonAnalysis.MuonAnalyzer.HIUPC_fullAOD_Analysis_cff")
+   # process.load("MuonAnalysis.MuonAnalyzer.HIUPC_fullAOD_Analysis_cff")
+   process.load("MuonAnalysis.MuonAnalyzer.HIUPC_fullAOD_Analysis_3prong_cff")
+   # process.load("MuonAnalysis.MuonAnalyzer.HIUPC_fullAOD_Analysis_GenEfficiency_cff")
    process.muSequence = cms.Sequence(process.fullAODSequence)
    return process
 

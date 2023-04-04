@@ -17,7 +17,7 @@ void MuonGenAnalyzer::SetInputs(const edm::Event& iEvent,
   bool foundFSfromHP2 = false;
   gmuonFSfromHP1.SetPtEtaPhiM(0, 0, 0, 0);
   gmuonFSfromHP2.SetPtEtaPhiM(0, 0, 0, 0);
-  for (const auto& gen : *gens) {     
+  for (const auto& gen : *gens) {
     if (fabs(gen.pdgId()) != 13)
       continue;
 
@@ -47,11 +47,11 @@ void MuonGenAnalyzer::SetInputs(const edm::Event& iEvent,
     // look for final state muons
     if (gen.status() != 1)
       continue;
-
+ 
     bool fromSameMother = false;
     const reco::Candidate* mother_tmp = gen.mother();
     while (mother_tmp) {
-       std::cout << "mother_tmp " << mother_tmp << std::endl;
+                                                             
       if (mother_tmp->pdgId() == momPdg_) {
         // if there are more than 2 resonances, take the first one for now...
         if (mother1st == nullptr) {
@@ -63,8 +63,8 @@ void MuonGenAnalyzer::SetInputs(const edm::Event& iEvent,
       mother_tmp = mother_tmp->mother();
     }
     
-    // UPC MC has no mother since from photon scattering I guess
-    if (!fromSameMother && gen.numberOfMothers()!=0)
+                                                                
+    if (!fromSameMother)
       continue;
 
     if (gen.charge() < 0.) {

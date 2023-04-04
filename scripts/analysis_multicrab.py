@@ -1,6 +1,17 @@
 #!/usr/bin/env python
 
 """
+Example of running code from local directory
+$ cmsenv
+$ voms-proxy-init --voms cms
+$ source /cvmfs/cms.cern.ch/common/crab-setup.sh 
+$ python analysis_multicrab.py -c submit -r HIUPC -e Run2018 -d AOD -s EESuperChic -t mc -k CERNBOX
+
+
+"""
+
+
+"""
 This is a small script that does the equivalent of multicrab.
 """
 
@@ -216,7 +227,11 @@ def main():
         config.JobType.psetName = configFile
         config.JobType.numCores = numThreads
         config.JobType.allowUndistributedCMSSW = True
-        #config.JobType.maxMemoryMB = 4000
+        config.JobType.maxMemoryMB = 4000
+        
+        # For getting Gen Efficiency
+        
+        # config.Data.totalUnits = 50
 
         config.Data.publication = False
         config.Data.allowNonValidInputDataset = True # for validation samples
@@ -232,15 +247,19 @@ def main():
         elif storageSite == 'CERNBOX':
             # See https://twiki.cern.ch/twiki/bin/view/CMSPublic/CRAB3FAQ#Can_I_send_CRAB_output_to_CERNBO
             config.Site.storageSite = 'T3_CH_CERNBOX'
-            config.Data.outLFNDirBase = '/store/user/%s/TestAODminiAOD/TnP_ntuples/%s/%s/%s/%s' % (getUsername(), particle, resonance, era, dataTier)
+            config.Data.outLFNDirBase = '/store/user/%s/CrabOut_MultiTag/TnP_ntuples/%s/%s/%s/%s' % (getUsername(), particle, resonance, era, dataTier)
+            # config.Data.outLFNDirBase = '/store/user/%s/GenEffStudy/TnP_ntuples/%s/%s/%s/%s' % (getUsername(), particle, resonance, era, dataTier)
 
-        #config.Site.ignoreGlobalBlacklist = True
+        config.Site.ignoreGlobalBlacklist = True
         #config.Data.ignoreLocality = True
         #config.Site.whitelist = ['T2_US_*']
         #config.Site.blacklist = ['T2_FI_HIP']
 
         #--------------------------------------------------------
-
+        
+        # if (subEra == "MuMuGamma" or subEra == "MuMuPrivate"):
+        if any(sample_name in subEra for sample_name in ["MuMuGamma","MuMuPrivate","GammaUPC"]):
+            config.Data.inputDBS = 'phys03'
         if options.eraDB != '':
             if not os.path.isfile(options.eraDB):
                 print 'Error!! database file "{}" does not exist. Please check argument.'.format(options.eraDB)
@@ -273,7 +292,7 @@ def main():
             globalTag = subera_cfg['globalTag'] if 'globalTag' in subera_cfg else ''
             input_dataset = subera_cfg['dataset']
             datatier = input_dataset.split('/')[-1]
-            if 'AOD' not in datatier or 'NANOAOD' in datatier:
+            if ('AOD' not in datatier or 'NANOAOD' in datatier) and not any(sample_name in subEra for sample_name in ["MuMuGamma","MuMuPrivate","GammaUPC"]):
                 print 'Input dataset is not AOD(SIM) or MINIAOD(SIM). Ignoring...'
                 continue
             isFullAOD = False if 'MINIAOD' in datatier else True
@@ -284,6 +303,8 @@ def main():
             # if sampleType is data_dm, submit only DoubleMuon datasets
             isDataDM = ('Run' in subera_name and 'DM' in subera_name)
             if doDataDM and not isDataDM: continue
+
+
 
             config.Data.lumiMask = ''
             if isData:
@@ -298,26 +319,28 @@ def main():
                 else:
                     if '2018' in era:
                         # config.Data.lumiMask = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/ReReco/Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt'
-                        config.Data.lumiMask = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/HI/PromptReco/Cert_326381-327564_HI_PromptReco_Collisions18_JSON_HF_and_MuonPhys.txt'
+                        # config.Data.lumiMask = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/HI/PromptReco/Cert_326381-327564_HI_PromptReco_Collisions18_JSON_HF_and_MuonPhys.txt'
+                        config.Data.lumiMask = '/afs/cern.ch/user/m/mnickel/private/MUONPDG/CMSSW_10_6_18/src/MuonAnalysis/MuonAnalyzer/scripts/Cert_326381-326859_HI_PromptReco_Collisions18_JSON_HF_and_MuonPhys.txt'
                         # config.Data.lumiMask = '/afs/cern.ch/user/m/mnickel/private/MUONPDG/CMSSW_10_6_18/src/MuonAnalysis/MuonAnalyzer/job_lumis_1369.json'
                     elif '2017' in era:
                         config.Data.lumiMask = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/ReReco/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_v1.txt'
                     elif '2016' in era:
                         config.Data.lumiMask = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/ReReco/Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON.txt'
 
-                config.Data.splitting = 'Automatic' # Not working after rucio transition
-                # config.Data.splitting = options.splittingData
-                # config.Data.unitsPerJob = options.unitsPerJobData
+                # config.Data.splitting = 'Automatic' # Not working after rucio transition
+                config.Data.splitting = options.splittingData
+                config.Data.unitsPerJob = options.unitsPerJobData
 
             else:
                 config.Data.splitting = options.splittingMC
                 config.Data.unitsPerJob = options.unitsPerJobMC
             
             
-            mcType = "TauTau"
+            mcType = "Other"
             mcTypes = ["TauTau", "MuMu", "EE", "Other"]
-            if subEra in mcTypes:
-                mcType = subEra
+            for tmp_mcType in mcTypes:
+                if(tmp_mcType in subera_name):
+                   mcType = tmp_mcType
             config.JobType.pyCfgParams = [
                     'isFullAOD={}'.format(isFullAOD),
                     'isMC={}'.format(not isData),
